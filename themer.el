@@ -19,6 +19,23 @@
 ;;   `themer-render-compare' renders font-lock alone next to font-lock
 ;;   plus eglot semantic tokens, and underlines what the tokens changed.
 ;;   `themer-batch-render' does the same headlessly from the command line.
+;;
+;; `themer-reader-deftheme'  (themer-reader.el)
+;;   Themes on the reader colouring standard (research/PATTERNS.md): give
+;;   a background, a foreground and one accent per kind family, and every
+;;   salience tier is derived, checked for conformance and mapped onto
+;;   faces.  `themer-reader-check' shows the conformance report,
+;;   `themer-reader-export' writes a standalone theme, and
+;;   `themer-reader-treesit-mode' adds tree-sitter rules for exits, type
+;;   definitions, decorators, module-level bindings, constant definitions
+;;   and TODO markers.
+;;
+;; `themer-reader-new-theme', `themer-reader-edit-theme'  (themer-reader-form.el)
+;;   A form for creating and editing reader themes, with live swatches,
+;;   derived tiers, a fontified sample and the conformance checks.
+;;
+;; themer-colour.el holds the colour maths: OKLab/OKLCH, CIELAB, APCA,
+;; Szafir text distinguishability, gamut fitting and CVD simulation.
 
 ;;; Code:
 
@@ -29,6 +46,9 @@
 
 (require 'themer-preview)
 (require 'themer-render)
+(require 'themer-colour)
+(require 'themer-reader)
+(require 'themer-reader-form)
 
 (provide 'themer)
 

@@ -25,13 +25,14 @@
 ;;
 ;;   emacs --batch -l themer \
 ;;         --eval '(load-theme (quote my-theme) t)' \
-;;         -f themer-batch-render FILE OUT.svg [SETTLE-SECONDS]
+;;         -f themer-batch-render FILE OUT.svg [SETTLE-SECONDS] [LINES]
 ;;
 ;; Batch mode starts eglot itself when `eglot-server-programs' has a
 ;; server for FILE's major mode, waits SETTLE-SECONDS (default 3) for it
 ;; to index, and renders the comparison; otherwise it renders font-lock
 ;; alone.  Set up the theme, `treesit-font-lock-level', the major mode
-;; and `eglot-server-programs' with --eval or -l before -f.
+;; and `eglot-server-programs' with --eval or -l before -f.  LINES, e.g.
+;; 301-332, renders only those lines; the whole file is still parsed.
 ;;
 ;; The semantic-token half reads eglot's internal `eglot--semtok-state' to
 ;; know when tokens have arrived; it's written against the eglot that
@@ -374,14 +375,19 @@ Interactively, render the region if active, else the visible window."
 ;;;###autoload
 (defun themer-batch-render ()
   "Render a file from the command line; see the commentary for usage.
-Arguments, taken from `command-line-args-left': FILE OUT.svg [SETTLE]."
+Arguments, taken from `command-line-args-left': FILE OUT.svg [SETTLE] [LINES].
+LINES is FIRST-LAST, 1-based and inclusive."
   (unless noninteractive
     (user-error "`themer-batch-render' is for --batch use"))
   (let* ((file (expand-file-name (or (pop command-line-args-left)
-                                     (error "Usage: -f themer-batch-render FILE OUT.svg [SETTLE]"))))
+                                     (error "Usage: -f themer-batch-render FILE OUT.svg [SETTLE] [LINES]"))))
          (out (expand-file-name (or (pop command-line-args-left)
                                     (error "Missing OUT.svg"))))
-         (settle (string-to-number (or (pop command-line-args-left) "3"))))
+         (settle (string-to-number (or (pop command-line-args-left) "3")))
+         (lines (when-let* ((arg (pop command-line-args-left))
+                            ((string-match "\\`\\([0-9]+\\)-\\([0-9]+\\)\\'" arg)))
+                  (cons (string-to-number (match-string 1 arg))
+                        (string-to-number (match-string 2 arg))))))
     (with-current-buffer (find-file-noselect file)
       (require 'eglot)
       ;; `eglot-ensure' defers to `post-command-hook', which never runs in
@@ -394,11 +400,19 @@ Arguments, taken from `command-line-args-left': FILE OUT.svg [SETTLE]."
         (let ((deadline (+ (float-time) settle)))
           (while (< (float-time) deadline)
             (accept-process-output nil 0.2))))
-      (let ((panels (if (themer-render--semtok-capable-p)
-                        (themer-render--compare-panels (point-min) (point-max))
-                      (list (list (buffer-name)
-                                  (themer-render--snapshot (point-min) (point-max))
-                                  nil)))))
+      (let* ((beg (if lines (save-excursion (goto-char (point-min))
+                                            (forward-line (1- (car lines)))
+                                            (point))
+                    (point-min)))
+             (end (if lines (save-excursion (goto-char (point-min))
+                                            (forward-line (1- (cdr lines)))
+                                            (line-end-position))
+                    (point-max)))
+             (panels (if (themer-render--semtok-capable-p)
+                         (themer-render--compare-panels beg end)
+                       (list (list (buffer-name)
+                                   (themer-render--snapshot beg end)
+                                   nil)))))
         (themer-render--write (themer-render--svg panels) out)
         (message "themer: wrote %s (%s)" out
                  (if (cdr panels) "font-lock vs semantic tokens" "font-lock only")))

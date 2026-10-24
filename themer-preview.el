@@ -1,4 +1,4 @@
-;;; themer-preview.el --- Live preview for autothemer themes -*- lexical-binding: t; -*-
+;;; themer-preview.el --- Live preview for theme files -*- lexical-binding: t; -*-
 
 ;; Author: beltsmith <me@alexgirdler.com>
 ;; Package-Requires: ((emacs "29.1"))
@@ -17,8 +17,11 @@
 ;; Turning the mode off removes the swatches, and disables the theme if it
 ;; wasn't already enabled when the mode was turned on.
 ;;
-;; The swatches understand `autothemer-deftheme' forms; the live reload
-;; works for any theme file named `<name>-theme.el'.
+;; The swatches understand `autothemer-deftheme' forms, and
+;; `themer-reader-deftheme' specs: each hex string, each palette entry's
+;; name, and each slot that names a palette entry get the colour.  The live
+;; reload works for any theme file named `<name>-theme.el', or any buffer
+;; holding a `themer-reader-deftheme' form.
 
 ;;; Code:
 
@@ -35,11 +38,17 @@
   "`custom-enabled-themes' at the time `themer-preview-mode' was turned on.")
 
 (defun themer-preview--theme ()
-  "The theme this buffer defines, taken from its `<name>-theme.el' file name."
-  (when-let* ((file (buffer-file-name))
-              (name (file-name-nondirectory file))
-              ((string-match "\\`\\(.+\\)-theme\\.el\\'" name)))
-    (intern (match-string 1 name))))
+  "The theme this buffer defines.
+Taken from its `<name>-theme.el' file name, else from the name in a
+`themer-reader-deftheme' form."
+  (or (when-let* ((file (buffer-file-name))
+                  (name (file-name-nondirectory file))
+                  ((string-match "\\`\\(.+\\)-theme\\.el\\'" name)))
+        (intern (match-string 1 name)))
+      (save-excursion
+        (goto-char (point-min))
+        (when (re-search-forward "^(themer-reader-deftheme[ \t\n]+\\(\\(?:\\sw\\|\\s_\\)+\\)" nil t)
+          (intern (match-string-no-properties 1))))))
 
 (defun themer-preview--sections ()
   "Bounds of the palette and face-spec lists of the `autothemer-deftheme' form.
@@ -68,6 +77,56 @@ each row is used, and rows that don't resolve to a colour are dropped."
             (push (cons (car row) colour) env)))))
     env))
 
+(defun themer-preview--reader-bounds ()
+  "Bounds (BEG . END) of the `themer-reader-deftheme' form, or nil."
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "^(themer-reader-deftheme\\_>" nil t)
+      (let ((beg (match-beginning 0)))
+        (ignore-errors (cons beg (scan-sexps beg 1)))))))
+
+(defun themer-preview--swatch (beg end colour)
+  "Paint BEG..END with COLOUR as its background."
+  (let ((ov (make-overlay beg end)))
+    (overlay-put ov 'themer-preview t)
+    (overlay-put ov 'evaporate t)
+    (overlay-put ov 'face
+                 `(:background ,colour
+                   :foreground ,(if (color-dark-p (color-name-to-rgb colour))
+                                    "white" "black")))))
+
+(defun themer-preview--reader-palette (bounds)
+  "Alist (NAME . COLOUR) of the :palette of the reader form in BOUNDS."
+  (let* ((form (ignore-errors (read (buffer-substring-no-properties (car bounds) (cdr bounds)))))
+         (spec (and (consp form) (nthcdr 3 form)))
+         (pal (and (listp spec) (ignore-errors (plist-get spec :palette))))
+         out)
+    (when (listp pal)
+      (dolist (e pal)
+        (when (and (consp e) (symbolp (car e)) (stringp (car-safe (cdr e)))
+                   (color-defined-p (cadr e)))
+          (push (cons (car e) (cadr e)) out))))
+    (nreverse out)))
+
+(defun themer-preview--paint-hexes (bounds)
+  "Paint every \"#rrggbb\" string inside BOUNDS with its colour.
+Palette names in a reader form get their entry's colour: where the
+palette defines them and wherever a slot uses them."
+  (remove-overlays (point-min) (point-max) 'themer-preview t)
+  (let ((palette (themer-preview--reader-palette bounds)))
+    (save-excursion
+      (goto-char (car bounds))
+      (while (re-search-forward "\"\\(#[0-9a-fA-F]\\{6\\}\\)\"" (cdr bounds) t)
+        (let ((beg (match-beginning 0)) (end (match-end 0)) (colour (match-string 1)))
+          (unless (save-excursion (nth 4 (syntax-ppss beg)))  ; not in a comment
+            (themer-preview--swatch beg end colour))))
+      (when palette
+        (goto-char (car bounds))
+        (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" (cdr bounds) t)
+          (when-let* ((colour (alist-get (intern-soft (match-string 0)) palette))
+                      ((not (nth 8 (save-excursion (syntax-ppss (match-beginning 0)))))))
+            (themer-preview--swatch (match-beginning 0) (match-end 0) colour)))))))
+
 (defun themer-preview--paint (sections palette)
   "Paint every PALETTE name inside SECTIONS with its colour.
 In the face specs the car of each list is a face name, not a role (e.g.
@@ -82,13 +141,7 @@ the `region' face vs the `region' role), so those are skipped."
                     ((not (nth 8 (syntax-ppss))))  ; not in a string/comment
                     ((not (and skip-car
                                (eq (char-before (match-beginning 0)) ?\()))))
-          (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
-            (overlay-put ov 'themer-preview t)
-            (overlay-put ov 'evaporate t)
-            (overlay-put ov 'face
-                         `(:background ,colour
-                           :foreground ,(if (color-dark-p (color-name-to-rgb colour))
-                                            "white" "black")))))))))
+          (themer-preview--swatch (match-beginning 0) (match-end 0) colour))))))
 
 (defun themer-preview--balanced-p ()
   "Non-nil if the buffer's parens balance, i.e. it's worth evaluating."
@@ -121,9 +174,11 @@ BUFFER defaults to the current buffer."
                     ((themer-preview--balanced-p)))
           (condition-case err
               (progn
-                (when-let* ((sections (themer-preview--sections)))
-                  (themer-preview--paint
-                   sections (themer-preview--palette (caar sections) (cdar sections))))
+                (if-let* ((sections (themer-preview--sections)))
+                    (themer-preview--paint
+                     sections (themer-preview--palette (caar sections) (cdar sections)))
+                  (when-let* ((bounds (themer-preview--reader-bounds)))
+                    (themer-preview--paint-hexes bounds)))
                 (themer-preview--apply theme))
             (error (message "themer-preview: %s" (error-message-string err)))))))))
 
@@ -145,7 +200,7 @@ See the commentary in themer-preview.el."
    (themer-preview-mode
     (unless (themer-preview--theme)
       (setq themer-preview-mode nil)
-      (user-error "Not a <name>-theme.el buffer"))
+      (user-error "Not a <name>-theme.el or reader theme buffer"))
     (setq themer-preview--prior-themes custom-enabled-themes)
     (add-hook 'after-change-functions #'themer-preview--schedule nil t)
     (themer-preview-refresh))
