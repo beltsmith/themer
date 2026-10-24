@@ -30,8 +30,10 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "out" / "renders"
 LANGS = ["python", "typescript", "rust", "go", "c"]
 WINDOW = 32
-COLUMNS = [("plain", None), ("landmark", "C"), ("reader", "C"), ("label", "C")]   # C = creator assignment (harness/assignments.yaml)
-TASK_CONDS = COLUMNS        # 4 conditions -> 4 snippets per language (Latin square)
+# C = creator assignment (harness/assignments.yaml). Third element: draft 3.2 options. "options" = the creator's binding slot
+# (assignments.yaml `binding:`) + faded commented-out code.
+COLUMNS = [("plain", None, None), ("landmark", "C", None), ("reader", "C", None), ("reader", "C", "options")]
+TASK_CONDS = [("plain", None), ("landmark", "C"), ("reader", "C"), ("label", "C")]   # 4 conditions -> 4 snippets per language (Latin square)
 OLD_COLUMNS = [("plain", None), ("landmark", "A"), ("landmark", "B"), ("hybrid", "A"), ("label", "B"), ("landmark_v1", "A")]
 PALETTE_IDS = ["base16/gruvbox-dark-medium", "base16/monokai", "base16/kanagawa", "base16/zenburn"]
 SEED = 7
@@ -42,6 +44,19 @@ def analyse_file(lang, path):
     _, _, rows, _ = role_tokens.analyse((lang, 0, path))
     cols = role_tokens.COLS
     return path.read_bytes(), [dict(zip(cols, r)) for r in rows]
+
+
+ROLE_ALIAS = {"comment.code": "comment"}   # sets without a comment.code style draw it as a comment
+
+
+def theme_for(p, s, m, opt=None):
+    """Theme for one column. opt "options" = the draft 3.2 optional cues (creator binding slot + faded commented-out code)."""
+    if s == "plain":
+        return None
+    options = None
+    if opt == "options":
+        options = {"binding": mapper.load_binding_slot(s, p["id"]) or "auto", "fade_commented_code": True}
+    return mapper.map_palette(p, s, m, options=options)
 
 
 def effective_role(r):
@@ -69,6 +84,8 @@ def pick_snippets(lang, n=3):
         by_line = {}
         for r in rows:
             by_line.setdefault(r["l0"], set()).add(effective_role(r))
+            if lang == "rust" and r["text"] == "?" and r["role"] == "keyword.exit":
+                by_line[r["l0"]].add("rust?")      # prefer windows that show the 3.2 `?` exit
         best = None
         for start in range(0, max(1, nlines - WINDOW), 4):
             roles = set().union(*(by_line.get(l, set()) for l in range(start, start + WINDOW)))
@@ -103,7 +120,7 @@ def snippet_spans(src, rows, start):
 def style_of(theme, role):
     if theme is None or role is None:
         return ""
-    st = theme["roles"].get(role) or theme["roles"].get("default")
+    st = theme["roles"].get(role) or theme["roles"].get(ROLE_ALIAS.get(role)) or theme["roles"].get("default")
     css = [f"color:{st['fg'] or theme['fg']}"]
     if st.get("bold"):
         css.append("font-weight:bold")
@@ -182,6 +199,14 @@ def cell_meta(th):
                     f"<br>{'conforms' if c['conforms'] else 'fails: ' + '; '.join(c['failures'])}"
                     f"<br>recessive: {'C %.2f, ΔLc %+.0f' % (rec['C'], rec['dlc_fg']) if rec.get('ok') else 'failed → default'}"
                     f"{' (outshines exits)' if rec.get('outshines_loud') else ''}<br>quiet: {q or '–'}")
+            o = th.get("options") or {}
+            if o.get("binding") or o.get("fade_commented_code"):
+                b = th.get("binding") or {}
+                out += ("<br><b>options</b>: "
+                        + (f"parameter tint {b.get('slot')} {b.get('hex')} (hue gap {b.get('hue_gap')}°, "
+                           f"{'D1-reliable vs all' if b.get('d1_reliable_all') else 'FAILS D1'})" if b.get("ok") else
+                           ("parameter tint failed → default" if o.get("binding") else ""))
+                        + ("; commented-out code faded" if o.get("fade_commented_code") else ""))
             return out
         out += "<br><b>" + ("conforms" if c["conforms"] else "fails: " + "; ".join(c["failures"])) + "</b>"
         out += f"<br>strings {th.get('strings_quiet')}, dim Lc {th['tiers']['dim_lc']}"
@@ -198,12 +223,13 @@ def cell_meta(th):
 
 def write_grid(lang, spans, palettes, pal_by_id, path_note, columns=COLUMNS):
     rows = []
-    head = "".join(f"<th>{s}{' ' + m if m else ''}</th>" for s, m in columns)
+    columns = [(c + (None,))[:3] for c in columns]
+    head = "".join(f"<th>{s}{' ' + m if m else ''}{' + options (binding tint, faded code)' if o else ''}</th>" for s, m, o in columns)
     for info in palettes:
         p = pal_by_id[info["id"]]
         cells = []
-        for s, m in columns:
-            th = None if s == "plain" else mapper.map_palette(p, s, m)
+        for s, m, o in columns:
+            th = theme_for(p, s, m, o)
             meta = "" if th is None else cell_meta(th)
             cells.append(f"<td>{code_html(spans, th, p)}<div class=meta>{meta}</div></td>")
         rows.append(f"<tr><th>{html.escape(info['id'])}<br><span class=meta>{info['variant']}, "

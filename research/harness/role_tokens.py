@@ -29,6 +29,8 @@ Role assignment (most specific capture wins, as in highlight.py):
     try/catch/except/finally/else (-> keyword.flow), async/throws
     (-> keyword.decl), Rust assert!/panic! macro names (-> macro.call) and Lua's
     `coroutine` table (-> module); those are re-homed by text.
+  * Rust `?` (an @operator inside try_expression) -> keyword.exit (draft 3.2).
+  * `@comment` segments (not doc comments) that pass is_commented_code() -> comment.code (draft 3.2).
   * Import bindings (@local.definition.import) are not binding sites: they stay
     variable.use / constant.use with dkind="import".
 
@@ -104,6 +106,71 @@ EXIT_WORDS = {"return", "raise", "throw", "yield", "break", "continue", "goto"} 
 NON_EXIT = {"try": "keyword.flow", "catch": "keyword.flow", "except": "keyword.flow",
             "finally": "keyword.flow", "else": "keyword.flow",
             "async": "keyword.decl", "throws": "keyword.decl"}
+
+# ------------------------------------------------------------------ commented-out code (draft 3.2)
+
+_MARK = re.compile(r"^\s*(?:/{2,}|#:|#+|--+|;+|\*+|<!--|/\*+|%+)\s?")
+_TAIL = re.compile(r"\s*(?:\*/|-->|\]\]|=\])\s*$")
+_RULER = re.compile(r"\s*[;=*#~_/-]{3,}\s*$")
+_SENTENCE = re.compile(r"(?<![\w'])[A-Za-z]+(?:[ \t]+[A-Za-z]+){3,}(?![\w])")   # >= 4 alphabetic words in a row
+_DIRECTIVE = re.compile(r"^(?:#|shellcheck|noqa|pylint|eslint|istanbul|nolint|flake8|prettier-ignore|clang-format|"
+                        r"type:|pragma|go:|NOLINT|c8 |coding[:=]|-\*-)")
+_BLOCK_KW = {"if", "elif", "else", "for", "while", "try", "except", "finally", "def", "class", "with", "match"}
+_DECL = r"(?:(?:local|let|const|var|mut|static|final|auto|int|long|char|float|double|bool|string|String|def|val|my|our)\s+){0,2}"
+_START_CALL = re.compile(r"^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\(")             # name( / a.b(
+_START_PAREN_KW = re.compile(r"^(?:if|for|while|switch|return|else if|elif|catch)\s?\(")
+_START_ASSIGN = re.compile(r"^" + _DECL + r"[A-Za-z_$][\w$.\[\]]*\s*(?:[-+*/|&^%]?=(?!=)|:=)\s*\S")
+_START_MULTI = re.compile(r"^[\w$.\[\]]+(?:\s*,\s*[\w$.\[\]]+)+\s*:?=")             # a, b := f()
+_START_STMT = re.compile(r"^(?:return|throw|raise|yield|await|assert|require|let|const|var|local)\b(.*)$")
+_START_LISP = re.compile(r"^\((?:defun|defvar|defcustom|setq|let\*?|when|unless|cond|progn|require|use-package|"
+                         r"[a-z]+-[\w-]+)[\s)]")
+
+
+def _line_is_code(body):
+    """One comment line (marker stripped) looks like code. See is_commented_code."""
+    b = _RULER.sub("", body.strip())
+    if not b or re.fullmatch(r"[-=*#~_/ ]+", b):
+        return False
+    if b.startswith(("http://", "https://", "!", "TODO", "FIXME", "XXX", "NOTE", "HACK", "BUG")) or _DIRECTIVE.match(b):
+        return False
+    if "://" in b or _SENTENCE.search(b) or re.match(r"(?:e\.g|i\.e|defined\()", b):
+        return False
+    first = re.match(r"[A-Za-z_]+", b)
+    if first and first.group(0) in _BLOCK_KW and b.endswith(":") and (
+            first.group(0) in ("else", "try", "finally") or re.search(r"[()=<>.\[\]]", b)):
+        return True                                   # python: else: / try: / def f(x):
+    if _START_PAREN_KW.match(b) or _START_ASSIGN.match(b) or _START_MULTI.match(b) or _START_LISP.match(b):
+        return True
+    if _START_CALL.match(b):                          # name(...) must end like code, or leave a paren open (continued call)
+        return (b[-1] in ");{},}" and not re.fullmatch(r"[\w$.]+\(\)", b)) or b.count("(") > b.count(")")
+    m = _START_STMT.match(b)
+    if m and re.search(r"[(=\[{]|\w\.\w|::", m.group(1)):
+        return True
+    if b[-1] in ";{}" and (b[-1] != ";" or not b[0].isdigit()):
+        return True                                   # statement / block end, not a prose list ending in ;
+    return False
+
+
+def is_commented_code(text):
+    """Draft 3.2 comment.code heuristic (patterns/roles.yaml): the comment's body, after the comment marker, looks
+    like code: a line ends in ; { } , or starts with an identifier followed by ( = (or a block keyword ending in :,
+    or a statement keyword followed by code punctuation), AND contains no sentence (>= 4 alphabetic words in a row).
+    Tightenings over the one-line YAML description, made after a precision eyeball of the first version (which had
+    ~50% precision on prose that mentions code): `ident(` must end like code (`) ; { } ,`) or leave a paren open, bare
+    `a.b` member starts do not count, `=` needs a bare or declared name before it (`let x =`, not `If PAGER=bat`), a
+    line ending in `;` must not start with a digit, `Note:`/`TODO:` prefixes and tool directives (shellcheck, noqa,
+    `###autoload` ...) are excluded, trailing ruler runs are stripped, and `/** */` doc blocks are excluded. A multi-line comment counts when >= 60% of its non-blank lines are code-like. Doc comments never reach
+    this function (they have their own capture)."""
+    t = text.strip()
+    if t.startswith(("/**", "/*!", "///", "//!", "#!")):
+        return False
+    lines = [_TAIL.sub("", _MARK.sub("", ln, count=1)) for ln in t.splitlines()]
+    lines = [ln for ln in lines if ln.strip()]
+    if not lines:
+        return False
+    hits = sum(_line_is_code(ln) for ln in lines)
+    return hits > 0 and hits >= 0.6 * len(lines)
+
 
 # ------------------------------------------------------------------ locals
 
@@ -357,7 +424,11 @@ def analyse(job):
         rec = {"cap": cap, "role": role, "scope": "", "dkind": "", "dsrc": "", "cls": "",
                "func": -1}
         text = src[s:-ne].decode("utf-8", "replace")
-        if role.startswith("keyword") and text in EXIT_WORDS:
+        if lang == "rust" and text == "?" and nd.parent is not None and nd.parent.type == "try_expression":
+            rec["role"] = "keyword.exit"   # 3.2: Rust `?` is an early return
+        elif role == "comment" and is_commented_code(text):
+            rec["role"] = "comment.code"   # 3.2 optional cue; role stats and the mapper fold it back unless asked
+        elif role.startswith("keyword") and text in EXIT_WORDS:
             rec["role"] = "keyword.exit"
         elif role.startswith("keyword") and lang == "rust" and src[-ne:-ne + 1] == b"!":
             rec["role"] = "macro.call"  # assert!/panic! painted as keywords by nvim queries

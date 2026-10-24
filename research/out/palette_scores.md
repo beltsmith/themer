@@ -12,7 +12,7 @@ One row per palette × set × mode × reserve in `out/palette_scores.csv`. Ink s
 - *salience* (spec fix (d), `colour.salience_v2`) = a·max(0, |Lc|−|Lc_fg|)/100 + b·C/0.15 + c·bold − d·max(0, |Lc_fg|−|Lc|)/100 with a = 1.0, b = 0.5, c = 0.15, d = 1.0 (1.0 = 100 Lc). Chosen so the declared order faded < dim < default < quiet < loud < strong < popout holds with margin 0.075 for the ideal palette documented in colour.py (fg Lc 60, faded 30, dim 45, quiet at fg lightness with C .055, loud at its Lc target 45 with the corpus-median accent C .128). b is the binding weight: b ≥ .462 is needed for a loud accent at Lc 45 to outrank a quiet tint at fg lightness.
 - *S1* (draft 2.1) = two orderings only. **S1a** lightness: faded < dim < default by |Lc| (default = fg; tiers in use). **S1b** chroma: quiet < loud by OKLCH C with margin ≥ 0.03 (max C of quiet roles + margin ≤ min C of loud/strong hue roles; n/a, and not counted, when no quiet tint is drawn or the set has no quiet tier). S1 = S1a and S1b. *S1 sal.* = the draft-2 all-adjacent-tiers salience check (margin 0.075), kept for comparison.
 - *confusion* (C6 pair term) = Σ adjacency × w over must-differ pairs whose rendered colours are not distinct and that differ in no style channel. Draft 1: D2 for different families, D1 floor for designed same-family pairs. Draft 2: name-D2 when the families differ and at least one role is loud/strong/popout; D1 floor for every designed tier distinction (quiet vs fg, dim vs default, quiet vs loud, quiet vs quiet). *disc.* = × (1 − lexical separability) (out/recoverability_pairs.csv, rerun after the docstring → comment.doc move). *separable cost* (draft 2.1) = the same sums excluding the 21 role pairs that no set separates (both roles have the same family, tier, weight and slant in every set at full capacity), so the gaps between sets are visible; the excluded pairs are a fixed baseline.
-- *beacon loss* (spec fix (b)) = Σ_roles beacon(role) · ink(role) · loss(role); loss = 1 if a role designed to stand out falls to plain default ink without bold, 0.5 if it keeps bold or a quiet/dim/faded distinctness, else 0. *C6 total* = confusion + λ · beacon loss with λ_disc = 0.00134 (λ_raw = 0.6139): λ makes dropping every hue family of draft-2 landmark cost as much in beacon loss as in pair confusion (static model, `mapper_common.beacon_lambda`). Sensitivity at λ/3 and 3λ below.
+- *beacon loss* (spec fix (b)) = Σ_roles beacon(role) · ink(role) · loss(role); loss = 1 if a role designed to stand out falls to plain default ink without bold, 0.5 if it keeps bold or a quiet/dim/faded distinctness, else 0. *C6 total* = confusion + λ · beacon loss with λ_disc = 0.00135 (λ_raw = 0.6151): λ makes dropping every hue family of draft-2 landmark cost as much in beacon loss as in pair confusion (static model, `mapper_common.beacon_lambda`). Sensitivity at λ/3 and 3λ below.
 - *coloured ink* (C2, draft 1 definition) = ink share of roles drawn in a family colour with C ≥ 0.04. *loud / quiet / dim ink* = ink of hued roles at salient/loud/strong/popout, hued roles at quiet (only when the quiet colour exists), and roles at dim.
 - *salience-weighted ink* (C2 headline, draft 2) = Σ ink × salience⁺ (salience model above) = the salience budget. *budget (tier)* = the draft-1 budget Σ ink × (tier rank − default rank)⁺ using each set's own tier list.
 - *C1 ρ* = Spearman(salience model, ink share) over roles (variable.def split into .top/.local by its scope). `tier` = applied tier rank; `v1 model` = draft-1 pop-out salience |Lc| + 15·bold + 150·C.
@@ -79,7 +79,7 @@ Loud families kept (landmark, mode B, all palettes): 0: 53, 1: 41, 2: 94, 3: 150
 | landmark_v1 | B | 6 | 6 | 64% | 2% | 6 | 30% | 63% | 7% | 97% | n/a | 97% | -0.20 | 0.71 |
 | hybrid_v1 | A | 8 | 6 | 12% | 0% | 6 | 40% | 53% | 7% | 97% | n/a | 97% | 1.00 | 0.25 |
 | hybrid_v1 | B | 8 | 6 | 12% | 0% | 6 | 27% | 66% | 7% | 97% | n/a | 97% | -0.10 | 0.67 |
-| reader | A | 5 | 5 | 66% | 25% | 4 | 74% | 16% | 10% | 85% | 47% (n=1279) | 44% | 1.00 | 0.22 |
+| reader | A | 5 | 5 | 66% | 25% | 4 | 74% | 16% | 10% | 85% | 47% (n=1279) | 45% | 1.00 | 0.22 |
 | reader | B | 5 | 5 | 66% | 25% | 4 | 72% | 17% | 11% | 84% | 36% (n=1351) | 32% | -0.10 | 0.77 |
 
 (% cap ≥ required: chromatic palettes only.)
@@ -88,18 +88,18 @@ Loud families kept (landmark, mode B, all palettes): 0: 53, 1: 41, 2: 94, 3: 150
 
 | set | mode | coloured ink (C2 v1) | ≤ 35% | loud ink | quiet ink | dim ink | sal.-weighted ink (C2 headline) | budget (tier) | C1 ρ | ρ ≤ −0.5 | C1 ρ tier | C1 ρ v1-model | confusion normal | confusion deutan | disc. normal | disc. deutan | separable raw | separable disc. | separable disc. deutan | beacon loss | C6 total disc. | C6 total disc. separable | C6 total disc. deutan | beacon cov. |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| landmark | A | 0.246 | 100% | 0.092 | 0.154 | 0.241 | 0.074 | 0.377 | -0.47 | 47% | -0.57 | -0.28 | 0.0629 | 0.1120 | 0.00204 | 0.00211 | 0.0613 | 0.00173 | 0.00180 | 0.0387 | 0.00209 | 0.00178 | 0.00216 | 0.86 |
-| landmark | B | 0.246 | 100% | 0.092 | 0.154 | 0.241 | 0.079 | 0.377 | -0.47 | 43% | -0.57 | -0.26 | 0.0628 | 0.1565 | 0.00204 | 0.00216 | 0.0612 | 0.00173 | 0.00185 | 0.0236 | 0.00207 | 0.00176 | 0.00219 | 0.86 |
-| hybrid | A | 0.398 | 16% | 0.092 | 0.306 | 0.241 | 0.094 | 0.529 | -0.41 | 17% | -0.53 | -0.22 | 0.0969 | 0.2064 | 0.00225 | 0.00266 | 0.0954 | 0.00194 | 0.00235 | 0.0603 | 0.00233 | 0.00202 | 0.00274 | 0.91 |
-| hybrid | B | 0.398 | 19% | 0.092 | 0.306 | 0.241 | 0.101 | 0.529 | -0.41 | 16% | -0.53 | -0.22 | 0.1024 | 0.2127 | 0.00229 | 0.00258 | 0.1009 | 0.00198 | 0.00227 | 0.0494 | 0.00236 | 0.00205 | 0.00265 | 0.91 |
-| label | A | 0.698 | 7% | 0.698 | 0.000 | 0.000 | 0.138 | 0.740 | -0.25 | 10% | -0.40 | -0.29 | 0.1382 | 0.1867 | 0.00211 | 0.00227 | 0.1367 | 0.00180 | 0.00196 | 0.1121 | 0.00226 | 0.00195 | 0.00242 | 0.94 |
-| label | B | 0.698 | 7% | 0.698 | 0.000 | 0.000 | 0.163 | 0.740 | -0.20 | 11% | -0.40 | -0.18 | 0.1383 | 0.1725 | 0.00211 | 0.00225 | 0.1367 | 0.00180 | 0.00194 | 0.1121 | 0.00226 | 0.00195 | 0.00240 | 0.94 |
-| landmark_v1 | A | 0.487 | 12% | 0.487 | 0.000 | 0.000 | 0.096 | 0.527 | -0.39 | 11% | -0.38 | -0.29 | 0.0714 | 0.0806 | 0.00206 | 0.00209 | 0.0698 | 0.00175 | 0.00178 | 0.0544 | 0.00213 | 0.00182 | 0.00217 | 0.86 |
-| landmark_v1 | B | 0.487 | 12% | 0.487 | 0.000 | 0.000 | 0.144 | 0.527 | -0.25 | 3% | -0.38 | -0.17 | 0.0714 | 0.0834 | 0.00206 | 0.00210 | 0.0698 | 0.00175 | 0.00179 | 0.0544 | 0.00213 | 0.00182 | 0.00217 | 0.86 |
-| hybrid_v1 | A | 0.632 | 12% | 0.632 | 0.000 | 0.000 | 0.091 | 0.672 | -0.37 | 17% | -0.16 | -0.39 | 0.1289 | 0.1599 | 0.00238 | 0.00249 | 0.1274 | 0.00207 | 0.00218 | 0.1094 | 0.00253 | 0.00222 | 0.00263 | 0.77 |
-| hybrid_v1 | B | 0.632 | 12% | 0.632 | 0.000 | 0.000 | 0.137 | 0.672 | -0.25 | 9% | -0.16 | -0.24 | 0.1289 | 0.1513 | 0.00238 | 0.00245 | 0.1273 | 0.00207 | 0.00214 | 0.1094 | 0.00253 | 0.00222 | 0.00260 | 0.77 |
-| reader | A | 0.457 | 36% | 0.089 | 0.311 | 0.241 | 0.107 | 0.532 | -0.43 | 20% | -0.45 | -0.31 | 0.1324 | 0.2259 | 0.00239 | 0.00281 | 0.1308 | 0.00208 | 0.00250 | 0.1044 | 0.00253 | 0.00222 | 0.00295 | 0.94 |
-| reader | B | 0.457 | 24% | 0.086 | 0.311 | 0.241 | 0.120 | 0.532 | -0.40 | 14% | -0.45 | -0.24 | 0.1159 | 0.2020 | 0.00237 | 0.00269 | 0.1144 | 0.00206 | 0.00238 | 0.0651 | 0.00246 | 0.00215 | 0.00278 | 0.94 |
+| landmark | A | 0.246 | 100% | 0.092 | 0.154 | 0.241 | 0.075 | 0.378 | -0.47 | 47% | -0.57 | -0.28 | 0.0630 | 0.1122 | 0.00204 | 0.00211 | 0.0614 | 0.00173 | 0.00180 | 0.0387 | 0.00209 | 0.00178 | 0.00216 | 0.86 |
+| landmark | B | 0.246 | 100% | 0.092 | 0.154 | 0.241 | 0.079 | 0.378 | -0.47 | 43% | -0.57 | -0.26 | 0.0629 | 0.1568 | 0.00204 | 0.00216 | 0.0613 | 0.00173 | 0.00185 | 0.0236 | 0.00207 | 0.00176 | 0.00219 | 0.86 |
+| hybrid | A | 0.398 | 16% | 0.092 | 0.306 | 0.241 | 0.094 | 0.529 | -0.41 | 17% | -0.53 | -0.22 | 0.0970 | 0.2065 | 0.00225 | 0.00266 | 0.0954 | 0.00194 | 0.00235 | 0.0604 | 0.00234 | 0.00203 | 0.00274 | 0.91 |
+| hybrid | B | 0.398 | 19% | 0.092 | 0.306 | 0.241 | 0.101 | 0.529 | -0.41 | 16% | -0.53 | -0.22 | 0.1025 | 0.2129 | 0.00229 | 0.00258 | 0.1009 | 0.00198 | 0.00227 | 0.0494 | 0.00236 | 0.00205 | 0.00265 | 0.91 |
+| label | A | 0.698 | 7% | 0.698 | 0.000 | 0.000 | 0.138 | 0.740 | -0.25 | 10% | -0.40 | -0.29 | 0.1383 | 0.1869 | 0.00211 | 0.00227 | 0.1368 | 0.00180 | 0.00196 | 0.1121 | 0.00226 | 0.00195 | 0.00243 | 0.94 |
+| label | B | 0.698 | 7% | 0.698 | 0.000 | 0.000 | 0.163 | 0.740 | -0.20 | 11% | -0.40 | -0.18 | 0.1384 | 0.1727 | 0.00211 | 0.00225 | 0.1368 | 0.00180 | 0.00194 | 0.1121 | 0.00226 | 0.00195 | 0.00240 | 0.94 |
+| landmark_v1 | A | 0.487 | 12% | 0.487 | 0.000 | 0.000 | 0.096 | 0.527 | -0.39 | 11% | -0.38 | -0.29 | 0.0715 | 0.0808 | 0.00206 | 0.00209 | 0.0699 | 0.00175 | 0.00178 | 0.0545 | 0.00214 | 0.00183 | 0.00217 | 0.86 |
+| landmark_v1 | B | 0.487 | 12% | 0.487 | 0.000 | 0.000 | 0.144 | 0.527 | -0.25 | 3% | -0.38 | -0.17 | 0.0715 | 0.0836 | 0.00206 | 0.00210 | 0.0700 | 0.00175 | 0.00179 | 0.0545 | 0.00214 | 0.00183 | 0.00217 | 0.86 |
+| hybrid_v1 | A | 0.632 | 12% | 0.632 | 0.000 | 0.000 | 0.091 | 0.672 | -0.37 | 17% | -0.16 | -0.39 | 0.1291 | 0.1601 | 0.00238 | 0.00249 | 0.1275 | 0.00207 | 0.00218 | 0.1094 | 0.00253 | 0.00222 | 0.00264 | 0.77 |
+| hybrid_v1 | B | 0.632 | 12% | 0.632 | 0.000 | 0.000 | 0.137 | 0.672 | -0.25 | 9% | -0.16 | -0.24 | 0.1290 | 0.1515 | 0.00238 | 0.00245 | 0.1275 | 0.00207 | 0.00214 | 0.1094 | 0.00253 | 0.00222 | 0.00260 | 0.77 |
+| reader | A | 0.457 | 36% | 0.089 | 0.311 | 0.242 | 0.107 | 0.532 | -0.35 | 3% | -0.37 | -0.24 | 0.1323 | 0.2257 | 0.00239 | 0.00281 | 0.1307 | 0.00208 | 0.00250 | 0.1045 | 0.00253 | 0.00222 | 0.00295 | 0.94 |
+| reader | B | 0.457 | 24% | 0.086 | 0.311 | 0.242 | 0.120 | 0.532 | -0.32 | 1% | -0.37 | -0.18 | 0.1158 | 0.2019 | 0.00237 | 0.00269 | 0.1143 | 0.00206 | 0.00238 | 0.0651 | 0.00246 | 0.00215 | 0.00278 | 0.94 |
 
 ### S1 (draft 2.1): lightness order and chroma order
 
@@ -117,7 +117,7 @@ S1a = faded < dim < default by |Lc|. S1b = quiet < loud by OKLCH C, margin ≥ 0
 | landmark_v1 | B | 97% | n/a | 97% | 2% |
 | hybrid_v1 | A | 97% | n/a | 97% | 5% |
 | hybrid_v1 | B | 97% | n/a | 97% | 2% |
-| reader | A | 85% | 47% (n=1279) | 44% | 0% |
+| reader | A | 85% | 47% (n=1279) | 45% | 0% |
 | reader | B | 84% | 36% (n=1351) | 32% | 0% |
 
 ## Draft-2.1 tiers: quiet, dim, faded, popout
@@ -141,7 +141,7 @@ Value dropped in landmark B: 4% of palettes (v2 draft: 11%). Strings are never d
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | landmark | 0.040 | 0.191 | 0.000 | 0.008 | 0.007 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.246 |
 | hybrid | 0.192 | 0.191 | 0.000 | 0.008 | 0.007 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.398 |
-| label | 0.000 | 0.198 | 0.241 | 0.000 | 0.000 | 0.000 | 0.128 | 0.058 | 0.066 | 0.000 | 0.698 |
+| label | 0.000 | 0.198 | 0.241 | 0.000 | 0.000 | 0.000 | 0.128 | 0.058 | 0.067 | 0.000 | 0.698 |
 | landmark_v1 | 0.040 | 0.191 | 0.241 | 0.008 | 0.007 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.487 |
 | hybrid_v1 | 0.011 | 0.191 | 0.241 | 0.008 | 0.000 | 0.000 | 0.181 | 0.000 | 0.000 | 0.000 | 0.632 |
 | reader | 0.000 | 0.199 | 0.000 | 0.000 | 0.000 | 0.000 | 0.128 | 0.058 | 0.000 | 0.000 | 0.457 |
@@ -152,10 +152,10 @@ At full capacity (palettes that keep every family), headline mode:
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | landmark | 1087 | 0.246 | 0.092 | 0.154 | 0.241 | 0.079 | 0.040 | 0.191 | 0.000 | 0.008 | 0.007 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
 | hybrid | 1087 | 0.398 | 0.092 | 0.306 | 0.241 | 0.102 | 0.192 | 0.191 | 0.000 | 0.008 | 0.007 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
-| label | 157 | 0.740 | 0.740 | 0.000 | 0.000 | 0.202 | 0.000 | 0.198 | 0.241 | 0.000 | 0.007 | 0.000 | 0.128 | 0.058 | 0.066 | 0.043 |
+| label | 157 | 0.740 | 0.740 | 0.000 | 0.000 | 0.202 | 0.000 | 0.198 | 0.241 | 0.000 | 0.007 | 0.000 | 0.128 | 0.058 | 0.067 | 0.043 |
 | landmark_v1 | 868 | 0.487 | 0.487 | 0.000 | 0.000 | 0.148 | 0.040 | 0.191 | 0.241 | 0.008 | 0.007 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
 | hybrid_v1 | 157 | 0.639 | 0.639 | 0.000 | 0.000 | 0.156 | 0.011 | 0.191 | 0.241 | 0.008 | 0.007 | 0.000 | 0.128 | 0.053 | 0.000 | 0.000 |
-| reader | 671 | 0.457 | 0.086 | 0.314 | 0.241 | 0.120 | 0.000 | 0.199 | 0.000 | 0.000 | 0.007 | 0.000 | 0.128 | 0.058 | 0.000 | 0.000 |
+| reader | 671 | 0.457 | 0.086 | 0.314 | 0.242 | 0.120 | 0.000 | 0.199 | 0.000 | 0.000 | 0.007 | 0.000 | 0.128 | 0.058 | 0.000 | 0.000 |
 
 ## Draft-2.1 landmark by palette group (headline mode)
 
@@ -178,28 +178,28 @@ Paired per palette (same set, same kept families). "A better" = strictly lower.
 | set | n | C1 ρ A | B | A better ρ | S1 A | S1 B | disc. A | disc. B | disc. A lower | disc. A higher | disc. deutan A | B | C6 total A | B | habit fit A | B |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | landmark | 1425 | -0.467 | -0.470 | 52% | 89% | 83% | 0.00204 | 0.00204 | 2% | 10% | 0.00211 | 0.00216 | 0.00209 | 0.00207 | 0.22 | 0.73 |
-| hybrid | 1425 | -0.409 | -0.406 | 48% | 75% | 61% | 0.00225 | 0.00229 | 8% | 10% | 0.00266 | 0.00258 | 0.00233 | 0.00236 | 0.22 | 0.73 |
-| label | 1425 | -0.253 | -0.201 | 56% | 97% | 97% | 0.00211 | 0.00211 | 8% | 3% | 0.00227 | 0.00225 | 0.00226 | 0.00226 | 0.26 | 0.73 |
-| landmark_v1 | 1425 | -0.387 | -0.253 | 77% | 97% | 97% | 0.00206 | 0.00206 | 7% | 1% | 0.00209 | 0.00210 | 0.00213 | 0.00213 | 0.26 | 0.71 |
+| hybrid | 1425 | -0.409 | -0.406 | 48% | 75% | 61% | 0.00225 | 0.00229 | 8% | 10% | 0.00266 | 0.00258 | 0.00234 | 0.00236 | 0.22 | 0.73 |
+| label | 1425 | -0.253 | -0.200 | 56% | 97% | 97% | 0.00211 | 0.00211 | 8% | 3% | 0.00227 | 0.00225 | 0.00226 | 0.00226 | 0.26 | 0.73 |
+| landmark_v1 | 1425 | -0.387 | -0.253 | 77% | 97% | 97% | 0.00206 | 0.00206 | 7% | 1% | 0.00209 | 0.00210 | 0.00214 | 0.00214 | 0.26 | 0.71 |
 | hybrid_v1 | 1425 | -0.368 | -0.247 | 79% | 97% | 97% | 0.00238 | 0.00238 | 10% | 4% | 0.00249 | 0.00245 | 0.00253 | 0.00253 | 0.25 | 0.67 |
-| reader | 1425 | -0.430 | -0.399 | 60% | 44% | 32% | 0.00239 | 0.00237 | 20% | 29% | 0.00281 | 0.00269 | 0.00253 | 0.00246 | 0.22 | 0.77 |
+| reader | 1425 | -0.353 | -0.324 | 61% | 45% | 32% | 0.00239 | 0.00237 | 20% | 29% | 0.00281 | 0.00269 | 0.00253 | 0.00246 | 0.22 | 0.77 |
 
 ## H12: all sets (headline mode; mode A below)
 
 | set | mode | hue families | kept (median) | % at full capacity | sal.-weighted ink | budget (tier) | coloured ink | loud ink | disc. normal | disc. deutan | separable disc. | separable disc. deutan | beacon loss | C6 total | C6 total separable | beacon coverage | C1 ρ | C1 ρ tier | S1a | S1b | L1–L3 ≥ default |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| landmark | B | 4 | 4 | 76% | 0.079 | 0.377 | 0.246 | 0.092 | 0.00204 | 0.00216 | 0.00173 | 0.00185 | 0.0236 | 0.00207 | 0.00176 | 0.86 | -0.47 | -0.57 | 98% | 84% (n=1367) | 71% |
+| landmark | B | 4 | 4 | 76% | 0.079 | 0.378 | 0.246 | 0.092 | 0.00204 | 0.00216 | 0.00173 | 0.00185 | 0.0236 | 0.00207 | 0.00176 | 0.86 | -0.47 | -0.57 | 98% | 84% (n=1367) | 71% |
 | hybrid | B | 4 | 4 | 76% | 0.101 | 0.529 | 0.398 | 0.092 | 0.00229 | 0.00258 | 0.00198 | 0.00227 | 0.0494 | 0.00236 | 0.00205 | 0.91 | -0.41 | -0.53 | 98% | 61% (n=1367) | 71% |
 | label | B | 8 | 6 | 11% | 0.163 | 0.740 | 0.698 | 0.698 | 0.00211 | 0.00225 | 0.00180 | 0.00194 | 0.1121 | 0.00226 | 0.00195 | 0.94 | -0.20 | -0.40 | 97% | n/a | 26% |
-| landmark_v1 | B | 6 | 6 | 61% | 0.144 | 0.527 | 0.487 | 0.487 | 0.00206 | 0.00210 | 0.00175 | 0.00179 | 0.0544 | 0.00213 | 0.00182 | 0.86 | -0.25 | -0.38 | 97% | n/a | 30% |
+| landmark_v1 | B | 6 | 6 | 61% | 0.144 | 0.527 | 0.487 | 0.487 | 0.00206 | 0.00210 | 0.00175 | 0.00179 | 0.0545 | 0.00214 | 0.00183 | 0.86 | -0.25 | -0.38 | 97% | n/a | 30% |
 | hybrid_v1 | B | 8 | 6 | 11% | 0.137 | 0.672 | 0.632 | 0.632 | 0.00238 | 0.00245 | 0.00207 | 0.00214 | 0.1094 | 0.00253 | 0.00222 | 0.77 | -0.25 | -0.16 | 97% | n/a | 27% |
-| reader | B | 5 | 4 | 47% | 0.120 | 0.532 | 0.457 | 0.086 | 0.00237 | 0.00269 | 0.00206 | 0.00238 | 0.0651 | 0.00246 | 0.00215 | 0.94 | -0.40 | -0.45 | 84% | 36% (n=1351) | 72% |
-| landmark | A | 4 | 4 | 76% | 0.074 | 0.377 | 0.246 | 0.092 | 0.00204 | 0.00211 | 0.00173 | 0.00180 | 0.0387 | 0.00209 | 0.00178 | 0.86 | -0.47 | -0.57 | 98% | 90% (n=1367) | 72% |
-| hybrid | A | 4 | 4 | 76% | 0.094 | 0.529 | 0.398 | 0.092 | 0.00225 | 0.00266 | 0.00194 | 0.00235 | 0.0603 | 0.00233 | 0.00202 | 0.91 | -0.41 | -0.53 | 98% | 76% (n=1366) | 73% |
+| reader | B | 5 | 4 | 47% | 0.120 | 0.532 | 0.457 | 0.086 | 0.00237 | 0.00269 | 0.00206 | 0.00238 | 0.0651 | 0.00246 | 0.00215 | 0.94 | -0.32 | -0.37 | 84% | 36% (n=1351) | 72% |
+| landmark | A | 4 | 4 | 76% | 0.075 | 0.378 | 0.246 | 0.092 | 0.00204 | 0.00211 | 0.00173 | 0.00180 | 0.0387 | 0.00209 | 0.00178 | 0.86 | -0.47 | -0.57 | 98% | 90% (n=1367) | 72% |
+| hybrid | A | 4 | 4 | 76% | 0.094 | 0.529 | 0.398 | 0.092 | 0.00225 | 0.00266 | 0.00194 | 0.00235 | 0.0604 | 0.00234 | 0.00203 | 0.91 | -0.41 | -0.53 | 98% | 76% (n=1366) | 73% |
 | label | A | 8 | 6 | 11% | 0.138 | 0.740 | 0.698 | 0.698 | 0.00211 | 0.00227 | 0.00180 | 0.00196 | 0.1121 | 0.00226 | 0.00195 | 0.94 | -0.25 | -0.40 | 97% | n/a | 39% |
-| landmark_v1 | A | 6 | 6 | 61% | 0.096 | 0.527 | 0.487 | 0.487 | 0.00206 | 0.00209 | 0.00175 | 0.00178 | 0.0544 | 0.00213 | 0.00182 | 0.86 | -0.39 | -0.38 | 97% | n/a | 44% |
+| landmark_v1 | A | 6 | 6 | 61% | 0.096 | 0.527 | 0.487 | 0.487 | 0.00206 | 0.00209 | 0.00175 | 0.00178 | 0.0545 | 0.00214 | 0.00183 | 0.86 | -0.39 | -0.38 | 97% | n/a | 44% |
 | hybrid_v1 | A | 8 | 6 | 11% | 0.091 | 0.672 | 0.632 | 0.632 | 0.00238 | 0.00249 | 0.00207 | 0.00218 | 0.1094 | 0.00253 | 0.00222 | 0.77 | -0.37 | -0.16 | 97% | n/a | 40% |
-| reader | A | 5 | 4 | 36% | 0.107 | 0.532 | 0.457 | 0.089 | 0.00239 | 0.00281 | 0.00208 | 0.00250 | 0.1044 | 0.00253 | 0.00222 | 0.94 | -0.43 | -0.45 | 85% | 47% (n=1279) | 74% |
+| reader | A | 5 | 4 | 36% | 0.107 | 0.532 | 0.457 | 0.089 | 0.00239 | 0.00281 | 0.00208 | 0.00250 | 0.1045 | 0.00253 | 0.00222 | 0.94 | -0.35 | -0.37 | 85% | 47% (n=1279) | 74% |
 
 - Paired landmark vs label (mode B, n = 1425): landmark has lower disc. confusion in 39% (higher in 61%), lower separable disc. confusion in 39% (higher in 61%), lower C6 total in 86%, lower deutan disc. in 57%, lower salience-weighted ink in 84%, lower coloured ink in 96%; keeps all families 76% vs 11%.
 - Paired landmark vs landmark_v1 (mode B, n = 1425): landmark has lower disc. confusion in 33% (higher in 13%), lower separable disc. confusion in 33% (higher in 13%), lower C6 total in 38%, lower deutan disc. in 27%, lower salience-weighted ink in 84%, lower coloured ink in 90%; keeps all families 76% vs 61%.
@@ -210,14 +210,14 @@ Note: confusion is computed over each set's *own* must-differ pairs; beacon loss
 
 ## C6 beacon-loss weight: sensitivity (headline mode, discounted)
 
-C6 total = disc. confusion + k·λ·beacon loss, λ = 0.00134.
+C6 total = disc. confusion + k·λ·beacon loss, λ = 0.00135.
 
 | set | mean disc. confusion | mean beacon loss | C6 at λ/3 | C6 at λ | C6 at 3λ | share of C6 from beacon loss at λ |
 |---|---:|---:|---:|---:|---:|---:|
 | landmark | 0.00204 | 0.0236 | 0.00205 | 0.00207 | 0.00213 | 2% |
 | hybrid | 0.00229 | 0.0494 | 0.00231 | 0.00236 | 0.00249 | 3% |
 | label | 0.00211 | 0.1121 | 0.00216 | 0.00226 | 0.00256 | 7% |
-| landmark_v1 | 0.00206 | 0.0544 | 0.00209 | 0.00213 | 0.00228 | 3% |
+| landmark_v1 | 0.00206 | 0.0545 | 0.00209 | 0.00214 | 0.00228 | 3% |
 | hybrid_v1 | 0.00238 | 0.1094 | 0.00243 | 0.00253 | 0.00282 | 6% |
 | reader | 0.00237 | 0.0651 | 0.00240 | 0.00246 | 0.00263 | 4% |
 
@@ -232,15 +232,15 @@ Headline numbers (reserve off) let syntax use every accent, red included. Here t
 | landmark | off | 5 | 4 | 80% | 52% | 4 | 0.246 | 0.079 | 0.00202 | 0.0087 | 0.00203 | -0.48 |
 | landmark | on | 4 | 4 | 68% | 40% | 4 | 0.246 | 0.081 | 0.00203 | 0.0165 | 0.00205 | -0.45 |
 | hybrid | off | 5 | 4 | 80% | 52% | 4 | 0.398 | 0.102 | 0.00222 | 0.0295 | 0.00226 | -0.40 |
-| hybrid | on | 4 | 4 | 68% | 40% | 4 | 0.398 | 0.102 | 0.00227 | 0.0408 | 0.00233 | -0.37 |
+| hybrid | on | 4 | 4 | 68% | 40% | 4 | 0.398 | 0.103 | 0.00227 | 0.0408 | 0.00233 | -0.37 |
 | label | off | 6 | 8 | 12% | 0% | 6 | 0.698 | 0.167 | 0.00200 | 0.0761 | 0.00210 | -0.19 |
-| label | on | 5 | 8 | 5% | 0% | 5 | 0.624 | 0.160 | 0.00234 | 0.1224 | 0.00250 | -0.14 |
-| landmark_v1 | off | 6 | 6 | 64% | 2% | 6 | 0.487 | 0.148 | 0.00204 | 0.0269 | 0.00207 | -0.24 |
-| landmark_v1 | on | 5 | 6 | 33% | 1% | 5 | 0.480 | 0.139 | 0.00207 | 0.0579 | 0.00215 | -0.26 |
+| label | on | 5 | 8 | 5% | 0% | 5 | 0.624 | 0.160 | 0.00234 | 0.1225 | 0.00251 | -0.14 |
+| landmark_v1 | off | 6 | 6 | 64% | 2% | 6 | 0.487 | 0.148 | 0.00204 | 0.0270 | 0.00207 | -0.24 |
+| landmark_v1 | on | 5 | 6 | 33% | 1% | 5 | 0.480 | 0.139 | 0.00208 | 0.0580 | 0.00215 | -0.26 |
 | hybrid_v1 | off | 6 | 8 | 12% | 0% | 6 | 0.632 | 0.140 | 0.00230 | 0.0748 | 0.00240 | -0.24 |
-| hybrid_v1 | on | 5 | 8 | 5% | 0% | 5 | 0.624 | 0.132 | 0.00255 | 0.1388 | 0.00273 | -0.25 |
-| reader | off | 5 | 5 | 66% | 25% | 4 | 0.457 | 0.122 | 0.00229 | 0.0467 | 0.00235 | -0.39 |
-| reader | on | 4 | 5 | 42% | 16% | 4 | 0.457 | 0.119 | 0.00240 | 0.0619 | 0.00248 | -0.38 |
+| hybrid_v1 | on | 5 | 8 | 5% | 0% | 5 | 0.624 | 0.133 | 0.00255 | 0.1389 | 0.00274 | -0.25 |
+| reader | off | 5 | 5 | 66% | 25% | 4 | 0.457 | 0.122 | 0.00229 | 0.0467 | 0.00235 | -0.32 |
+| reader | on | 4 | 5 | 42% | 16% | 4 | 0.457 | 0.119 | 0.00240 | 0.0619 | 0.00248 | -0.31 |
 
 ## Spot checks (role → colour)
 
@@ -301,7 +301,7 @@ Roles (landmark, headline mode; salience = draft-2 model):
 | mod.deprecated | (inherit) | | | | | | strike | |
 | mod.unnecessary | `#787b7b` | 30 | 0.004 | grey |  |  | faded | -0.40 |
 
-Checks: L1 default, L2 floor, L3 strict, L4 strict; S1 True (faded<dim True, dim<default True, default<quiet True, quiet<loud False, loud<strong True, strong<popout False); confusion 0.0585 (disc. 0.00205; 48 pairs), deutan 0.0636 (disc. 0.00205); beacon loss 0.0110; coloured ink 0.239 (loud 0.085, quiet 0.154, dim 0.241); sal.-weighted ink 0.066; C1 ρ -0.38 (tier -0.45).
+Checks: L1 default, L2 floor, L3 strict, L4 strict; S1 True (faded<dim True, dim<default True, default<quiet True, quiet<loud False, loud<strong True, strong<popout False); confusion 0.0585 (disc. 0.00205; 48 pairs), deutan 0.0638 (disc. 0.00205); beacon loss 0.0110; coloured ink 0.239 (loud 0.085, quiet 0.154, dim 0.241); sal.-weighted ink 0.066; C1 ρ -0.38 (tier -0.45).
 
 ### base16/solarized-light (light; bg #fdf6e3, fg #586e75, |Lc| fg 71.6)
 
@@ -427,5 +427,5 @@ Roles (landmark, headline mode; salience = draft-2 model):
 | mod.deprecated | (inherit) | | | | | | strike | |
 | mod.unnecessary | `#767676` | 30 | 0.000 | grey |  |  | faded | -0.78 |
 
-Checks: L1 strict, L2 default, L3 strict, L4 strict; S1 False (faded<dim True, dim<default True, default<quiet True, quiet<loud False, loud<strong False, strong<popout True); confusion 0.0493 (disc. 0.00200; 3 pairs), deutan 0.0614 (disc. 0.00207); beacon loss 0.0000; coloured ink 0.246 (loud 0.092, quiet 0.154, dim 0.241); sal.-weighted ink 0.036; C1 ρ -0.33 (tier -0.57).
+Checks: L1 strict, L2 default, L3 strict, L4 strict; S1 False (faded<dim True, dim<default True, default<quiet True, quiet<loud False, loud<strong False, strong<popout True); confusion 0.0493 (disc. 0.00200; 3 pairs), deutan 0.0622 (disc. 0.00207); beacon loss 0.0000; coloured ink 0.246 (loud 0.092, quiet 0.154, dim 0.241); sal.-weighted ink 0.036; C1 ρ -0.33 (tier -0.57).
 

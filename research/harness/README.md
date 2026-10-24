@@ -255,3 +255,27 @@ Same commands as Draft 3 (score_palettes.py, parse_load.py, render.py; under zsh
   `SET_FALLBACKS` is gone. `keyword.exit` is `strong` (bold).
 - `outshines_loud` counts the exit's bold term; `outshines_loud_nobold` keeps the draft-3 definition.
 - Other sets are unchanged: landmark/label/hybrid/v1 rows of `out/palette_scores.csv` and landmark/label rows of `out/parse_load.csv` are byte-identical to the draft-3 run.
+
+### Draft 3.2 (patterns/reader.yaml "3.2": optional binding tint, Rust `?` exit, faded commented-out code)
+
+Same commands as Draft 3, plus the Job C reruns (role_tokens -> role_stats -> adjacency). Results: `out/draft32_results.md`.
+
+```sh
+uv run --with tree-sitter --with tree-sitter-language-pack --with pandas --with pyyaml python harness/test_comment_code.py   # heuristic unit tests
+uv run --with pandas python harness/comment_code_samples.py                                                                   # -> out/comment_code_samples.md
+```
+
+- `role_tokens.py`: Rust `?` (an `@operator` in `try_expression`) -> keyword.exit; `@comment` segments passing `is_commented_code()` -> `comment.code`.
+  The heuristic is a small function (docstring lists the tightenings over roles.yaml's one-liner); `test_comment_code.py` holds the examples.
+  role_stats / adjacency treat comment.code as a partition of `comment`; `mapper_common.ink_shares()` and `adjacency()` fold it back into `comment`
+  for sets without a comment.code style, so other sets' inputs are unchanged. `comment_code_samples.py` draws 10 seeded examples per language.
+- `mapper_common.hue_families` skips families marked `optional` (binding): outside the hue cap, capacity and shedding.
+- `mapper.map_palette(..., options={'binding': slot | 'auto' | None, 'fade_commented_code': bool})`, both off by default (reader only).
+  Implemented by `mapper.apply_options(theme, p, options)` on a finished theme: binding = quiet tint for `parameter` via `quiet_joint`,
+  avoiding recessive, dim and every other quiet colour (`theme.binding` reports margins, D1-reliable flags, hue gap; `auto` picks the slot);
+  fade = `comment.code` in the faded tier. `mapper.load_binding_slot(set, palette)` reads `binding:` from `assignments.yaml` (reader section; the
+  key is popped from `assign` so it is never a hue family).
+- `parse_load.py`: variants reader+binding / reader+fade / reader+both (mode C creator slot; mode B `auto`). Every row has `H_p` / `ambiguous_p`
+  (parameter as its own reading class, variant analysis); `H` / `ambiguous` keep the original classes. Columns `bind_ok`, `bind_slot`, `bind_gap`, `bind_d1_all`.
+- `render.py`: columns plain / landmark C / reader C / reader C + options (creator binding slot + faded commented code); comment.code renders as comment in
+  sets without that role. Snippet choice favours Rust windows that contain a `?` exit. tasks.html is unchanged (4 conditions).

@@ -16,11 +16,12 @@ Adjacency source: out/adjacency.csv (adjacent_skip_punct). Separability: 2·bala
 
 | set | hue families | ≤ budget 5? | unstyled roles | unknown style keys | C4 violations | must-differ pairs | single-channel (hue/slant/weight) w≥2 | no channel at all |
 |---|---:|---|---|---|---:|---:|---:|---:|
-| landmark | 4 (value, definition, exit, meta) | yes | – | – | 0 | 395 | 0 | 3 |
-| hybrid | 4 (value, definition, exit, meta) | yes | – | – | 0 | 436 | 0 | 3 |
-| label | 8 (callable, type, value, keyword, prose, meta, field, oddball) | **no** | – | – | 3 | 527 | 5 | 2 |
-| landmark_v1 | 6 (definition, value, prose, exit, meta, oddball) | **no** | – | – | 4 | 444 | 4 | 3 |
-| hybrid_v1 | 8 (definition, value, prose, exit, meta, oddball, callable, type) | **no** | – | – | 8 | 499 | 4 | 2 |
+| landmark | 4 (value, definition, exit, meta) | yes | comment.code | – | 0 | 395 | 0 | 3 |
+| hybrid | 4 (value, definition, exit, meta) | yes | comment.code | – | 0 | 436 | 0 | 3 |
+| label | 8 (callable, type, value, keyword, prose, meta, field, oddball) | **no** | comment.code | – | 3 | 527 | 5 | 2 |
+| landmark_v1 | 6 (definition, value, prose, exit, meta, oddball) | **no** | comment.code | – | 4 | 444 | 4 | 3 |
+| hybrid_v1 | 8 (definition, value, prose, exit, meta, oddball, callable, type) | **no** | comment.code | – | 8 | 499 | 4 | 2 |
+| reader | 5 (syntax, callable, value, type, meta) | yes | – | – | 5 | 523 | 1 | 2 |
 
 ## landmark
 
@@ -71,7 +72,7 @@ Adjacency: measured.
 | channel lost | confused pairs | raw cost Σ adj·w | discounted Σ adj·w·(1−sep) |
 |---|---:|---:|---:|
 | none | 3 | 0.04927 | 0.001997 |
-| hue | 205 | 0.3218 | 0.002649 |
+| hue | 205 | 0.3172 | 0.002584 |
 | weight | 3 | 0.04927 | 0.001997 |
 | slant | 3 | 0.04927 | 0.001997 |
 | lightness | 4 | 0.04944 | 0.001997 |
@@ -125,7 +126,7 @@ Adjacency: measured.
 | channel lost | confused pairs | raw cost Σ adj·w | discounted Σ adj·w·(1−sep) |
 |---|---:|---:|---:|
 | none | 3 | 0.04927 | 0.001997 |
-| hue | 249 | 0.5319 | 0.003992 |
+| hue | 249 | 0.5294 | 0.003938 |
 | weight | 3 | 0.04927 | 0.001997 |
 | slant | 3 | 0.04927 | 0.001997 |
 | lightness | 4 | 0.04944 | 0.001997 |
@@ -155,7 +156,7 @@ YAML drop order (ascending `ladder` = dropped first): field → meta → keyword
 | string / comment | 3 | hue | 0.000498 | 1.000 |
 | comment / default | 3 | hue | 5.7e-05 | 0.999 |
 | variable.use / constant.use | 2 | hue | 0.001572 | 0.950 |
-| function.call / macro.call | 2 | hue | 0.000266 | 0.999 |
+| function.call / macro.call | 2 | hue | 0.000261 | 0.999 |
 | function.def / function.call | 2 | weight | 1.5e-05 | 0.920 |
 
 **No distinguishing channel even at full capacity** (top 15 by adjacency·w; sep = lexical separability):
@@ -163,7 +164,7 @@ YAML drop order (ascending `ladder` = dropped first): field → meta → keyword
 | pair | w | adjacency | adj·w | sep | adj·w·(1−sep) |
 |---|---:|---:|---:|---:|---:|
 | variable.use / parameter | 1 | 0.001573 | 0.001573 | 0.803 | 0.00031 |
-| keyword.exit / keyword.flow | 1 | 5.2e-05 | 5.2e-05 | 0.999 | 4.16e-08 |
+| keyword.exit / keyword.flow | 1 | 7.2e-05 | 7.2e-05 | 0.999 | 5.76e-08 |
 
 (2 such pairs in total.)
 
@@ -188,11 +189,11 @@ Adjacency: measured.
 
 | channel lost | confused pairs | raw cost Σ adj·w | discounted Σ adj·w·(1−sep) |
 |---|---:|---:|---:|
-| none | 2 | 0.001625 | 0.0003099 |
-| hue | 297 | 0.629 | 0.00428 |
-| weight | 3 | 0.001655 | 0.0003123 |
-| slant | 2 | 0.001625 | 0.0003099 |
-| lightness | 2 | 0.001625 | 0.0003099 |
+| none | 2 | 0.001645 | 0.0003099 |
+| hue | 297 | 0.6311 | 0.004233 |
+| weight | 3 | 0.001675 | 0.0003123 |
+| slant | 2 | 0.001645 | 0.0003099 |
+| lightness | 2 | 0.001645 | 0.0003099 |
 
 ## landmark_v1
 
@@ -220,7 +221,7 @@ YAML drop order (ascending `ladder` = dropped first): meta → exit → prose �
 | string / comment | 3 | hue | 0.000498 | 1.000 |
 | comment / default | 3 | hue | 5.7e-05 | 0.999 |
 | variable.use / constant.use | 2 | hue | 0.001572 | 0.950 |
-| function.call / macro.call | 2 | hue | 0.000266 | 0.999 |
+| function.call / macro.call | 2 | hue | 0.000261 | 0.999 |
 
 **No distinguishing channel even at full capacity** (top 15 by adjacency·w; sep = lexical separability):
 
@@ -254,7 +255,7 @@ Adjacency: measured.
 | channel lost | confused pairs | raw cost Σ adj·w | discounted Σ adj·w·(1−sep) |
 |---|---:|---:|---:|
 | none | 3 | 0.04927 | 0.001997 |
-| hue | 187 | 0.3086 | 0.002599 |
+| hue | 187 | 0.304 | 0.002534 |
 | weight | 3 | 0.04927 | 0.001997 |
 | slant | 3 | 0.04927 | 0.001997 |
 | lightness | 4 | 0.06132 | 0.002052 |
@@ -290,7 +291,7 @@ YAML drop order (ascending `ladder` = dropped first): meta → type → exit →
 | string / comment | 3 | hue | 0.000498 | 1.000 |
 | comment / default | 3 | hue | 5.7e-05 | 0.999 |
 | variable.use / constant.use | 2 | hue | 0.001572 | 0.950 |
-| function.call / macro.call | 2 | hue | 0.000266 | 0.999 |
+| function.call / macro.call | 2 | hue | 0.000261 | 0.999 |
 
 **No distinguishing channel even at full capacity** (top 15 by adjacency·w; sep = lexical separability):
 
@@ -323,10 +324,71 @@ Adjacency: measured.
 | channel lost | confused pairs | raw cost Σ adj·w | discounted Σ adj·w·(1−sep) |
 |---|---:|---:|---:|
 | none | 2 | 0.03648 | 0.001943 |
-| hue | 241 | 0.5212 | 0.003948 |
+| hue | 241 | 0.5187 | 0.003894 |
 | weight | 2 | 0.03648 | 0.001943 |
 | slant | 2 | 0.03648 | 0.001943 |
 | lightness | 3 | 0.04852 | 0.001999 |
+
+## reader
+
+Hue families (5): syntax (keep 5), callable (keep 4), value (keep 6), type (keep 3), meta (keep 1). Budget 5 (P:I2): within.
+YAML drop order (ascending `keep` = dropped first): meta → type → callable → syntax → value.
+
+### C4 monosemy
+
+| role / family | channel | issue |
+|---|---|---|
+| keyword.exit | weight | bold (tier strong) on a role whose site is unspecified; weight is declared = landmark |
+| keyword.exit | tier | strong tier (bold) on non-binding role |
+| family:syntax | ladder | no fallback declared: when dropped its roles keep their tier with default hue (harness assumption) |
+| family:callable | ladder | no fallback declared: when dropped its roles keep their tier with default hue (harness assumption) |
+| family:value | ladder | no fallback declared: when dropped its roles keep their tier with default hue (harness assumption) |
+
+### C9 degradation
+
+523 must-differ pairs. Channel-count histogram: 0 channel(s): 2, 1 channel(s): 81, 2 channel(s): 243, 3 channel(s): 177, 4 channel(s): 20.
+
+**Flagged** (one channel only, and that channel is hue, slant or weight, w ≥ 2):
+
+| pair | w | only channel | adjacency | sep |
+|---|---:|---|---:|---:|
+| function.call / macro.call | 2 | hue | 0.000261 | 0.999 |
+
+**No distinguishing channel even at full capacity** (top 15 by adjacency·w; sep = lexical separability):
+
+| pair | w | adjacency | adj·w | sep | adj·w·(1−sep) |
+|---|---:|---:|---:|---:|---:|
+| variable.use / field | 1 | 0.0349 | 0.0349 | 0.953 | 0.00163 |
+| variable.use / parameter | 1 | 0.001573 | 0.001573 | 0.803 | 0.00031 |
+
+(2 such pairs in total.)
+
+Weighted pairs from `weights.yaml` (all of them, w ≥ 1):
+
+| pair | w | channels |
+|---|---:|---|
+| comment / string | 3 | hue |
+| comment / default | 3 | **none** |
+| function.call / function.def | 2 | weight |
+| constant.use / variable.use | 2 | hue |
+| parameter / variable.use | 1 | **none** |
+| field / variable.use | 1 | **none** |
+| function.call / macro.call | 2 | hue |
+| keyword.exit / keyword.flow | 1 | weight |
+| function.call / type.use | 1 | hue |
+| string / string.escape | 1 | **none** |
+
+### H11 ablation (C6 cost when one channel is lost, full capacity)
+
+Adjacency: measured.
+
+| channel lost | confused pairs | raw cost Σ adj·w | discounted Σ adj·w·(1−sep) |
+|---|---:|---:|---:|
+| none | 2 | 0.03648 | 0.001943 |
+| hue | 275 | 0.5918 | 0.004148 |
+| weight | 3 | 0.03655 | 0.001943 |
+| slant | 2 | 0.03648 | 0.001943 |
+| lightness | 3 | 0.03665 | 0.001943 |
 
 ## Spec notes found by these checks
 

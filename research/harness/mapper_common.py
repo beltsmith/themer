@@ -96,7 +96,9 @@ def load_set(name):
 
 
 def hue_families(s):
-    return [f for f, d in s['families'].items() if d.get('hue')]
+    """Hue families that count against the cap. Draft 3.2 optional families (`binding`) are quiet-only
+    and never count; the mapper handles them through `options`."""
+    return [f for f, d in s['families'].items() if d.get('hue') and not d.get('optional')]
 
 
 def rank_key(s):
@@ -282,6 +284,10 @@ def ink_shares():
                 if r[langc] in ('ALL', 'all', 'pooled') and r.get('scope', 'all') in ('all', '', 'ALL', None):
                     d[r[rolec]] = d.get(r[rolec], 0.0) + float(r[sharec] or 0)
             if d:
+                # draft 3.2: role_stats partitions comments into `comment` and the detected `comment.code`. Pattern sets
+                # without a comment.code style see one comment role, so `comment` is the sum (comment.code kept as a key).
+                if 'comment.code' in d:
+                    d['comment'] = d.get('comment', 0.0) + d['comment.code']
                 return d, 'out/role_stats.csv (lang=ALL)'
     return _ink_from_captures(), 'out/ink_share.csv via roles.yaml selectors (FALLBACK)'
 
@@ -320,9 +326,10 @@ def adjacency():
             for r in rows:
                 if langc and r[langc] not in ('ALL', 'all', 'pooled'):
                     continue
-                if r[ac] == r[bc]:
+                ra, rb = ('comment' if x == 'comment.code' else x for x in (r[ac], r[bc]))   # fold 3.2 comment.code
+                if ra == rb:
                     continue
-                k = frozenset((r[ac], r[bc]))
+                k = frozenset((ra, rb))
                 d[k] = d.get(k, 0.0) + float(r[vc] or 0)
             if d:
                 return d, f'out/adjacency.csv ({vc})'

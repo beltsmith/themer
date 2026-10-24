@@ -771,7 +771,7 @@ def _reader_level(built, key):
     return built[0], 'none'
 
 
-def map_reader(p, setname='reader', mode='C', max_fid=MAX_FID, reserve_diag=RESERVE_DIAG, assign=None):
+def map_reader(p, setname='reader', mode='C', max_fid=MAX_FID, reserve_diag=RESERVE_DIAG, assign=None, options=None):
     """Draft 3 (reader) mapping with reduced-conformance shedding. Mode C: the creator's slots, levels R0 -> R1 -> R2
     tried in turn. Modes A/B: capacity bounds the starting level (5 hues R0, 4 R1, 3 R2; fewer -> ladder drops,
     level 'none'). The first level whose loud families, recessive and every quiet colour pass is used; else R3 (quiet
@@ -788,6 +788,7 @@ def map_reader(p, setname='reader', mode='C', max_fid=MAX_FID, reserve_diag=RESE
             raise ValueError(f'mode C needs an assignment for {setname} / {p["id"]}')
         assign = dict(assign)
         assign.pop('string_override', None)
+        assign_binding = assign.pop('binding', None)   # 3.2 optional cue: read via load_binding_slot, used only if options ask
         cc = creator_candidates(p, assign, max_fid)
         avail = set(f for f in hf if f in cc)
         cap, ncand = len(avail), 0
@@ -837,16 +838,107 @@ def map_reader(p, setname='reader', mode='C', max_fid=MAX_FID, reserve_diag=RESE
     out['conformance'] = dict(pick['conf'], level=level, level_normal=level_normal)
     if mode == 'C':
         out['assign'] = assign
-    return out
+        if assign_binding:
+            out['assign_binding'] = assign_binding
+    return apply_options(out, p, options)
 
 
-def map_palette(p, setname='landmark', mode='A', max_fid=MAX_FID, reserve_diag=RESERVE_DIAG, assign=None):
+# ------------------------------------------------------------------ draft 3.2 optional cues
+
+OPTION_DEFAULTS = {'binding': None, 'fade_commented_code': False}
+BINDING_HUE_GAP = 40.0     # SHOULD: binding hue differs from every other quiet cue's hue (degrees, OKLCH h)
+
+
+def load_binding_slot(setname, pid):
+    """The creator's optional binding slot for (set, palette) from harness/assignments.yaml `binding:`, or None."""
+    a = load_assignments(setname, pid) or {}
+    return a.get('binding')
+
+
+def _hue_gap(h1, h2):
+    d = abs(h1 - h2) % 360
+    return min(d, 360 - d)
+
+
+def _binding_try(slot, p, theme, fg, bg):
+    """Quiet tint for `slot`'s hue: same quiet_joint search as the other quiet cues, avoiding recessive, dim and every
+    other quiet colour already in the theme. Returns (hex or None, info)."""
+    acc = K.norm(p['colours'][slot])
+    qd = theme['_set']['tiers']['quiet']
+    others = [v['hex'] for v in theme['quiet'].values() if v.get('hex')]
+    avoid = [x for x in (theme['tiers'].get('recessive'), theme['tiers']['dim']) if x] + others
+    qh, _ = quiet_joint({'binding': acc}, fg, bg, avoid, ['binding'], tuple(qd.get('chroma', QUIET3_C)),
+                        float(qd.get('lc_within_default', QUIET3_LC)), qd.get('distinct_level', 'reliable'))
+    hx = qh['binding']
+    hues = [K.oklch(h)[2] for h in others]
+    gap = min((_hue_gap(K.oklch(hx)[2], h) for h in hues), default=180.0) if hx else None
+    return hx, {'slot': slot, 'src': acc, 'hue_gap': None if gap is None else round(gap, 1)}
+
+
+def _binding_pick_auto(p, theme, fg, bg):
+    """Mode A/B (no creator): try every chromatic palette ink slot; prefer a tint whose hue is >= BINDING_HUE_GAP from
+    every other quiet cue, then the largest min margin (capped), then the largest hue gap."""
+    best = None
+    for slot, hx in palette_inks(p):
+        if K.oklch(hx)[1] < 0.04:
+            continue
+        q, info = _binding_try(slot, p, theme, fg, bg)
+        if q is None:
+            continue
+        marg = min(K.de_text(q, a, 0.8) for a in [fg, theme['tiers']['dim']] + [v['hex'] for v in theme['quiet'].values() if v.get('hex')]) - 1
+        key = (info['hue_gap'] >= BINDING_HUE_GAP, round(min(QUIET_CAP, marg), 3), info['hue_gap'])
+        if best is None or key > best[0]:
+            best = (key, q, info)
+    return (best[1], best[2]) if best else (None, {'slot': None, 'src': None, 'hue_gap': None})
+
+
+def apply_options(theme, p, options=None):
+    """Draft 3.2 optional cues on a finished reader theme (a no-op for other sets / default options). Mutates and returns it.
+    options = {'binding': slot | 'auto' | None, 'fade_commented_code': bool}.
+      binding: `parameter` gets a quiet tint from the slot's hue (family `binding`, tier quiet). It never appears loud, is not a
+        hue family (excluded from the hue cap, capacity and shedding) and must be D1-reliable from fg and every other quiet
+        colour (and from dim / recessive); if no tint passes the role stays default ink (theme['binding'].ok False).
+      fade_commented_code: `comment.code` uses the faded tier instead of dim."""
+    opts = dict(OPTION_DEFAULTS, **(options or {}))
+    theme['options'] = {'binding': opts['binding'], 'fade_commented_code': bool(opts['fade_commented_code'])}
+    if theme.get('version') != 3 or not (opts['binding'] or opts['fade_commented_code']):
+        return theme
+    fg, bg, R = theme['fg'], theme['bg'], theme['roles']
+    if opts['fade_commented_code'] and 'comment.code' in R:
+        R['comment.code'] = dict(R['comment.code'], fg=theme['tiers']['faded'], tier='faded', optional_applied=True)
+    if opts['binding'] and 'parameter' in R:
+        theme['_set'] = M.load_set(theme['set'])
+        slot = opts['binding']
+        if slot == 'auto':
+            hx, info = _binding_pick_auto(p, theme, fg, bg)
+        else:
+            hx, info = _binding_try(slot, p, theme, fg, bg)
+        del theme['_set']
+        b = dict(info, ok=hx is not None, hex=hx)
+        if hx:
+            others = {f: v['hex'] for f, v in theme['quiet'].items() if v.get('hex')}
+            cmp = {'fg': fg, 'dim': theme['tiers']['dim'], **({'recessive': theme['tiers']['recessive']} if theme['tiers'].get('recessive') else {}),
+                   **others}
+            b['margins'] = {k: round(K.de_text(hx, v, 0.8) - 1, 2) for k, v in cmp.items()}     # >= 0 = D1 reliable
+            b['d1_reliable_all'] = all(K.d1(hx, v, 'reliable') for v in cmp.values())
+            b['d1_reliable_quiet'] = all(K.d1(hx, v, 'reliable') for v in others.values())
+            b['d1_cvd'] = {kind: all(K.d1(K.cvd(hx, kind), K.cvd(v, kind), 'reliable') for v in cmp.values()) for kind in ('deutan', 'protan')}
+            b['C'] = round(K.oklch(hx)[1], 3)
+            b['dlc_fg'] = round(K.alc(hx, bg) - K.alc(fg, bg), 1)
+            R['parameter'] = dict(R['parameter'], fg=hx, family='binding', tier='quiet', optional_applied=True)
+        theme['binding'] = b
+    return theme
+
+
+def map_palette(p, setname='landmark', mode='A', max_fid=MAX_FID, reserve_diag=RESERVE_DIAG, assign=None, options=None):
     """mode 'C' = creator assignment: `assign` = {family: slot} (plus optional label-only `string_override: slot`).
     Each family uses its assigned slot's colour (lightness-derived to the tier target, fidelity cap max_fid); no ladder
-    drops; `conformance` is attached instead."""
+    drops; `conformance` is attached instead.
+    options (reader only, draft 3.2, all off by default): {'binding': slot | 'auto' | None, 'fade_commented_code': bool};
+    see apply_options."""
     s = M.load_set(setname)
     if M.is_v3(s):
-        return map_reader(p, setname, mode, max_fid, reserve_diag, assign)
+        return map_reader(p, setname, mode, max_fid, reserve_diag, assign, options)
     v2 = M.is_v2(s)
     kw = cand_kw(s)
     fg, bg = K.norm(p['fg']), K.norm(p['bg'])

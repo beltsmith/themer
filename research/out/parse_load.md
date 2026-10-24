@@ -9,40 +9,85 @@ Plain baseline: H(class) = 2.590 bits/token, amb = 104.8 tokens/screen (no punct
 | palette | set | H | amb/screen | H deutan | amb deutan | H protan | amb protan | H no punct | amb no punct | clusters | salience budget | C1 ρ | C6 disc | beacon cov. |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | gruvbox-dark-medium | plain | 2.590 | 104.8 | 2.590 | 104.8 | 2.590 | 104.8 | 2.856 | 74.2 | 1 | – | – | – | – |
-| gruvbox-dark-medium | landmark | 1.019 | 50.5 | 2.554 | 103.1 | 2.554 | 103.1 | 1.579 | 46.2 | 7 | 0.140 | -0.55 | 0.00200 | 0.86 |
-| gruvbox-dark-medium | label | 0.729 | 43.7 | 1.232 | 60.3 | 1.232 | 60.3 | 1.301 | 43.7 | 8 | 0.207 | -0.14 | 0.00244 | 0.66 |
-| gruvbox-dark-medium | reader | 0.537 | 32.0 | 2.514 | 101.3 | 2.514 | 101.3 | 0.718 | 27.6 | 10 | 0.169 | -0.13 | 0.00200 | 0.94 |
+| gruvbox-dark-medium | landmark | 1.018 | 50.5 | 2.553 | 103.1 | 2.553 | 103.1 | 1.577 | 46.1 | 7 | 0.140 | -0.55 | 0.00200 | 0.86 |
+| gruvbox-dark-medium | label | 0.729 | 43.7 | 1.232 | 60.3 | 1.232 | 60.3 | 1.301 | 43.7 | 8 | 0.207 | -0.14 | 0.00245 | 0.66 |
+| gruvbox-dark-medium | reader | 0.536 | 31.9 | 2.513 | 101.2 | 2.513 | 101.2 | 0.717 | 27.6 | 10 | 0.169 | -0.07 | 0.00200 | 0.94 |
 | monokai | plain | 2.590 | 104.8 | 2.590 | 104.8 | 2.590 | 104.8 | 2.856 | 74.2 | 1 | – | – | – | – |
-| monokai | landmark | 1.019 | 50.5 | 1.343 | 63.7 | 1.343 | 63.7 | 1.579 | 46.2 | 7 | 0.067 | -0.51 | 0.00200 | 0.86 |
-| monokai | label | 0.352 | 21.3 | 0.360 | 21.5 | 0.814 | 40.3 | 0.629 | 21.3 | 12 | 0.141 | -0.24 | 0.00201 | 0.94 |
-| monokai | reader | 0.434 | 24.2 | 1.272 | 61.5 | 1.272 | 61.5 | 0.535 | 19.8 | 11 | 0.086 | -0.35 | 0.00200 | 0.94 |
+| monokai | landmark | 1.018 | 50.5 | 1.341 | 63.6 | 1.341 | 63.6 | 1.577 | 46.1 | 7 | 0.067 | -0.51 | 0.00200 | 0.86 |
+| monokai | label | 0.352 | 21.2 | 0.359 | 21.4 | 0.814 | 40.3 | 0.628 | 21.2 | 12 | 0.141 | -0.24 | 0.00201 | 0.94 |
+| monokai | reader | 0.433 | 24.1 | 1.271 | 61.4 | 1.271 | 61.4 | 0.534 | 19.8 | 11 | 0.086 | -0.27 | 0.00200 | 0.94 |
 | kanagawa | plain | 2.590 | 104.8 | 2.590 | 104.8 | 2.590 | 104.8 | 2.856 | 74.2 | 1 | – | – | – | – |
-| kanagawa | landmark | 1.019 | 50.5 | 1.343 | 63.7 | 1.396 | 65.0 | 1.579 | 46.2 | 7 | 0.099 | -0.29 | 0.00200 | 0.86 |
-| kanagawa | label | 0.505 | 33.5 | 1.933 | 87.7 | 1.615 | 72.0 | 0.902 | 33.5 | 10 | 0.054 | -0.01 | 0.00201 | 0.94 |
-| kanagawa | reader | 0.434 | 24.2 | 2.261 | 93.2 | 0.880 | 49.5 | 0.535 | 19.8 | 11 | 0.115 | -0.21 | 0.00200 | 0.94 |
+| kanagawa | landmark | 1.018 | 50.5 | 1.341 | 63.6 | 1.397 | 65.0 | 1.577 | 46.1 | 7 | 0.099 | -0.29 | 0.00200 | 0.86 |
+| kanagawa | label | 0.505 | 33.4 | 1.933 | 87.6 | 1.616 | 72.0 | 0.901 | 33.4 | 10 | 0.054 | -0.01 | 0.00201 | 0.94 |
+| kanagawa | reader | 0.433 | 24.1 | 2.260 | 93.2 | 0.880 | 49.5 | 0.534 | 19.8 | 11 | 0.115 | -0.14 | 0.00200 | 0.94 |
 | zenburn | plain | 2.590 | 104.8 | 2.590 | 104.8 | 2.590 | 104.8 | 2.856 | 74.2 | 1 | – | – | – | – |
-| zenburn | landmark | 1.088 | 53.3 | 1.569 | 72.8 | 1.361 | 65.0 | 1.702 | 48.9 | 5 | 0.067 | -0.44 | 0.00222 | 0.66 |
+| zenburn | landmark | 1.088 | 53.3 | 1.569 | 72.8 | 1.361 | 65.0 | 1.702 | 48.9 | 5 | 0.067 | -0.44 | 0.00223 | 0.66 |
 | zenburn | label | 1.133 | 55.4 | 1.562 | 72.3 | 1.562 | 72.3 | 2.023 | 55.4 | 7 | 0.078 | -0.19 | 0.00239 | 0.66 |
-| zenburn | reader | 1.077 | 52.7 | 1.556 | 72.3 | 1.349 | 64.5 | 1.683 | 48.4 | 6 | 0.068 | -0.42 | 0.00396 | 0.86 |
+| zenburn | reader | 1.076 | 52.7 | 1.556 | 72.3 | 1.348 | 64.5 | 1.682 | 48.4 | 6 | 0.068 | -0.34 | 0.00396 | 0.86 |
 
 Means over the 4 creator palettes:
 
 | set | H | amb | H deutan | amb deutan | H protan | amb protan | H no punct | amb no punct | salience budget | C1 ρ | C6 disc |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | plain | 2.590 | 104.8 | 2.590 | 104.8 | 2.590 | 104.8 | 2.856 | 74.2 | – | – | – |
-| landmark | 1.058 | 53.2 | 1.948 | 83.4 | 1.961 | 83.7 | 1.649 | 48.8 | 0.087 | -0.35 | 0.00205 |
-| label | 0.701 | 36.5 | 1.849 | 77.8 | 1.792 | 76.2 | 0.862 | 30.1 | 0.102 | -0.34 | 0.00148 |
-| reader | 0.480 | 26.0 | 1.746 | 75.2 | 1.816 | 78.1 | 0.616 | 21.7 | 0.110 | -0.28 | 0.00208 |
+| landmark | 1.058 | 53.1 | 1.948 | 83.4 | 1.961 | 83.7 | 1.648 | 48.8 | 0.087 | -0.35 | 0.00205 |
+| label | 0.700 | 36.5 | 1.849 | 77.8 | 1.792 | 76.2 | 0.861 | 30.1 | 0.102 | -0.34 | 0.00148 |
+| reader | 0.479 | 26.0 | 1.746 | 75.2 | 1.815 | 78.1 | 0.616 | 21.6 | 0.110 | -0.22 | 0.00208 |
 
 ## All palettes, mode B (n = 1425; medians)
 
 | set | H | amb | H deutan | amb deutan | H protan | amb protan | H no punct | amb no punct | salience budget | C1 ρ | C6 disc | beacon cov. |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| landmark | 1.019 | 50.5 | 1.396 | 65.0 | 1.372 | 65.0 | 1.579 | 46.2 | 0.079 | -0.47 | 0.00200 | 0.86 |
-| label | 0.420 | 24.3 | 1.012 | 52.6 | 0.924 | 49.5 | 0.673 | 23.6 | 0.163 | -0.20 | 0.00201 | 0.94 |
-| reader | 0.553 | 28.7 | 1.506 | 70.1 | 1.405 | 66.8 | 0.551 | 19.8 | 0.120 | -0.40 | 0.00200 | 0.94 |
+| landmark | 1.018 | 50.5 | 1.397 | 65.0 | 1.372 | 65.0 | 1.577 | 46.1 | 0.079 | -0.47 | 0.00200 | 0.86 |
+| label | 0.419 | 24.2 | 1.012 | 52.6 | 0.923 | 49.5 | 0.672 | 23.5 | 0.163 | -0.20 | 0.00201 | 0.94 |
+| reader | 0.553 | 28.6 | 1.505 | 70.0 | 1.404 | 66.7 | 0.550 | 19.8 | 0.120 | -0.32 | 0.00200 | 0.94 |
 
 Paired, mode B: reader H < landmark H on 96% of palettes; median ΔH (reader − landmark) = -0.637 bits/token, median Δamb = -26.4 tokens/screen; median Δsalience budget = +0.034.
+
+## Draft 3.2 optional cues (reader variants)
+
+H / amb use the original classes (parameter counts as binding, comparable with earlier tables). H_p / amb_p split `parameter` into its own class, which is where a parameter tint shows. binding = parameter quiet tint (mode C: the creator's assignments.yaml slot; mode B: mapper 'auto' slot); fade = comment.code in the faded tier instead of dim.
+
+### Creator palettes (mode C), normal vision, with punctuation
+
+| palette | variant | H | amb | H_p | amb_p | binding D1-reliable vs all | hue gap |
+|---|---|---:|---:|---:|---:|---|---:|
+| gruvbox-dark-medium | reader | 0.3298 | 16.36 | 0.4186 | 19.99 | – | – |
+| gruvbox-dark-medium | reader+binding | 0.3192 | 16.36 | 0.3192 | 16.36 | yes | 32° |
+| gruvbox-dark-medium | reader+fade | 0.3298 | 16.36 | 0.4186 | 19.99 | – | – |
+| gruvbox-dark-medium | reader+both | 0.3192 | 16.36 | 0.3192 | 16.36 | yes | 32° |
+| monokai | reader | 0.6553 | 35.83 | 0.7440 | 39.46 | – | – |
+| monokai | reader+binding | 0.6368 | 35.83 | 0.6368 | 35.83 | yes | 58° |
+| monokai | reader+fade | 0.6553 | 35.83 | 0.7440 | 39.46 | – | – |
+| monokai | reader+both | 0.6368 | 35.83 | 0.6368 | 35.83 | yes | 58° |
+| kanagawa | reader | 0.4488 | 25.57 | 0.5376 | 29.20 | – | – |
+| kanagawa | reader+binding | 0.4382 | 25.57 | 0.4382 | 25.57 | yes | 90° |
+| kanagawa | reader+fade | 0.4488 | 25.57 | 0.5376 | 29.20 | – | – |
+| kanagawa | reader+both | 0.4382 | 25.57 | 0.4382 | 25.57 | yes | 90° |
+| zenburn | reader | 0.4824 | 26.07 | 0.5712 | 29.70 | – | – |
+| zenburn | reader+binding | 0.4718 | 26.07 | 0.4718 | 26.07 | yes | 54° |
+| zenburn | reader+fade | 0.4824 | 26.07 | 0.5712 | 29.70 | – | – |
+| zenburn | reader+both | 0.4718 | 26.07 | 0.4718 | 26.07 | yes | 54° |
+
+Means over the 4 creator palettes (Δ vs reader):
+
+| variant | H | amb | H_p | amb_p | ΔH_p | Δamb_p | H_p deutan | amb_p deutan | H_p protan | amb_p protan | H_p no punct | amb_p no punct |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| reader | 0.4791 | 25.96 | 0.5678 | 29.59 | +0.000 | +0.00 | 1.8343 | 77.01 | 1.9036 | 79.87 | 0.7739 | 25.23 |
+| reader+binding | 0.4665 | 25.96 | 0.4665 | 25.96 | -0.101 | -3.63 | 1.9005 | 80.06 | 1.9036 | 79.87 | 0.5930 | 21.60 |
+| reader+fade | 0.4791 | 25.96 | 0.5678 | 29.59 | +0.000 | +0.00 | 1.8343 | 77.01 | 1.9036 | 79.87 | 0.7739 | 25.23 |
+| reader+both | 0.4665 | 25.96 | 0.4665 | 25.96 | -0.101 | -3.63 | 1.9005 | 80.06 | 1.9036 | 79.87 | 0.5930 | 21.60 |
+
+### All palettes, mode B (n = 1425; medians; binding slot chosen by the mapper)
+
+| variant | H | amb | H_p | amb_p | median ΔH_p | median Δamb_p | share of palettes with lower H_p |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| reader | 0.5526 | 28.6 | 0.6414 | 32.2 | +0.000 | +0.00 | 0% |
+| reader+binding | 0.5342 | 28.6 | 0.5342 | 28.6 | -0.099 | -3.63 | 89% |
+| reader+fade | 0.5526 | 28.6 | 0.6414 | 32.2 | +0.000 | +0.00 | 0% |
+| reader+both | 0.5342 | 28.6 | 0.5342 | 28.6 | -0.099 | -3.63 | 89% |
+
+Binding tint found in mode B: 89% of palettes (1266/1425); D1-reliable vs fg and every other quiet colour on 100% of those; hue gap >= 40° from every other quiet cue on 92%.
 
 ## Reader conformance and reading-layer success, mode B
 

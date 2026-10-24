@@ -16,11 +16,17 @@ Definitions
   * ambiguous/screen = tokens per screen whose cluster's majority class (by tokens) differs from their own class.
   * nopunct: punctuation tokens removed from the distribution (they are lexically trivial).
 Themes: plain (fg only), landmark / label / reader mode C on the 4 creator palettes; landmark / label / reader mode B
-on every palette in data/palettes.jsonl. Finding-side numbers (salience budget = sal_weighted_ink, C1 ρ, C6_disc,
+on every palette in data/palettes.jsonl.
+Draft 3.2 variants of reader (VARIANTS): reader+binding (parameter quiet tint; mode C uses the creator's `binding:` slot from
+assignments.yaml, mode B the mapper's 'auto' slot choice), reader+fade (comment.code faded), reader+both. They are derived from the
+reader theme with mapper.apply_options. Every row also carries H_p / ambiguous_p: the same metrics with `parameter` as its own reading
+class (CLASS_P), so the benefit of a parameter tint shows; H / ambiguous keep the original classes (parameter = binding) for
+comparability with earlier drafts. comment.code (a detected subset of comment in role_stats.csv) belongs to the comment class. Finding-side numbers (salience budget = sal_weighted_ink, C1 ρ, C6_disc,
 beacon coverage) come from mapper.evaluate for the same themes.
 """
 from __future__ import annotations
 
+import copy
 import csv
 import math
 import os
@@ -45,10 +51,14 @@ CLASS = {
     'number': 'literal', 'boolean': 'literal', 'constant.use': 'literal', 'constant.builtin': 'literal',
     'constant.def': 'literal', 'string.escape': 'literal',
     'string': 'string', 'string.regexp': 'string',
-    'comment': 'comment', 'comment.doc': 'comment', 'comment.todo': 'comment',
+    'comment': 'comment', 'comment.doc': 'comment', 'comment.code': 'comment', 'comment.todo': 'comment',
     'attribute': 'meta', 'preproc': 'meta', 'macro.def': 'meta', 'macro.call': 'meta',
 }
+CLASS_P = dict(CLASS, parameter='parameter')     # variant analysis only: parameters as their own reading class
 STYLE_ROLE = {'variable.def.top': 'variable.def', 'variable.def.local': 'variable.use'}
+STYLE_FALLBACK = {'comment.code': 'comment'}     # sets without a comment.code style draw it as a comment
+VARIANTS = {'reader+binding': {'binding': 'slot'}, 'reader+fade': {'fade_commented_code': True},
+            'reader+both': {'binding': 'slot', 'fade_commented_code': True}}
 CREATOR = ['base16/gruvbox-dark-medium', 'base16/monokai', 'base16/kanagawa', 'base16/zenburn']
 SETS_C = ['landmark', 'label', 'reader']
 SETS_B = ['landmark', 'label', 'reader']
@@ -75,7 +85,7 @@ def styles_of(theme):
             out[rid] = ('plain', False, False)
             continue
         R = theme['roles']
-        r = R.get(STYLE_ROLE.get(rid, rid)) or R['default']
+        r = R.get(STYLE_ROLE.get(rid, rid)) or R.get(STYLE_FALLBACK.get(rid)) or R['default']
         out[rid] = (r['fg'] or theme['fg'], bool(r['bold']), bool(r['italic']))
     return out
 
@@ -102,15 +112,15 @@ def clusters(styles, vision):
     return {r: find(r) for r in ids}
 
 
-def load(styles, vision, punct=True):
+def load(styles, vision, punct=True, cls=CLASS):
     cl = clusters(styles, vision)
-    roles = [r for r in DIST if punct or CLASS[r] != 'punctuation']
+    roles = [r for r in DIST if punct or cls[r] != 'punctuation']
     tot = sum(DIST[r][0] for r in roles)
     by = defaultdict(Counter)       # cluster -> class -> token share
     scr = defaultdict(Counter)      # cluster -> class -> tokens per screen
     for r in roles:
-        by[cl[r]][CLASS[r]] += DIST[r][0] / tot
-        scr[cl[r]][CLASS[r]] += DIST[r][1]
+        by[cl[r]][cls[r]] += DIST[r][0] / tot
+        scr[cl[r]][cls[r]] += DIST[r][1]
     H = 0.0
     amb = 0.0
     for c, cnt in by.items():
@@ -144,8 +154,28 @@ def rows_for(theme, sn, mode, pid):
     for v in VISIONS:
         for punct in (True, False):
             H, amb, n = load(st, v, punct)
-            out.append(dict(base, vision=v, punct=int(punct), H=round(H, 4), ambiguous=round(amb, 2), n_clusters=n))
+            Hp, ambp, _ = load(st, v, punct, CLASS_P)
+            out.append(dict(base, vision=v, punct=int(punct), H=round(H, 4), ambiguous=round(amb, 2), n_clusters=n,
+                            H_p=round(Hp, 4), ambiguous_p=round(ambp, 2)))
     return out
+
+
+def variant_rows(th, p, mode, pid):
+    """reader theme -> rows for the draft 3.2 variants (apply_options on a copy)."""
+    rows = []
+    slot = MP.load_binding_slot('reader', pid) if mode == 'C' else 'auto'
+    for vn, o in VARIANTS.items():
+        opts = {k: (slot if v == 'slot' else v) for k, v in o.items()}
+        v = MP.apply_options(copy.deepcopy(th), p, opts)
+        rs = rows_for(v, vn, mode, pid)
+        b = v.get('binding')
+        for r in rs:
+            r['bind_ok'] = '' if b is None else int(b['ok'])
+            r['bind_slot'] = '' if b is None else (b['slot'] or '')
+            r['bind_gap'] = '' if not b or b.get('hue_gap') is None else b['hue_gap']
+            r['bind_d1_all'] = '' if not b or not b['ok'] else int(b['d1_reliable_all'])
+        rows += rs
+    return rows
 
 
 def one_palette(p):
@@ -153,9 +183,15 @@ def one_palette(p):
     if p['id'] in CREATOR:
         rows += rows_for(None, 'plain', None, p['id'])
         for sn in SETS_C:
-            rows += rows_for(MP.map_palette(p, sn, 'C'), sn, 'C', p['id'])
+            th = MP.map_palette(p, sn, 'C')
+            rows += rows_for(th, sn, 'C', p['id'])
+            if sn == 'reader':
+                rows += variant_rows(th, p, 'C', p['id'])
     for sn in SETS_B:
-        rows += rows_for(MP.map_palette(p, sn, 'B'), sn, 'B', p['id'])
+        th = MP.map_palette(p, sn, 'B')
+        rows += rows_for(th, sn, 'B', p['id'])
+        if sn == 'reader':
+            rows += variant_rows(th, p, 'B', p['id'])
     return rows
 
 
@@ -166,6 +202,56 @@ def med(xs):
 
 def pct(n, d):
     return f'{100 * n / d:.0f}%' if d else '–'
+
+
+VNAMES = ['reader', 'reader+binding', 'reader+fade', 'reader+both']
+
+
+def variant_report(rows, get):
+    L = ['## Draft 3.2 optional cues (reader variants)\n',
+         'H / amb use the original classes (parameter counts as binding, comparable with earlier tables). H_p / amb_p split '
+         '`parameter` into its own class, which is where a parameter tint shows. binding = parameter quiet tint (mode C: the creator\'s '
+         'assignments.yaml slot; mode B: mapper \'auto\' slot); fade = comment.code in the faded tier instead of dim.\n',
+         '### Creator palettes (mode C), normal vision, with punctuation\n',
+         '| palette | variant | H | amb | H_p | amb_p | binding D1-reliable vs all | hue gap |', '|---|---|---:|---:|---:|---:|---|---:|']
+    for pid in CREATOR:
+        for vn in VNAMES:
+            r = get(id=pid, set=vn, mode='C', vision='normal', punct=1)[0]
+            bd = '–' if r.get('bind_ok', '') == '' else ('yes' if r.get('bind_d1_all') == 1 else 'FAIL')
+            gp = '–' if r.get('bind_gap', '') == '' else f"{r['bind_gap']:.0f}°"
+            L.append(f"| {pid.split('/')[1]} | {vn} | {r['H']:.4f} | {r['ambiguous']:.2f} | {r['H_p']:.4f} | {r['ambiguous_p']:.2f} | {bd} | {gp} |")
+    L.append('')
+    L.append('Means over the 4 creator palettes (Δ vs reader):\n')
+    L.append('| variant | H | amb | H_p | amb_p | ΔH_p | Δamb_p | H_p deutan | amb_p deutan | H_p protan | amb_p protan | H_p no punct | amb_p no punct |')
+    L.append('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|')
+    def mean(vn, v, pu, k, mode='C'):
+        xs = [r[k] for r in get(set=vn, mode=mode, vision=v, punct=pu)]
+        return sum(xs) / len(xs) if xs else float('nan')
+    for vn in VNAMES:
+        L.append(f"| {vn} | {mean(vn, 'normal', 1, 'H'):.4f} | {mean(vn, 'normal', 1, 'ambiguous'):.2f} | {mean(vn, 'normal', 1, 'H_p'):.4f} | "
+                 f"{mean(vn, 'normal', 1, 'ambiguous_p'):.2f} | {mean(vn, 'normal', 1, 'H_p') - mean('reader', 'normal', 1, 'H_p'):+.3f} | "
+                 f"{mean(vn, 'normal', 1, 'ambiguous_p') - mean('reader', 'normal', 1, 'ambiguous_p'):+.2f} | "
+                 f"{mean(vn, 'deutan', 1, 'H_p'):.4f} | {mean(vn, 'deutan', 1, 'ambiguous_p'):.2f} | {mean(vn, 'protan', 1, 'H_p'):.4f} | "
+                 f"{mean(vn, 'protan', 1, 'ambiguous_p'):.2f} | {mean(vn, 'normal', 0, 'H_p'):.4f} | {mean(vn, 'normal', 0, 'ambiguous_p'):.2f} |")
+    L.append('')
+    nb = len({r['id'] for r in rows if r['mode'] == 'B' and r['set'] == 'reader'})
+    L.append(f'### All palettes, mode B (n = {nb}; medians; binding slot chosen by the mapper)\n')
+    L.append('| variant | H | amb | H_p | amb_p | median ΔH_p | median Δamb_p | share of palettes with lower H_p |')
+    L.append('|---|---:|---:|---:|---:|---:|---:|---:|')
+    base = {r['id']: r for r in get(set='reader', mode='B', vision='normal', punct=1)}
+    for vn in VNAMES:
+        rs = get(set=vn, mode='B', vision='normal', punct=1)
+        dH = [r['H_p'] - base[r['id']]['H_p'] for r in rs if r['id'] in base]
+        dA = [r['ambiguous_p'] - base[r['id']]['ambiguous_p'] for r in rs if r['id'] in base]
+        L.append(f"| {vn} | {med([r['H'] for r in rs]):.4f} | {med([r['ambiguous'] for r in rs]):.1f} | {med([r['H_p'] for r in rs]):.4f} | "
+                 f"{med([r['ambiguous_p'] for r in rs]):.1f} | {med(dH):+.3f} | {med(dA):+.2f} | {pct(sum(x < -1e-9 for x in dH), len(dH))} |")
+    L.append('')
+    bb = get(set='reader+binding', mode='B', vision='normal', punct=1)
+    ok = [r for r in bb if r.get('bind_ok') == 1]
+    L.append(f"Binding tint found in mode B: {pct(len(ok), len(bb))} of palettes ({len(ok)}/{len(bb)}); "
+             f"D1-reliable vs fg and every other quiet colour on {pct(sum(r['bind_d1_all'] == 1 for r in ok), len(ok))} of those; "
+             f"hue gap >= 40° from every other quiet cue on {pct(sum(r['bind_gap'] != '' and r['bind_gap'] >= 40 for r in ok), len(ok))}.\n")
+    return L
 
 
 def report(rows):
@@ -226,6 +312,7 @@ def report(rows):
              f"median Δsalience budget = {med([a['sal_ink'] - b['sal_ink'] for a, b in pairs]):+.3f}.\n")
     # ---- reader conformance + quiet/recessive success
     rd = get(set='reader', mode='B', vision='normal', punct=1)
+    L += variant_report(rows, get)
     L.append('## Reader conformance and reading-layer success, mode B\n')
     for key in ('level', 'level_normal'):
         c = Counter(r[key] for r in rd)
@@ -261,7 +348,7 @@ def main(argv):
             rows += rs
             if i % 200 == 0:
                 print(f'{i}/{len(pals)}', flush=True)
-    order = {s: i for i, s in enumerate(['plain'] + SETS_B)}
+    order = {s: i for i, s in enumerate(['plain'] + SETS_B + list(VARIANTS))}
     rows.sort(key=lambda r: (r['id'], r['mode'], order[r['set']], r['vision'], -r['punct']))
     fields = list(dict.fromkeys(k for r in rows for k in r))
     with open(os.path.join(M.OUT, 'parse_load.csv'), 'w', newline='') as f:

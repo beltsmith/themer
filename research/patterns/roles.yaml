@@ -103,6 +103,7 @@ roles:
   - id: keyword.exit
     captures: ["@keyword.return"]
     text: [return, raise, throw, yield, break, continue, goto]   # any keyword with this text is an exit
+    also: {rust: "(try_expression \"?\")"}   # 3.2: Rust `?` is an early return
   - id: keyword.flow
     captures: ["@keyword.conditional", "@keyword.repeat", "@keyword.conditional.ternary",
                "@keyword.exception", "@keyword.coroutine"]   # try/catch/finally, await
@@ -132,6 +133,12 @@ roles:
   - id: comment.doc
     captures: ["@comment.documentation", "@string.documentation"]   # docstrings are prose, not values
     lsp: {type: [comment], modifiers: [documentation]}
+  - id: comment.code
+    captures: ["@comment"]
+    detect: commented-out code   # 3.2, optional. Heuristic: a comment whose body, after the
+                                 # comment marker, looks like code (ends in ; { } ) or ,; or
+                                 # starts with a keyword/identifier followed by ( = . or :)
+                                 # and contains no sentence (≥ 4 alphabetic words in a row).
   - id: comment.todo
     captures: ["@comment.todo", "@comment.error", "@comment.warning", "@comment.note"]
 

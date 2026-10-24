@@ -10,7 +10,7 @@
 #   finding layer: the same hue, loud, on landmarks (+ bold on binding sites)
 # Hue = kind family. Lightness+chroma = importance. Bold = landmark.
 # Variables/params/fields stay default ink: "the logic stands out".
-name: reader   # draft 3.1
+name: reader   # draft 3.2: optional binding tint, Rust `?` exit, optional faded commented-out code
 
 channels:
   hue: kind_family
@@ -43,6 +43,12 @@ families:
   type:     {hue: true, keep: 3, fallback: {family: callable}}   # uses quiet; definitions strong
   meta:     {hue: true, keep: 1, fallback: {family: syntax, tier: loud}}   # optional 5th hue
   oddball:  {hue: false, fallback: {family: null, tier: popout}}
+  # 3.2, OPTIONAL. A quiet-only cue for parameters. It never appears loud, so it adds
+  # texture, not a salient meaning, and doesn't count against the 5-hue cap. Its hue SHOULD
+  # differ from the other quiet cues' hues; it MUST be reliably distinct from default and every
+  # other quiet colour. Best with LSP semantic tokens (parameter type), where every use is
+  # marked; tree-sitter alone marks mainly the declaration.
+  binding:  {hue: true, optional: true, quiet_only: true, fallback: {family: null, tier: default}}
 # Shedding (reduced conformance): drop meta → syntax loud; then type → callable (types and
 # calls share a hue, and position separates them); then quiet cues → default (keep loud and
 # bold); syntax recessive is kept to the end because it carries syntax-vs-name.
@@ -52,7 +58,7 @@ styles:
   keyword.decl:     {family: syntax, tier: recessive}
   keyword.flow:     {family: syntax, tier: recessive}
   keyword.other:    {family: syntax, tier: recessive}
-  keyword.exit:     {family: syntax, tier: strong}   # 3.1: bold — exits are landmarks; loud alone
+  keyword.exit:     {family: syntax, tier: strong}   # incl. Rust `?` (3.2)   # 3.1: bold — exits are landmarks; loud alone
                                                      # was outshone by recessive keywords (32% of palettes)
   variable.builtin: {family: syntax, tier: recessive}   # self/this: language-provided names
   operator:         {tier: default}
@@ -84,12 +90,13 @@ styles:
   # bindings: the logic
   variable.def:     {tier: default, bold_if: top-level}   # module-level bindings bold
   variable.use:     {tier: default}
-  parameter:        {tier: default}
+  parameter:        {tier: default, optional: {family: binding, tier: quiet}}
   field:            {tier: default}
   default:          {tier: default}
   # prose
   comment:          {tier: dim}
   comment.doc:      {tier: dim}
+  comment.code:     {tier: dim, optional: {tier: faded}}   # 3.2: commented-out code (heuristic)
   comment.todo:     {family: oddball, tier: popout}
   # modifiers
   mod.deprecated:   {strike: true}

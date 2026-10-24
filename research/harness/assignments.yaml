@@ -15,7 +15,19 @@ label:
   base16/zenburn:             {callable: base0C, type: base0D, value: base08, keyword: base0A, meta: base09, field: base05, prose: base03, oddball: base0E}
 # reader (draft 3): one hue per kind family; mirrors each theme's own keyword / function / constant / type / meta slots.
 reader:
-  base16/gruvbox-dark-medium: {syntax: base08, callable: base0B, value: base0E, type: base0A, meta: base0C}
-  base16/monokai:             {syntax: base08, callable: base0B, value: base0E, type: base0D, meta: base09}
-  base16/kanagawa:            {syntax: base0E, callable: base0D, value: base09, type: base0A, meta: base08}
-  base16/zenburn:             {syntax: base0A, callable: base0C, value: base08, type: base0D, meta: base09}
+  base16/gruvbox-dark-medium: {syntax: base08, callable: base0B, value: base0E, type: base0A, meta: base0C, binding: base0D}
+  base16/monokai:             {syntax: base08, callable: base0B, value: base0E, type: base0D, meta: base09, binding: base0C}
+  base16/kanagawa:            {syntax: base0E, callable: base0D, value: base09, type: base0A, meta: base08, binding: base0C}
+  base16/zenburn:             {syntax: base0A, callable: base0C, value: base08, type: base0D, meta: base09, binding: base0B}
+# reader, draft 3.2: the OPTIONAL `binding:` slot (parameter quiet tint; used only when options={'binding': slot}). Not a hue family.
+# Choice rule: a hue the palette's quiet cues (callable / value / type / meta) and the syntax recessive don't use, among slots whose tint
+# passes the harness (D1-reliable vs fg, dim, recessive and every other quiet colour). Quiet hues below are OKLCH h of the derived tints.
+#   gruvbox: quiet h = pink 2 (value), yellow 83 (type), olive 111 (callable), green 138 (meta); recessive 31. Every warm hue is taken, and
+#            base0D (aqua, h 169) is the only cool slot that passes. Nearest quiet cue is 32 deg away (below the 40 deg SHOULD),
+#            but it is the only cool tint, so it stays separable under red-green CVD.
+#   monokai: reader falls to R3 here (type/meta shed, value quiet fails); the live quiet cue is callable green (127). Blue base0D is
+#            the type slot (it returns at R0), so the binding takes the neighbouring cyan base0C (h 184), 57 deg from green.
+#   kanagawa: quiet h = red 22 (meta), orange 51 (value), yellow 82 (type), blue 265 (callable); recessive purple 301. Teal base0C
+#            (h 175) is 90 deg from the nearest cue; the green base0B (h 136) also passes but is closer.
+#   zenburn: quiet h = pink-red 19 (value), orange 55 (meta), cyan 199/200 (callable, type); recessive yellow 91. Green base0B
+#            (h 144) is 54 deg from the nearest cue; base0E pink (h 339) passes but is 40 deg from value.
