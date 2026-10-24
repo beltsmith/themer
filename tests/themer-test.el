@@ -755,6 +755,108 @@ function definition, macro a macro definition.")
                                                 themer-reader-form--dynamic (point-max))))))
       (kill-buffer buf))))
 
+;;;; Samples
+
+(defun themer-test--sample-faces (lang)
+  "The faces (flattened) of the fontified built-in sample of LANG."
+  (pcase-let ((`(,modes . ,text) (alist-get lang themer-reader-form-samples)))
+    (let ((run (themer-reader-form--sample-runs modes text)))
+      (should-not (eq run :none))
+      (should (equal (car run) text))
+      (delete-dups (apply #'append (mapcar (lambda (r) (ensure-list (nth 2 r))) (cdr run)))))))
+
+(ert-deftest themer-reader-form-samples-fontify ()
+  "Every built-in sample has keyword, call and string spans; most have exits."
+  (should (equal (mapcar #'car themer-reader-form-samples)
+                 '(typescript python rust c go elisp)))
+  (dolist (lang (mapcar #'car themer-reader-form-samples))
+    (let ((faces (themer-test--sample-faces lang)))
+      (dolist (f '(font-lock-keyword-face font-lock-string-face))
+        (should (memq f faces)))
+      (should (or (memq 'font-lock-function-call-face faces)
+                  (memq 'font-lock-builtin-face faces)))
+      (when (memq lang '(rust go c python typescript))
+        (should (memq 'themer-reader-exit faces))))))
+
+(ert-deftest themer-reader-form-samples-user-alist ()
+  "A language added to the alist is offered, and a missing mode gives a note."
+  (let* ((themer-reader-form-samples
+          '((mine (emacs-lisp-mode) . "(defun mine () 1)")
+            (gone (no-such-mode) . "x")))
+         (themer-reader-form--selected '(mine gone))
+         (d (themer-reader-derive (plist-get (themer-reader-form-parse
+                                              (with-temp-buffer
+                                                (insert-file-contents
+                                                 (expand-file-name "examples/reader-gruvbox-theme.el"
+                                                                   themer-test--root))
+                                                (buffer-string)))
+                                             :spec)))
+         (text (substring-no-properties (themer-reader-form-sample d))))
+    (should (equal (themer-reader-form--selected-languages) '(mine gone)))
+    (should (string-search "── Mine ──" text))
+    (should (string-search "(defun mine () 1)" text))
+    (should (string-search "no major mode available for Gone" text))
+    (should-not (string-search "Rust" text))))
+
+(ert-deftest themer-reader-form-sample-buffer ()
+  "The sample buffer opens with the form, follows its choices, and dies with it."
+  (let ((themer-reader-form--selected :unset)
+        (file (expand-file-name "examples/reader-gruvbox-theme.el" themer-test--root))
+        form samples)
+    (save-window-excursion
+      (unwind-protect
+          (progn
+            (delete-other-windows)
+            (setq form (themer-reader-edit-theme file))
+            (setq samples (buffer-local-value 'themer-reader-form--sample-buffer form))
+            (should (buffer-live-p samples))
+            (should (equal (buffer-name samples) "*themer-reader-sample: reader-gruvbox*"))
+            (should (eq 'themer-reader-form-sample-mode (buffer-local-value 'major-mode samples)))
+            (should (buffer-local-value 'buffer-read-only samples))
+            (should (get-buffer-window samples))
+            (should (get-buffer-window form))
+            (with-current-buffer form
+              (themer-reader-form-refresh)
+              (should-not (string-search "Sample\n"
+                                         (buffer-substring-no-properties
+                                          themer-reader-form--dynamic (point-max)))))
+            (let ((all (with-current-buffer samples (buffer-string))))
+              (dolist (n '("TypeScript" "Python" "Rust" "C" "Go" "Emacs Lisp"))
+                (should (string-search (format "── %s ──" n) all)))
+              (should (plist-get (get-text-property (string-search "import" all) 'face all)
+                                 :foreground)))
+            ;; Point and scroll survive a re-derive.
+            (with-current-buffer samples (goto-char 100))
+            (set-window-point (get-buffer-window samples) 100)
+            (with-current-buffer form
+              (themer-reader-form--set :value "#83a598")
+              (themer-reader-form-refresh))
+            (should (= 100 (window-point (get-buffer-window samples))))
+            ;; Toggling a language changes the contents, without deriving.
+            (with-current-buffer form
+              (let ((d themer-reader-form--derived))
+                (widget-apply-action (car (last (widget-get themer-reader-form--samples-widget :buttons))))
+                (should (eq d themer-reader-form--derived))
+                (should (equal themer-reader-form--selected '(python rust c go elisp)))))
+            (let ((text (substring-no-properties (with-current-buffer samples (buffer-string)))))
+              (should-not (string-search "── TypeScript ──" text))
+              (should (string-search "── Python ──" text)))
+            ;; Closed window: Show samples brings it back.
+            (delete-window (get-buffer-window samples))
+            (should-not (get-buffer-window samples))
+            (with-current-buffer form (themer-reader-form-show-samples))
+            (should (get-buffer-window samples))
+            ;; A user rule in display-buffer-alist wins.
+            (delete-window (get-buffer-window samples))
+            (let ((display-buffer-alist '(("\\*themer-reader-sample" display-buffer-pop-up-window))))
+              (with-current-buffer form (themer-reader-form-show-samples)))
+            (should (get-buffer-window samples))
+            ;; The sample dies with the form.
+            (kill-buffer form)
+            (should-not (buffer-live-p samples)))
+        (when (buffer-live-p form) (kill-buffer form))
+        (when (buffer-live-p samples) (kill-buffer samples))))))
+
 ;;;; UI accent
 
 (defconst themer-test--accent-spec

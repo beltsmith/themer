@@ -15,10 +15,12 @@
 ;; use it.  Each slot then names a palette entry or holds a raw hex, with a
 ;; swatch, a "Pick" button (a menu of the palette entries, a custom hex, or
 ;; a new entry) and a short status from the conformance result.  Below them
-;; are the derived tiers, a sample fontified with the derived faces, and
-;; the conformance checks.  Edits re-derive after `themer-preview-delay'
-;; idle seconds, only when a colour changed.  "Apply" enables the theme
-;; globally until it is toggled off or the form is killed.
+;; are the derived tiers and the conformance checks.  The code samples
+;; (TypeScript, Python, Rust, C, Go, Emacs Lisp; a checkbox each) are drawn
+;; with the derived faces in their own buffer beside the form,
+;; `*themer-reader-sample: NAME*'.  Edits re-derive after
+;; `themer-preview-delay' idle seconds, only when a colour changed.  "Apply"
+;; enables the theme globally until it is toggled off or the form is killed.
 ;;
 ;; Keys: TAB and S-TAB move between fields, C-c C-c saves, C-c C-k cancels.
 
@@ -32,6 +34,7 @@
 (require 'themer-reader)
 
 (defvar themer-preview-delay)
+(defvar treesit-font-lock-level)
 (declare-function custom-theme--load-path "custom")
 
 ;;;; Model
@@ -458,65 +461,292 @@ SEVERITY is `ok', `must' or `should'."
         (funcall add k 'ok (themer-reader-form--hue (plist-get tiers k)))))
     (mapcar (lambda (x) (cons (car x) (reverse (cdr x)))) out)))
 
-;;;; Sample
+;;;; Samples
 
-(defconst themer-reader-form--samples
-  '((typescript typescript-ts-mode "\
+(defvar-local themer-reader-form--sample-buffer nil "The form's sample buffer.")
+(defvar-local themer-reader-form--derived nil "The last derivation shown.")
+(defvar-local themer-reader-form--model nil "The model the form was opened on.")
+
+(defcustom themer-reader-form-samples
+  '((typescript (typescript-ts-mode typescript-mode) . "\
 import { readFile } from \"fs/promises\";
 
 const MAX_RETRIES = 3;
 let cache = new Map<string, Config>();
 
 interface Config { path: string; retries: number }
+type Result = Config | null;
 
+/** Load a config file, retrying on failure. */
 // TODO: handle timeouts
-export async function load(path: string, retries = MAX_RETRIES): Promise<Config> {
-  for (let i = 0; i < retries; i++) {
-    const text = await readFile(path, \"utf8\");
-    if (text.length > 0) return JSON.parse(text) as Config;
+// console.log(\"debug\");
+@sealed
+class Loader {
+  ready = true;
+  async run(path: string, retries = MAX_RETRIES): Promise<Result> {
+    for (let i = 0; i < retries; i++) {
+      const text = await readFile(path, \"utf8\");
+      if (!text) continue;
+      if (i > 5) break;
+      cache.set(path, JSON.parse(text) as Config);
+      console.log(`read ${path}\\n`);
+      return cache.get(path) ?? null;
+    }
+    throw new Error(\"no config at \" + path);
   }
-  throw new Error(`no config at ${path}`);
+}
+
+export async function load(path: string): Promise<Result> {
+  return new Loader().run(path);
 }")
-    (python python-ts-mode "\
+    (python (python-ts-mode python-mode) . "\
+\"\"\"Config loading.\"\"\"
+import json
+from dataclasses import dataclass
+
+MAX_RETRIES = 3
+registry: dict[str, \"Config\"] = {}
+verbose = True
+
+
 @dataclass
-class Point:
-    x: float = 0.0
+class Config:
+    path: str
+    retries: int = MAX_RETRIES
 
-LIMIT = 10
-registry = {}
 
-def scale(p, factor=2):
-    \"\"\"Scale a point.\"\"\"
-    if factor > LIMIT:
-        raise ValueError(\"too big\\n\")
-    return Point(p.x * factor)"))
-  "Sample code: (LANGUAGE MODE SOURCE).")
+# TODO: handle timeouts
+# print(\"debug\")
+def load(path: str, retries: int = MAX_RETRIES) -> Config:
+    \"\"\"Load a config, retrying on failure.\"\"\"
+    result = None
+    for attempt in range(retries):
+        try:
+            with open(path) as f:
+                text = f.read()
+        except OSError:
+            continue
+        if not text:
+            break
+        registry[path] = Config(json.loads(text), attempt)
+        return registry[path]
+    print(f\"no config at {path}\\n\")
+    raise ValueError(\"gave up\\n\")")
+    (rust (rust-ts-mode rust-mode) . "\
+//! Config loading.
+use std::collections::HashMap;
+use std::fs;
 
-(defvar themer-reader-form--sample-cache nil
-  "Fontified samples: list of (TEXT . RUNS), RUNS a list of (BEG END FACE).")
+const MAX_RETRIES: u32 = 3;
+static GREETING: &str = \"hello\\n\";
 
-(defun themer-reader-form--fontify-samples ()
-  "Fontify the samples with their tree-sitter modes and the reader rules."
-  (or themer-reader-form--sample-cache
-      (setq themer-reader-form--sample-cache
-            (cl-loop
-             for (lang mode src) in themer-reader-form--samples
-             collect
+#[derive(Debug, Clone)]
+pub struct Config {
+    path: String,
+    retries: u32,
+}
+
+/// Load a config, retrying on failure.
+// TODO: handle timeouts
+// let verbose = true;
+pub fn load(path: &str, retries: u32) -> Result<Config, std::io::Error> {
+    let mut cache: HashMap<String, Config> = HashMap::new();
+    let found: Option<Config> = None;
+    for attempt in 0..retries {
+        let text = fs::read_to_string(path)?;
+        if text.is_empty() {
+            continue;
+        }
+        if attempt > MAX_RETRIES {
+            break;
+        }
+        println!(\"read {} bytes\\t{}\", text.len(), GREETING);
+        cache.insert(path.to_string(), Config { path: text, retries });
+    }
+    if found.is_none() && retries == 0 {
+        return Ok(Config { path: String::new(), retries: 0 });
+    }
+    Ok(Config { path: String::from(path), retries })
+}")
+    (c (c-ts-mode c-mode) . "\
+#include <stdbool.h>
+#include <stdio.h>
+
+#define MAX_ITEMS 64
+#define SQUARE(x) ((x) * (x))
+
+typedef struct node {
+    int value;
+    struct node *next;
+} node_t;
+
+static const double RATIO = 0.75;
+static int counter = 0;
+
+/* Sum a list, stopping at a negative value. */
+// TODO: guard against cycles
+// printf(\"debug\\n\");
+int sum_list(const node_t *head, int limit)
+{
+    int total = 0;
+    bool done = false;
+    for (const node_t *n = head; n != NULL; n = n->next) {
+        if (n->value < 0)
+            break;
+        if (n->value == 0)
+            continue;
+        total += SQUARE(n->value);
+        if (total > limit)
+            return -1;
+    }
+    printf(\"total: %d\\n\", total);
+    counter++;
+    return done ? 0 : total;
+}")
+    (go (go-ts-mode go-mode) . "\
+package main
+
+import (
+	\"errors\"
+	\"fmt\"
+)
+
+const MaxRetries = 3
+
+var registry = map[string]int{}
+
+// Point is a position.
+type Point struct{ X, Y float64 }
+
+type Shape interface{ Area() float64 }
+
+// TODO: support negative scales
+// fmt.Println(\"debug\")
+func scale(p Point, factor float64, tries int) (Point, error) {
+	ok := true
+	var last error = nil
+	for i := 0; i < tries; i++ {
+		if i == 2 {
+			continue
+		}
+		if i > MaxRetries {
+			break
+		}
+		registry[fmt.Sprint(i)] = i
+	}
+	if factor > MaxRetries {
+		return Point{}, errors.New(\"too big\\n\")
+	}
+	fmt.Printf(\"scaled %v: %t\\n\", p, ok)
+	return Point{p.X * factor, p.Y * factor}, last
+}")
+    (elisp (emacs-lisp-mode) . "\
+;;; sample.el --- Config loading  -*- lexical-binding: t; -*-
+
+(require 'cl-lib)
+
+(defconst sample-max-retries 3 \"Attempts before giving up.\")
+(defvar sample-cache (make-hash-table :test 'equal))
+
+(defmacro sample-quietly (&rest body)
+  \"Run BODY without messages.\"
+  `(let ((inhibit-message t)) ,@body))
+
+;; TODO: handle timeouts
+;; (message \"debug\")
+(defun sample-load (path &optional retries)
+  \"Read PATH, trying RETRIES times.\"
+  (let ((tries (or retries sample-max-retries))
+        (found nil))
+    (cl-loop for i from 1 to tries
+             when (file-readable-p path)
+             do (setq found (with-temp-buffer
+                              (insert-file-contents path)
+                              (message \"read %s\\n\" path)
+                              (buffer-string)))
+             and return t)
+    (puthash path found sample-cache)
+    (unless found (error \"No config at %s\" path))
+    (if (> tries 1) t nil)))"))
+  "Sample code per language: an alist (LANGUAGE (MODE...) . TEXT).
+The first MODE that is available fontifies TEXT: a tree-sitter mode
+\(named FOO-ts-mode) counts only if its grammar FOO is installed.
+`themer-reader-treesit-mode's rules apply as well.  Add your own with
+`add-to-list'; the form's Samples section offers every language here."
+  :type '(alist :key-type symbol
+                :value-type (cons (repeat :tag "Modes, in order of preference" function)
+                                  (string :tag "Code")))
+  :group 'themer)
+
+(defcustom themer-reader-form-sample-languages '(typescript python rust c go elisp)
+  "The languages whose samples the form shows when it opens.
+Each is a key of `themer-reader-form-samples'.  The form's Samples
+checkboxes change the choice for the rest of the session."
+  :type '(repeat symbol)
+  :group 'themer)
+
+(defconst themer-reader-form--language-names
+  '((typescript . "TypeScript") (python . "Python") (rust . "Rust") (c . "C")
+    (go . "Go") (elisp . "Emacs Lisp"))
+  "Display names of the built-in sample languages.")
+
+(defvar themer-reader-form--selected :unset
+  "The languages whose samples are shown, for this session.
+:unset until the form changes it: then `themer-reader-form-sample-languages'.")
+
+(defvar themer-reader-form--fontified (make-hash-table :test #'equal)
+  "Fontified samples: (MODES TEXT FADE) -> (TEXT . RUNS), or :none.
+RUNS is a list of (BEG END FACE).")
+
+(defun themer-reader-form--language-name (lang)
+  "The display name of sample language LANG."
+  (or (alist-get lang themer-reader-form--language-names)
+      (capitalize (symbol-name lang))))
+
+(defun themer-reader-form--selected-languages ()
+  "The languages shown, in the order of `themer-reader-form-samples'."
+  (let ((sel (if (eq themer-reader-form--selected :unset)
+                 themer-reader-form-sample-languages
+               themer-reader-form--selected)))
+    (cl-loop for (lang) in themer-reader-form-samples when (memq lang sel) collect lang)))
+
+(defun themer-reader-form--mode-usable-p (mode)
+  "Non-nil if major MODE exists, and its tree-sitter grammar if it has one."
+  (and (fboundp mode)
+       (let ((name (symbol-name mode)))
+         (or (not (string-suffix-p "-ts-mode" name))
+             (treesit-language-available-p (intern (string-remove-suffix "-ts-mode" name)))))))
+
+(defun themer-reader-form--sample-runs (modes text)
+  "TEXT fontified by the first usable of MODES: (TEXT . RUNS), or :none.
+RUNS is a list of (BEG END FACE), BEG and END 0-based string indices.
+Tree-sitter buffers get `themer-reader-treesit-mode's rules, at
+`treesit-font-lock-level' 4: calls and the like, which the standard
+colours, are level-4 features."
+  (let ((key (list modes text themer-reader-fade-commented-code)))
+    (or (gethash key themer-reader-form--fontified)
+        (puthash
+         key
+         (if-let* ((mode (cl-find-if #'themer-reader-form--mode-usable-p modes)))
              (with-temp-buffer
-               (insert src)
+               (insert text)
                (let (runs)
-                 (when (and (treesit-language-available-p lang) (fboundp mode))
-                   (ignore-errors
+                 (ignore-errors
+                   ;; Around the install too: it recomputes the features.
+                   (let ((treesit-font-lock-level 4))
                      (delay-mode-hooks (funcall mode))
                      (themer-reader--install)
-                     (font-lock-ensure)
-                     (let ((pos (point-min)))
-                       (while (< pos (point-max))
-                         (let ((next (next-single-property-change pos 'face nil (point-max)))
-                               (face (get-text-property pos 'face)))
-                           (when face (push (list (1- pos) (1- next) face) runs))
-                           (setq pos next))))))
-                 (cons src (nreverse runs))))))))
+                     (font-lock-mode 1)
+                     (font-lock-ensure))
+                   (let ((pos (point-min)))
+                     (while (< pos (point-max))
+                       (let ((next (next-single-property-change pos 'face nil (point-max)))
+                             (face (get-text-property pos 'face)))
+                         (when face (push (list (1- pos) (1- next) face) runs))
+                         (setq pos next)))))
+                 (cons text (nreverse runs))))
+           :none)
+         themer-reader-form--fontified))))
 
 (defun themer-reader-form--face-attrs (face faces)
   "Attribute plist for FACE (a face or list of faces) from alist FACES."
@@ -527,45 +757,166 @@ def scale(p, factor=2):
                  unless (plist-member attrs k) do (setq attrs (plist-put attrs k v)))))
     attrs))
 
-(defun themer-reader-form-sample (derived)
-  "The samples as a string, fontified with DERIVED's faces via text properties."
-  (let* ((faces (themer-reader-faces derived))
+(defun themer-reader-form--sample-text (text runs faces fg bg)
+  "TEXT with RUNS applied as text properties from FACES, on FG and BG."
+  (let ((s (copy-sequence text)))
+    (put-text-property 0 (length s) 'face `(:foreground ,fg :background ,bg) s)
+    (pcase-dolist (`(,b ,e ,face) runs)
+      (let ((a (themer-reader-form--face-attrs face faces)))
+        (put-text-property b e 'face
+                           (append (cl-loop for (k v) on a by #'cddr
+                                            unless (memq k '(:foreground :background :height :box :inherit))
+                                            append (list k v))
+                                   `(:foreground ,(or (plist-get a :foreground) fg) :background ,bg))
+                           s)))
+    s))
+
+(defun themer-reader-form-sample (derived &optional languages)
+  "The samples of LANGUAGES as a string, fontified with DERIVED's faces.
+LANGUAGES defaults to the selected ones.  The faces are text properties,
+so the theme need not be enabled."
+  (let* ((languages (or languages (themer-reader-form--selected-languages)))
+         (faces (themer-reader-faces derived))
          (tiers (plist-get derived :tiers))
          (bg (plist-get tiers :bg)) (fg (plist-get tiers :fg))
-         (blocks (themer-reader-form--fontify-samples))
-         (width (+ 2 (cl-loop for (src . _) in blocks
-                              maximize (cl-loop for l in (split-string src "\n") maximize (length l))))))
-    (mapconcat
-     (pcase-lambda (`(,src . ,runs))
-       (let ((s (copy-sequence src)))
-         (put-text-property 0 (length s) 'face `(:foreground ,fg :background ,bg) s)
-         (pcase-dolist (`(,b ,e ,face) runs)
-           (let ((a (themer-reader-form--face-attrs face faces)))
-             (put-text-property b e 'face
-                                (append (cl-loop for (k v) on a by #'cddr
-                                                 unless (memq k '(:foreground :background :height :box :inherit))
-                                                 append (list k v))
-                                        `(:foreground ,(or (plist-get a :foreground) fg) :background ,bg))
-                                s)))
+         (dim (or (plist-get tiers :dim) fg))
+         (blocks
+          (cl-loop
+           for lang in languages
+           for (modes . text) = (alist-get lang themer-reader-form-samples)
+           for name = (themer-reader-form--language-name lang)
+           for run = (themer-reader-form--sample-runs modes text)
+           collect (cons (propertize (format "── %s ──" name) 'face `(:foreground ,dim :background ,bg))
+                         (if (eq run :none)
+                             (propertize (format "(no major mode available for %s)" name)
+                                         'face `(:foreground ,dim :background ,bg))
+                           (themer-reader-form--sample-text (car run) (cdr run) faces fg bg)))))
+         (width (+ 2 (cl-loop for (head . body) in blocks
+                              maximize (max (length head)
+                                            (cl-loop for l in (split-string body "\n") maximize (length l)))))))
+    (if (null blocks)
+        (propertize "No samples selected." 'face `(:foreground ,dim :background ,bg))
+      (mapconcat
+       (pcase-lambda (`(,head . ,body))
          (mapconcat (lambda (line)
-                      (concat "  " (propertize " " 'face `(:background ,bg)) line
+                      (concat (propertize " " 'face `(:background ,bg)) line
                               (propertize (make-string (max 0 (- width (length line) 1)) ?\s)
                                           'face `(:background ,bg))))
-                    (split-string s "\n") "\n")))
-     blocks "\n\n")))
+                    (cons head (split-string body "\n")) "\n"))
+       blocks "\n\n"))))
+
+;;;; The sample buffer
+
+(defvar-local themer-reader-form--sample-owner nil
+  "In a sample buffer: the form buffer it shows samples for.")
+
+(defvar-keymap themer-reader-form-sample-mode-map
+  :parent special-mode-map
+  "g" #'themer-reader-form-sample-refresh
+  "q" #'quit-window)
+
+(define-derived-mode themer-reader-form-sample-mode special-mode "Reader-Sample"
+  "Read-only buffer of code samples drawn with a reader theme form's colours.
+\\{themer-reader-form-sample-mode-map}"
+  (setq truncate-lines t)
+  (setq-local revert-buffer-function (lambda (&rest _) (themer-reader-form-sample-refresh))))
+
+(defun themer-reader-form--sample-buffer-name (name)
+  "The name of the sample buffer for the theme called NAME."
+  (format "*themer-reader-sample: %s*" (or name "new")))
+
+(defun themer-reader-form--update-samples (&optional derived)
+  "Redraw the sample buffer from DERIVED (default: the last derivation).
+Windows showing it keep their point and scroll."
+  (let ((buf themer-reader-form--sample-buffer)
+        (derived (or derived themer-reader-form--derived)))
+    (when (and derived (buffer-live-p buf))
+      (let ((text (themer-reader-form-sample derived))
+            (tiers (plist-get derived :tiers)))
+        (with-current-buffer buf
+          (let ((inhibit-read-only t)
+                (pt (point))
+                (wins (mapcar (lambda (w) (list w (window-point w) (window-start w)))
+                              (get-buffer-window-list buf nil t))))
+            (erase-buffer)
+            (insert text)
+            (setq-local face-remapping-alist
+                        `((default :foreground ,(plist-get tiers :fg) :background ,(plist-get tiers :bg))))
+            (goto-char (min pt (point-max)))
+            (pcase-dolist (`(,w ,p ,s) wins)
+              (set-window-point w (min p (point-max)))
+              (set-window-start w (min s (point-max)) t))
+            (set-buffer-modified-p nil)))))))
+
+(defun themer-reader-form--ensure-sample-buffer ()
+  "The form's sample buffer, made (and filled) if it isn't live."
+  (unless (buffer-live-p themer-reader-form--sample-buffer)
+    (let ((form (current-buffer)))
+      (setq themer-reader-form--sample-buffer
+            (generate-new-buffer
+             (themer-reader-form--sample-buffer-name (plist-get themer-reader-form--model :name))))
+      (with-current-buffer themer-reader-form--sample-buffer
+        (themer-reader-form-sample-mode)
+        (setq themer-reader-form--sample-owner form)
+        (let ((inhibit-read-only t))
+          (insert (propertize "Deriving..." 'face 'shadow))))
+      (themer-reader-form--update-samples)))
+  themer-reader-form--sample-buffer)
+
+(defconst themer-reader-form--sample-width 80
+  "Columns for the sample window when it sits beside the form.")
+
+(defconst themer-reader-form--form-min-width 100
+  "Columns the form keeps when the samples are split off to its right.")
+
+(defun themer-reader-form-show-samples ()
+  "Show the sample buffer beside the form.
+The samples split the form's window: to the right if it is wide enough
+for both, else below.  `display-buffer-alist' takes precedence."
+  (interactive)
+  (let* ((buf (themer-reader-form--ensure-sample-buffer))
+         (win (or (get-buffer-window (current-buffer)) (selected-window)))
+         (wide (>= (window-total-width win)
+                   (+ themer-reader-form--form-min-width
+                      themer-reader-form--sample-width 1))))
+    (display-buffer
+     buf `((display-buffer-reuse-window display-buffer-in-direction)
+           (direction . ,(if wide 'right 'below))
+           (window . ,win)
+           (window-width . ,(1+ themer-reader-form--sample-width))))))
+
+(defun themer-reader-form-sample-refresh ()
+  "Redraw the samples from the form's last derivation."
+  (interactive)
+  (if (buffer-live-p themer-reader-form--sample-owner)
+      (with-current-buffer themer-reader-form--sample-owner
+        (themer-reader-form--update-samples))
+    (user-error "The form is gone")))
+
+(defun themer-reader-form-set-sample-languages (languages)
+  "Show the samples of LANGUAGES, and redraw the sample buffer now."
+  (setq themer-reader-form--selected languages)
+  (themer-reader-form--update-samples))
+
+(defun themer-reader-form--kill-samples ()
+  "Close and kill this form's sample buffer."
+  (when-let* ((buf themer-reader-form--sample-buffer)
+              ((buffer-live-p buf)))
+    (dolist (w (get-buffer-window-list buf nil t))
+      (ignore-errors (quit-window t w)))
+    (when (buffer-live-p buf) (kill-buffer buf))))
 
 ;;;; The form buffer
 
-(defvar-local themer-reader-form--model nil "The model the form was opened on.")
 (defvar-local themer-reader-form--widgets nil "Alist KEY -> field widget.")
 (defvar-local themer-reader-form--overlays nil "Alist KEY -> swatch/status overlay.")
 (defvar-local themer-reader-form--palette-rows nil
   "The palette rows in order, each a plist (:name WIDGET :hex WIDGET :overlay OV).
 The name widget's :themer-name is the name the slots know the entry by.")
 (defvar-local themer-reader-form--dynamic nil "Marker where the derived sections start.")
-(defvar-local themer-reader-form--derived nil "The last derivation shown.")
 (defvar-local themer-reader-form--timer nil)
 (defvar-local themer-reader-form--apply-widget nil)
+(defvar-local themer-reader-form--samples-widget nil "The Samples checklist widget.")
 (defvar-local themer-reader-form--applied nil
   "Non-nil while Apply is on: plist (:themes PRIOR :rules RULES-MODE-WAS-ON).")
 
@@ -746,8 +1097,7 @@ Signal a `user-error' if a field can't be saved."
       (if (not derived)
           (insert (propertize (or message "") 'face 'shadow) "\n")
         (themer-reader-form--insert-tiers derived)
-        (insert "\n" (propertize "Sample" 'face 'bold) "\n"
-                (themer-reader-form-sample derived) "\n\n")
+        (insert "\n")
         (themer-reader-form--insert-conformance derived)))))
 
 (defun themer-reader-form-refresh (&optional buffer interruptible)
@@ -785,6 +1135,7 @@ With INTERRUPTIBLE, input aborts the derivation and reschedules it."
                 (setq themer-reader-form--derived d)
                 (themer-reader-form--update-swatches d)
                 (themer-reader-form--update-dynamic d)
+                (themer-reader-form--update-samples d)
                 (when themer-reader-form--applied
                   (themer-reader-form--define-preview d)))))))))))
 
@@ -834,7 +1185,8 @@ With INTERRUPTIBLE, input aborts the derivation and reschedules it."
   "Undo Apply and stop the timer: for `kill-buffer-hook'."
   (when (timerp themer-reader-form--timer)
     (cancel-timer themer-reader-form--timer))
-  (themer-reader-form--apply nil))
+  (themer-reader-form--apply nil)
+  (themer-reader-form--kill-samples))
 
 ;;;; Building the form
 
@@ -873,9 +1225,11 @@ With INTERRUPTIBLE, input aborts the derivation and reschedules it."
 (defun themer-reader-form--render (model &optional state)
   "Draw the form for MODEL in the current buffer.
 The fields show STATE, a form state, if given, else MODEL."
-  (let ((applied themer-reader-form--applied))
+  (let ((applied themer-reader-form--applied)
+        (samples themer-reader-form--sample-buffer))
     (themer-reader-form-mode)
-    (setq themer-reader-form--applied applied))
+    (setq themer-reader-form--applied applied
+          themer-reader-form--sample-buffer samples))
   (let ((inhibit-read-only t)) (erase-buffer))
   (remove-overlays)
   (add-hook 'kill-buffer-hook #'themer-reader-form--cleanup nil t)
@@ -935,7 +1289,20 @@ The fields show STATE, a form state, if given, else MODEL."
         (let ((ov (make-overlay (1- (point)) (point))))
           (push (cons key ov) themer-reader-form--overlays))
         (widget-insert "\n")))
-    (widget-insert "\n")
+    (widget-insert "\n" (propertize "Samples" 'face 'bold) "  (shown in their own buffer)  ")
+    (themer-reader-form--button "Show samples" #'themer-reader-form-show-samples)
+    (widget-insert "\n  ")
+    (setq themer-reader-form--samples-widget
+          (apply #'widget-create 'checklist
+                 :value (themer-reader-form--selected-languages)
+                 :entry-format "%b %v   "
+                 :notify (lambda (w &rest _)
+                           (themer-reader-form-set-sample-languages (widget-value w)))
+                 (mapcar (lambda (e)
+                           `(item :tag ,(themer-reader-form--language-name (car e))
+                                  :format "%t" :value ,(car e)))
+                         themer-reader-form-samples)))
+    (widget-insert "\n\n")
     (setq themer-reader-form--dynamic (point-marker))
     (widget-insert "\n"))
   (use-local-map themer-reader-form-mode-map)
@@ -963,7 +1330,10 @@ With GOTO, a function, call it afterwards to place point."
       (themer-reader-form--render model)
       (setq themer-reader-form--timer
             (run-with-timer 0 nil #'themer-reader-form-refresh buf t)))
-    (pop-to-buffer buf)
+    ;; The selected window, not a new split, so the form keeps the room it
+    ;; had and the samples are split off it.
+    (pop-to-buffer-same-window buf)
+    (with-current-buffer buf (themer-reader-form-show-samples))
     buf))
 
 ;;;; Commands
@@ -1026,6 +1396,9 @@ FILE defaults to the edited file (renamed with the theme), else
                   ((not (buffer-modified-p buf))))
         (with-current-buffer buf (revert-buffer t t t)))
       (rename-buffer (format "*reader-theme %s*" (plist-get new :name)) t)
+      (when (buffer-live-p themer-reader-form--sample-buffer)
+        (with-current-buffer themer-reader-form--sample-buffer
+          (rename-buffer (themer-reader-form--sample-buffer-name (plist-get new :name)) t)))
       (message "Wrote %s" file)
       file)))
 
