@@ -1,0 +1,421 @@
+{
+ "palette": "base16/tomorrow-night",
+ "family": "base16",
+ "variant": "dark",
+ "set": "hybrid_v1",
+ "mode": "B",
+ "version": 1,
+ "bg": "#1d1f21",
+ "fg": "#c5c8c6",
+ "max_fid": 0.05,
+ "capacity": 3,
+ "n_candidates": 4,
+ "reserve_diag": true,
+ "diagnostic": {
+  "error_slot": "base08",
+  "error": "#cc6666"
+ },
+ "hue_families_required": 8,
+ "families_kept": [
+  "oddball",
+  "definition",
+  "value"
+ ],
+ "families_dropped": [
+  "meta",
+  "type",
+  "exit",
+  "callable",
+  "prose"
+ ],
+ "objective": 1.5697,
+ "faded_mix_t": 0.424,
+ "families": {
+  "value": {
+   "src": "#de935f",
+   "slot": "base09",
+   "hex": "#de935f",
+   "fidelity": 0.0,
+   "hue_name": "orange",
+   "lc": 51.4,
+   "need": 9.935,
+   "C": 0.113
+  },
+  "definition": {
+   "src": "#b294bb",
+   "slot": "base0E",
+   "hex": "#b294bb",
+   "fidelity": 0.0,
+   "hue_name": "purple",
+   "lc": 47.9,
+   "need": 166.778,
+   "C": 0.065
+  },
+  "oddball": {
+   "src": "#f0c674",
+   "slot": "base0A",
+   "hex": "#f0c674",
+   "fidelity": 0.0,
+   "hue_name": "yellow",
+   "lc": 73.7,
+   "need": 30000.0,
+   "C": 0.111
+  }
+ },
+ "roles": {
+  "function.def": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "function.call": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "function.builtin": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "macro.def": {
+   "fg": "#b294bb",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "macro.call": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "type.def": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "type.use": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "type.builtin": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "module": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "variable.def": {
+   "fg": "#b294bb",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "variable.use": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "variable.builtin": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "parameter": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "field": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "constant.def": {
+   "fg": "#b294bb",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "constant.use": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "constant.builtin": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "string": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "string.escape": {
+   "fg": "#fdaf7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "string.regexp": {
+   "fg": "#fdaf7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "number": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "boolean": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "keyword.exit": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.flow": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.decl": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.other": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "operator": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "attribute": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "preproc": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "label": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "comment": {
+   "fg": "#787b7b",
+   "bold": false,
+   "italic": true,
+   "strike": false,
+   "family": null,
+   "tier": "faded"
+  },
+  "comment.doc": {
+   "fg": "#787b7b",
+   "bold": false,
+   "italic": true,
+   "strike": false,
+   "family": null,
+   "tier": "faded"
+  },
+  "comment.todo": {
+   "fg": "#f0c674",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "oddball",
+   "tier": "popout"
+  },
+  "punctuation": {
+   "fg": "#787b7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "faded"
+  },
+  "default": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "mod.deprecated": {
+   "fg": null,
+   "bold": false,
+   "italic": false,
+   "strike": true,
+   "family": null,
+   "tier": null,
+   "overlay": true
+  },
+  "mod.unnecessary": {
+   "fg": "#787b7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "faded",
+   "overlay": true
+  }
+ },
+ "variant_fidelity_max": 0.0898,
+ "checks": {
+  "L1": "default",
+  "fg_lc": 70.9,
+  "L2": "default",
+  "L3": "default",
+  "L4": "strict",
+  "L123": "default",
+  "S1_sal": false,
+  "S1_pairs": {
+   "faded<default": true,
+   "default<salient": true,
+   "salient<strong": false,
+   "strong<popout": true
+  },
+  "S1a": true,
+  "S1b": null,
+  "S1": true,
+  "S1_v1": false,
+  "need_sal_rho": 0.5,
+  "confusion_normal": 0.3238299999999999,
+  "confusion_normal_disc": 0.003538716749999999,
+  "confusion_normal_sep": 0.3222569999999999,
+  "confusion_normal_disc_sep": 0.003228835749999999,
+  "confused_pairs_normal": 149,
+  "confusion_deutan": 0.3238299999999999,
+  "confusion_deutan_disc": 0.003538716749999999,
+  "confusion_deutan_sep": 0.3222569999999999,
+  "confusion_deutan_disc_sep": 0.003228835749999999,
+  "confused_pairs_deutan": 149,
+  "beacon_loss": 0.437197,
+  "C6_disc": 0.0041877731791083155,
+  "C6_raw": 0.5952692817610836,
+  "C6_disc_deutan": 0.0041877731791083155,
+  "C6_disc_sep": 0.0038778921791083154,
+  "fg_limited": false,
+  "strings_quiet": "",
+  "beacon_coverage": 0.4857142857142857,
+  "coloured_ink": 0.201859,
+  "coloured_ink_by_family": {
+   "definition": 0.010620000000000001,
+   "value": 0.191239,
+   "oddball": 0.0
+  },
+  "ink_split": {
+   "loud": 0.201859,
+   "quiet": 0.0,
+   "dim": 0.0,
+   "faded": 0.33286
+  },
+  "sal_weighted_ink": 0.04370221020253808,
+  "salience_budget_tier": 0.212479,
+  "C1_rho_tier": -0.49022214296175537,
+  "C1_rho": -0.46485042842783203,
+  "C1_rho_v1model": -0.5617554450931413
+ }
+}

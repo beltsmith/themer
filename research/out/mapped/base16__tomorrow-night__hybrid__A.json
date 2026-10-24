@@ -1,0 +1,444 @@
+{
+ "palette": "base16/tomorrow-night",
+ "family": "base16",
+ "variant": "dark",
+ "set": "hybrid",
+ "mode": "A",
+ "version": 2,
+ "bg": "#1d1f21",
+ "fg": "#c5c8c6",
+ "max_fid": 0.05,
+ "capacity": 2,
+ "n_candidates": 3,
+ "reserve_diag": true,
+ "diagnostic": {
+  "error_slot": "base08",
+  "error": "#cc6666"
+ },
+ "hue_families_required": 4,
+ "families_kept": [
+  "value",
+  "definition"
+ ],
+ "families_dropped": [
+  "meta",
+  "exit"
+ ],
+ "objective": 1.9581,
+ "faded_mix_t": null,
+ "families": {
+  "definition": {
+   "src": "#b5bd68",
+   "slot": "base0B",
+   "hex": "#b5bd68",
+   "fidelity": 0.0,
+   "hue_name": "yellow",
+   "lc": 61.5,
+   "need": 67.305,
+   "C": 0.109
+  },
+  "value": {
+   "src": "#de935f",
+   "slot": "base09",
+   "hex": "#de935f",
+   "fidelity": 0.0,
+   "hue_name": "orange",
+   "lc": 51.4,
+   "need": 41.596,
+   "C": 0.113
+  }
+ },
+ "roles": {
+  "function.def": {
+   "fg": "#b5bd68",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "function.call": {
+   "fg": "#c3c99c",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "quiet"
+  },
+  "function.builtin": {
+   "fg": "#c3c99c",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "quiet"
+  },
+  "macro.def": {
+   "fg": "#b5bd68",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "macro.call": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "type.def": {
+   "fg": "#b5bd68",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "type.use": {
+   "fg": "#c3c99c",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "quiet"
+  },
+  "type.builtin": {
+   "fg": "#c3c99c",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "quiet"
+  },
+  "module": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "variable.def": {
+   "fg": "#b5bd68",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "variable.use": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "variable.builtin": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "parameter": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "field": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "constant.def": {
+   "fg": "#b5bd68",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "constant.use": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "constant.builtin": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "string": {
+   "fg": "#e7bea3",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "quiet"
+  },
+  "string.escape": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "string.regexp": {
+   "fg": "#e7bea3",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "quiet"
+  },
+  "number": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "boolean": {
+   "fg": "#de935f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "keyword.exit": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.flow": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.decl": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.other": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "operator": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "attribute": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "preproc": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "label": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "comment": {
+   "fg": "#979999",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "dim"
+  },
+  "comment.doc": {
+   "fg": "#979999",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "dim"
+  },
+  "comment.todo": {
+   "fg": "#b294bb",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "oddball",
+   "tier": "popout"
+  },
+  "punctuation": {
+   "fg": "#787b7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "faded"
+  },
+  "default": {
+   "fg": "#c5c8c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "mod.deprecated": {
+   "fg": null,
+   "bold": false,
+   "italic": false,
+   "strike": true,
+   "family": null,
+   "tier": null,
+   "overlay": true
+  },
+  "mod.unnecessary": {
+   "fg": "#787b7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "faded",
+   "overlay": true
+  }
+ },
+ "variant_fidelity_max": 0.0,
+ "tiers": {
+  "fg_limited": false,
+  "dim": "#979999",
+  "dim_lc": 45.0,
+  "dim_floor_ok": true,
+  "dim_below_fg_ok": true,
+  "dim_d1_fg": true,
+  "faded": "#787b7b",
+  "faded_lc": 30.2,
+  "faded_distinct_ok": true
+ },
+ "quiet": {
+  "value": {
+   "hex": "#e7bea3",
+   "ok": true,
+   "fallback": null,
+   "C": 0.06,
+   "dlc_fg": -0.7
+  },
+  "definition": {
+   "hex": "#c3c99c",
+   "ok": true,
+   "fallback": null,
+   "C": 0.061,
+   "dlc_fg": -1.3
+  }
+ },
+ "quiet_borrow": null,
+ "strings_quiet": "own",
+ "popout": {
+  "hex": "#b294bb",
+  "hue_name": "purple",
+  "slot": "base0E",
+  "C": 0.065
+ },
+ "checks": {
+  "L1": "default",
+  "fg_lc": 70.9,
+  "L2": "default",
+  "L3": "strict",
+  "L4": "strict",
+  "L123": "default",
+  "S1_sal": false,
+  "S1_pairs": {
+   "faded<dim": true,
+   "dim<default": true,
+   "default<quiet": true,
+   "quiet<loud": false,
+   "loud<strong": true,
+   "strong<popout": false
+  },
+  "S1a": true,
+  "S1b": true,
+  "S1": true,
+  "S1_v1": false,
+  "need_sal_rho": 1.0,
+  "confusion_normal": 0.067781,
+  "confusion_normal_disc": 0.002176871899999998,
+  "confusion_normal_sep": 0.066208,
+  "confusion_normal_disc_sep": 0.0018669908999999988,
+  "confused_pairs_normal": 50,
+  "confusion_deutan": 0.13781000000000007,
+  "confusion_deutan_disc": 0.002248586499999997,
+  "confusion_deutan_sep": 0.13623700000000005,
+  "confusion_deutan_disc_sep": 0.001938705499999998,
+  "confused_pairs_deutan": 78,
+  "beacon_loss": 0.031022,
+  "C6_disc": 0.002222926718637359,
+  "C6_raw": 0.087041400686172,
+  "C6_disc_deutan": 0.002294641318637358,
+  "C6_disc_sep": 0.0019130457186373594,
+  "fg_limited": false,
+  "strings_quiet": "own",
+  "beacon_coverage": 0.7142857142857143,
+  "coloured_ink": 0.38287299999999996,
+  "coloured_ink_by_family": {
+   "definition": 0.19163399999999994,
+   "value": 0.191239,
+   "oddball": 0.0
+  },
+  "ink_split": {
+   "loud": 0.07658999999999999,
+   "quiet": 0.30628299999999997,
+   "dim": 0.240839,
+   "faded": 0.092021
+  },
+  "sal_weighted_ink": 0.08595244403041251,
+  "salience_budget_tier": 0.49915100000000007,
+  "C1_rho_tier": -0.3818578172104783,
+  "C1_rho": -0.24084008888296732,
+  "C1_rho_v1model": -0.18972411269107417
+ }
+}

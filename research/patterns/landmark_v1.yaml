@@ -1,0 +1,70 @@
+# Landmark set: hue only on beacons; neutral ground elsewhere. See 00-framework.md §4.
+name: landmark_v1
+
+# Monosemy declaration: each channel -> the single axis it encodes (checked by C4).
+channels:
+  hue: family
+  lightness: tier
+  weight: site            # bold = binding site
+  slant: prose            # italic only allowed on prose (P:I6)
+  strike: deprecated
+  underline: reserved:diagnostic
+  background: reserved:state
+
+# Tiers in ascending salience. lc = target |APCA Lc| (default/floor) from notes/03.
+tiers:
+  faded:    {lc: [30, 15]}
+  default:  {lc: [60, 45]}
+  salient:  {lc: [45, 35]}
+  strong:   {lc: [45, 35], weight: bold}
+  popout:   {lc: [60, 45], weight: bold}
+  critical: {layer: diagnostic}
+
+# Families that need their own hue. ladder: higher = merged/dropped first as capacity
+# falls. fallback: where the family's roles go when it is dropped.
+families:
+  definition: {hue: true, ladder: 4, fallback: {family: null, tier: strong}}   # bold, default hue
+  value:      {hue: true, ladder: 3, fallback: {family: null, tier: default}}
+  prose:      {hue: true, ladder: 2, fallback: {family: null, tier: faded, slant: italic}}
+  exit:       {hue: true, ladder: 1, fallback: {family: null, tier: default}}
+  meta:       {hue: true, ladder: 0, fallback: {family: null, tier: default}}
+  oddball:    {hue: true, ladder: 5, distinct_from_all: true}   # TODO etc.; any unused accent
+
+styles:
+  function.def:     {family: definition, tier: strong}
+  macro.def:        {family: definition, tier: strong}
+  type.def:         {family: definition, tier: strong}
+  variable.def:     {family: definition, tier: strong, scope: top-level}   # locals stay default
+  constant.def:     {family: definition, tier: strong}
+  function.call:    {tier: default}
+  function.builtin: {tier: default}
+  macro.call:       {family: meta, tier: salient}
+  type.use:         {tier: default}
+  type.builtin:     {tier: default}
+  module:           {tier: default}
+  variable.use:     {tier: default}
+  variable.builtin: {tier: default}
+  parameter:        {tier: default}
+  field:            {tier: default}
+  constant.use:     {family: value, tier: salient}
+  constant.builtin: {family: value, tier: salient}
+  string:           {family: value, tier: salient}
+  string.escape:    {family: value, tier: salient, variant: lightness}
+  string.regexp:    {family: value, tier: salient, variant: lightness}
+  number:           {family: value, tier: salient}
+  boolean:          {family: value, tier: salient}
+  keyword.exit:     {family: exit, tier: salient}
+  keyword.flow:     {tier: default}
+  keyword.decl:     {tier: default}
+  keyword.other:    {tier: default}
+  operator:         {tier: default}
+  attribute:        {family: meta, tier: salient}
+  preproc:          {family: meta, tier: salient}
+  label:            {tier: default}
+  comment:          {family: prose, tier: salient}
+  comment.doc:      {family: prose, tier: salient, variant: lightness}
+  comment.todo:     {family: oddball, tier: popout}
+  punctuation:      {tier: faded}
+  default:          {tier: default}
+  mod.deprecated:   {strike: true}
+  mod.unnecessary:  {tier: faded}

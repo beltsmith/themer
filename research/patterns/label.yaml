@@ -1,0 +1,68 @@
+# Label set (control): hue by token type everywhere, roughly what most themes do.
+name: label
+
+channels:
+  hue: family
+  lightness: tier
+  weight: site
+  slant: prose
+  strike: deprecated
+  underline: reserved:diagnostic
+  background: reserved:state
+
+tiers:
+  faded:    {lc: [30, 15]}
+  default:  {lc: [60, 45]}
+  salient:  {lc: [45, 35]}
+  strong:   {lc: [45, 35], weight: bold}
+  popout:   {lc: [60, 45], weight: bold}
+  critical: {layer: diagnostic}
+
+families:
+  callable: {hue: true, ladder: 4, fallback: {family: null, tier: default}}
+  type:     {hue: true, ladder: 3, fallback: {family: callable}}
+  value:    {hue: true, ladder: 5, fallback: {family: null, tier: default}}
+  keyword:  {hue: true, ladder: 2, fallback: {family: null, tier: default}}
+  prose:    {hue: true, ladder: 6, fallback: {family: null, tier: faded, slant: italic}}
+  meta:     {hue: true, ladder: 1, fallback: {family: keyword}}
+  field:    {hue: true, ladder: 0, fallback: {family: null, tier: default}}
+  oddball:  {hue: true, ladder: 7, distinct_from_all: true}
+
+styles:
+  function.def:     {family: callable, tier: strong}
+  function.call:    {family: callable, tier: salient}
+  function.builtin: {family: callable, tier: salient}
+  macro.def:        {family: meta, tier: strong}
+  macro.call:       {family: meta, tier: salient}
+  type.def:         {family: type, tier: strong}
+  type.use:         {family: type, tier: salient}
+  type.builtin:     {family: type, tier: salient}
+  module:           {family: type, tier: salient}
+  variable.def:     {tier: strong, scope: top-level}
+  variable.use:     {tier: default}
+  variable.builtin: {family: keyword, tier: salient}
+  parameter:        {tier: default}
+  field:            {family: field, tier: salient}
+  constant.def:     {family: value, tier: strong}
+  constant.use:     {family: value, tier: salient}
+  constant.builtin: {family: value, tier: salient}
+  string:           {family: value, tier: salient}
+  string.escape:    {family: keyword, tier: salient}
+  string.regexp:    {family: value, tier: salient, variant: lightness}
+  number:           {family: value, tier: salient}
+  boolean:          {family: value, tier: salient}
+  keyword.exit:     {family: keyword, tier: salient}
+  keyword.flow:     {family: keyword, tier: salient}
+  keyword.decl:     {family: keyword, tier: salient}
+  keyword.other:    {family: keyword, tier: salient}
+  operator:         {tier: default}
+  attribute:        {family: meta, tier: salient}
+  preproc:          {family: meta, tier: salient}
+  label:            {family: meta, tier: salient}
+  comment:          {family: prose, tier: salient}
+  comment.doc:      {family: prose, tier: salient, variant: lightness}
+  comment.todo:     {family: oddball, tier: popout}
+  punctuation:      {tier: faded}
+  default:          {tier: default}
+  mod.deprecated:   {strike: true}
+  mod.unnecessary:  {tier: faded}

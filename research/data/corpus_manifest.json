@@ -1,0 +1,5349 @@
+{
+ "seed": 20261023,
+ "max_files": 150,
+ "max_lines": 30000,
+ "repos": {
+  "psf_requests": "611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60",
+  "pallets_flask": "d086db856be187255b8ec61ef409357393020f32",
+  "expressjs_express": "0dee2c52c7c873498f8ed7d8ee4ddd0a04d3ada8",
+  "axios_axios": "aa54a5e1e0e50cd1a2561b854ae5490ff589d065",
+  "colinhacks_zod": "afdac65e0f80c0ccf9e8909da97c411567908b57",
+  "sindresorhus_ky": "3541888878c4d303a8bc2ad61815f4e048f55a5d",
+  "BurntSushi_ripgrep": "fada8f9386df39e7fc9d0e407de764f005900ce0",
+  "sharkdp_bat": "a9aa73d215455a479f072da75dd39f19826acfea",
+  "spf13_cobra": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+  "gin-gonic_gin": "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646",
+  "valkey-io_valkey": "8b9019c955e6fc76778b69691a5e100b28a070b3",
+  "libuv_libuv": "e36964a094fadba7926e88fe333dd1d6a6baf13c",
+  "neovim_neovim": "7b87ce822e6fd45a4d9993599c2854afdb0dc4dd",
+  "nvim-telescope_telescope.nvim": "40aedd8a68c78a656a10a8d62d80c54af59420fb",
+  "nvm-sh_nvm": "b1b3a0038c0666c7436cb5d383608b4b72c8300b",
+  "Bash-it_bash-it": "84c0028e57051915a99ce558bb63c8f600286496",
+  "magit_magit": "4a889060a11d6192e95716c48ee1f72bde36b8b1",
+  "company-mode_company-mode": "e50ea7a3222020cef8e7f320f9870bb20c61e451",
+  "google_gson": "881d2b55de74dd6c2fded7b2cb307b048117af97",
+  "apache_commons-lang": "b9b30efb01e861a16503232bb96b684107e73199"
+ },
+ "langs": {
+  "python": {
+   "files": [
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/status_codes.py",
+     "lines": 128
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/templating.py",
+     "lines": 212
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/utils.py",
+     "lines": 17
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/json/provider.py",
+     "lines": 215
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/test_hooks.py",
+     "lines": 22
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_testing.py",
+     "lines": 398
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/auth.py",
+     "lines": 354
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/helloworld/hello.py",
+     "lines": 8
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/structures.py",
+     "lines": 130
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/sansio/scaffold.py",
+     "lines": 800
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/help.py",
+     "lines": 132
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/cliapp/factory.py",
+     "lines": 13
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/certs.py",
+     "lines": 18
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_appctx.py",
+     "lines": 259
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/utils.py",
+     "lines": 1155
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/javascript/js_example/views.py",
+     "lines": 18
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/test_requests.py",
+     "lines": 3094
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/celery/src/task_app/views.py",
+     "lines": 38
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/__init__.py",
+     "lines": 219
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/sessions.py",
+     "lines": 385
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/models.py",
+     "lines": 1184
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/sansio/blueprints.py",
+     "lines": 692
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/_internal_utils.py",
+     "lines": 51
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/app.py",
+     "lines": 1625
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/hooks.py",
+     "lines": 48
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_regression.py",
+     "lines": 30
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/test_testserver.py",
+     "lines": 165
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_json_tag.py",
+     "lines": 86
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/cookies.py",
+     "lines": 625
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/logging.py",
+     "lines": 79
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/test_utils.py",
+     "lines": 1013
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/conftest.py",
+     "lines": 112
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/test_lowlevel.py",
+     "lines": 428
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_user_error_handler.py",
+     "lines": 295
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/compat.py",
+     "lines": 115
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/type_check/typing_app_decorators.py",
+     "lines": 32
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/testserver/server.py",
+     "lines": 176
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/__init__.py",
+     "lines": 39
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/test_adapters.py",
+     "lines": 8
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_reqctx.py",
+     "lines": 249
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/api.py",
+     "lines": 180
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/cliapp/importerrorapp.py",
+     "lines": 5
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/test_help.py",
+     "lines": 27
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/blueprintapp/apps/frontend/__init__.py",
+     "lines": 14
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/packages.py",
+     "lines": 23
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/config.py",
+     "lines": 367
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/__init__.py",
+     "lines": 14
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/celery/src/task_app/__init__.py",
+     "lines": 39
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/test_structures.py",
+     "lines": 91
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_converters.py",
+     "lines": 42
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/conftest.py",
+     "lines": 67
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/cliapp/inner1/__init__.py",
+     "lines": 3
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/_types.py",
+     "lines": 188
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/blueprintapp/apps/admin/__init__.py",
+     "lines": 20
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/adapters.py",
+     "lines": 748
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/tutorial/flaskr/auth.py",
+     "lines": 116
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/exceptions.py",
+     "lines": 162
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/subdomaintestmodule/__init__.py",
+     "lines": 3
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/__version__.py",
+     "lines": 14
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/tutorial/tests/test_blog.py",
+     "lines": 83
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/compat.py",
+     "lines": 23
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/tutorial/tests/conftest.py",
+     "lines": 62
+    },
+    {
+     "repo": "psf_requests",
+     "path": "src/requests/sessions.py",
+     "lines": 920
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/javascript/tests/conftest.py",
+     "lines": 15
+    },
+    {
+     "repo": "psf_requests",
+     "path": "tests/test_packages.py",
+     "lines": 13
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/celery/src/task_app/tasks.py",
+     "lines": 23
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/blueprints.py",
+     "lines": 128
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/typing.py",
+     "lines": 87
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_views.py",
+     "lines": 271
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/cliapp/multiapp.py",
+     "lines": 4
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_json.py",
+     "lines": 346
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/blueprintapp/__init__.py",
+     "lines": 9
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/cliapp/app.py",
+     "lines": 3
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/signals.py",
+     "lines": 17
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/tutorial/flaskr/db.py",
+     "lines": 56
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/celery/make_celery.py",
+     "lines": 4
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/tutorial/tests/test_db.py",
+     "lines": 29
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_subclassing.py",
+     "lines": 21
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/tutorial/flaskr/__init__.py",
+     "lines": 48
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_blueprints.py",
+     "lines": 1115
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/cliapp/inner1/inner2/flask.py",
+     "lines": 3
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/globals.py",
+     "lines": 77
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_basic.py",
+     "lines": 1974
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_instance_config.py",
+     "lines": 111
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_async.py",
+     "lines": 145
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_apps/helloworld/wsgi.py",
+     "lines": 1
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_cli.py",
+     "lines": 703
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/wrappers.py",
+     "lines": 257
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_logging.py",
+     "lines": 98
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/tutorial/tests/test_factory.py",
+     "lines": 12
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/ctx.py",
+     "lines": 540
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/views.py",
+     "lines": 191
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/__main__.py",
+     "lines": 3
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_session_interface.py",
+     "lines": 28
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/tutorial/flaskr/blog.py",
+     "lines": 125
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/javascript/js_example/__init__.py",
+     "lines": 5
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_helpers.py",
+     "lines": 377
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/javascript/tests/test_js_example.py",
+     "lines": 27
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/json/tag.py",
+     "lines": 327
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/debughelpers.py",
+     "lines": 179
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/type_check/typing_error_handler.py",
+     "lines": 33
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/testing.py",
+     "lines": 298
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/helpers.py",
+     "lines": 679
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/type_check/typing_route.py",
+     "lines": 112
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_signals.py",
+     "lines": 181
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/sansio/app.py",
+     "lines": 1014
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "examples/tutorial/tests/test_auth.py",
+     "lines": 69
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_templating.py",
+     "lines": 532
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/json/__init__.py",
+     "lines": 170
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_config.py",
+     "lines": 250
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "src/flask/cli.py",
+     "lines": 1126
+    },
+    {
+     "repo": "pallets_flask",
+     "path": "tests/test_request.py",
+     "lines": 70
+    }
+   ],
+   "n_files": 112,
+   "n_lines": 29784,
+   "pool_files": 112
+  },
+  "javascript": {
+   "files": [
+    {
+     "repo": "expressjs_express",
+     "path": "test/acceptance/multi-router.js",
+     "lines": 44
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/Axios.js",
+     "lines": 361
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/view-locals/index.js",
+     "lines": 155
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/trackStream.js",
+     "lines": 89
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/app.route.js",
+     "lines": 197
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/null.js",
+     "lines": 2
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.append.js",
+     "lines": 116
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/bind.js",
+     "lines": 14
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/view-locals/user.js",
+     "lines": 36
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/estimateDataURLDecodedBytes.js",
+     "lines": 193
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/express.text.js",
+     "lines": 566
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/fromDataURI.js",
+     "lines": 75
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.clearCookie.js",
+     "lines": 62
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/node/classes/FormData.js",
+     "lines": 3
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/mvc/db.js",
+     "lines": 16
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/sanitizeHeaderValue.js",
+     "lines": 60
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/acceptance/downloads.js",
+     "lines": 47
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/axios.js",
+     "lines": 89
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/regression.js",
+     "lines": 20
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/isAbsoluteURL.js",
+     "lines": 19
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.vary.js",
+     "lines": 90
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/node/classes/URLSearchParams.js",
+     "lines": 4
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.accepts.js",
+     "lines": 125
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/browser/classes/FormData.js",
+     "lines": 3
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.subdomains.js",
+     "lines": 173
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/cancel/isCancel.js",
+     "lines": 5
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/error-pages/index.js",
+     "lines": 103
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/node/classes/Buffer.js",
+     "lines": 11
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/app.router.js",
+     "lines": 1217
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/cancel/CancelToken.js",
+     "lines": 135
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.get.js",
+     "lines": 60
+    },
+    {
+     "repo": "axios_axios",
+     "path": "examples/abort-controller/server.js",
+     "lines": 23
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/app.render.js",
+     "lines": 392
+    },
+    {
+     "repo": "axios_axios",
+     "path": "examples/server.js",
+     "lines": 194
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/support/tmpl.js",
+     "lines": 36
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/normalizeURLForProtocolCheck.js",
+     "lines": 24
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/cookie-sessions/index.js",
+     "lines": 25
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/methodList.js",
+     "lines": 17
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/acceptance/content-negotiation.js",
+     "lines": 49
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/buildURL.js",
+     "lines": 69
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/acceptance/markdown.js",
+     "lines": 21
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/dispatchRequest.js",
+     "lines": 115
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.get.js",
+     "lines": 21
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/browser/classes/Blob.js",
+     "lines": 3
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/multi-router/index.js",
+     "lines": 18
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/env/classes/FormData.js",
+     "lines": 2
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/app.routes.error.js",
+     "lines": 62
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/toFormData.js",
+     "lines": 279
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/acceptance/params.js",
+     "lines": 44
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/AxiosTransformStream.js",
+     "lines": 165
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/downloads/index.js",
+     "lines": 40
+    },
+    {
+     "repo": "axios_axios",
+     "path": "index.js",
+     "lines": 45
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/session/index.js",
+     "lines": 37
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/InterceptorManager.js",
+     "lines": 182
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/acceptance/auth.js",
+     "lines": 117
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/cancel/CanceledError.js",
+     "lines": 22
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/web-service/index.js",
+     "lines": 117
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/AxiosError.js",
+     "lines": 278
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.baseUrl.js",
+     "lines": 88
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/readBlob.js",
+     "lines": 15
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/app.head.js",
+     "lines": 66
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/isAxiosError.js",
+     "lines": 14
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.cookie.js",
+     "lines": 295
+    },
+    {
+     "repo": "axios_axios",
+     "path": "examples/get/server.js",
+     "lines": 34
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.links.js",
+     "lines": 65
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/common/utils.js",
+     "lines": 52
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/static-files/public/js/app.js",
+     "lines": 1
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/ZlibHeaderTransformStream.js",
+     "lines": 29
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.route.js",
+     "lines": 28
+    },
+    {
+     "repo": "axios_axios",
+     "path": "examples/upload/server.js",
+     "lines": 13
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/route-separation/user.js",
+     "lines": 47
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/adapters/xhr.js",
+     "lines": 384
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.path.js",
+     "lines": 20
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/settle.js",
+     "lines": 27
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.fresh.js",
+     "lines": 108
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/transformData.js",
+     "lines": 28
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/multi-router/controllers/api_v1.js",
+     "lines": 15
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/index.js",
+     "lines": 7
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/acceptance/ejs.js",
+     "lines": 17
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/AxiosURLSearchParams.js",
+     "lines": 59
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/search/public/client.js",
+     "lines": 15
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/mergeConfig.js",
+     "lines": 237
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/multi-router/controllers/api_v2.js",
+     "lines": 15
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/toURLEncodedForm.js",
+     "lines": 19
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/view-constructor/index.js",
+     "lines": 48
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/spread.js",
+     "lines": 28
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "lib/request.js",
+     "lines": 527
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/createMultipartBody.js",
+     "lines": 37
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/mvc/controllers/main/index.js",
+     "lines": 5
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/assertParamsAcyclic.js",
+     "lines": 49
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.location.js",
+     "lines": 304
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/formDataToJSON.js",
+     "lines": 149
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/support/utils.js",
+     "lines": 86
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/callbackify.js",
+     "lines": 18
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.type.js",
+     "lines": 115
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/browser/index.js",
+     "lines": 13
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/mvc/index.js",
+     "lines": 95
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/progressEventReducer.js",
+     "lines": 54
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/params/index.js",
+     "lines": 74
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/isURLSameOrigin.js",
+     "lines": 11
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/static-files/index.js",
+     "lines": 43
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/formDataToBlob.js",
+     "lines": 113
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.ips.js",
+     "lines": 71
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/validator.js",
+     "lines": 112
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "lib/application.js",
+     "lines": 631
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/Http2Sessions.js",
+     "lines": 122
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/route-separation/post.js",
+     "lines": 13
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/formDataToStream.js",
+     "lines": 119
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/app.options.js",
+     "lines": 116
+    },
+    {
+     "repo": "axios_axios",
+     "path": "examples/postMultipartFormData/server.js",
+     "lines": 11
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/markdown/index.js",
+     "lines": 44
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/browser/classes/URLSearchParams.js",
+     "lines": 4
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/express.urlencoded.js",
+     "lines": 828
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/platform/node/index.js",
+     "lines": 37
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/error/index.js",
+     "lines": 53
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/defaults/transitional.js",
+     "lines": 11
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/route-separation/index.js",
+     "lines": 55
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/utils.js",
+     "lines": 1201
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.redirect.js",
+     "lines": 214
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/parseProtocol.js",
+     "lines": 6
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.status.js",
+     "lines": 206
+    },
+    {
+     "repo": "axios_axios",
+     "path": "examples/post/server.js",
+     "lines": 16
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/app.use.js",
+     "lines": 542
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/resolveConfig.js",
+     "lines": 120
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/hello-world/index.js",
+     "lines": 15
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/combineURLs.js",
+     "lines": 23
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "lib/view.js",
+     "lines": 205
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/composeSignals.js",
+     "lines": 71
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.acceptsLanguages.js",
+     "lines": 57
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/adapters/adapters.js",
+     "lines": 132
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/content-negotiation/users.js",
+     "lines": 19
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/HttpStatusCode.js",
+     "lines": 88
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/req.xhr.js",
+     "lines": 42
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/cookies.js",
+     "lines": 88
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/mvc/lib/boot.js",
+     "lines": 83
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/shouldBypassProxy.js",
+     "lines": 520
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/acceptance/route-separation.js",
+     "lines": 97
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/speedometer.js",
+     "lines": 55
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/route-map/index.js",
+     "lines": 75
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/helpers/parseHeaders.js",
+     "lines": 72
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/res.locals.js",
+     "lines": 40
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/env/data.js",
+     "lines": 1
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/acceptance/resource.js",
+     "lines": 68
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/setFormDataHeaders.js",
+     "lines": 27
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/support/env.js",
+     "lines": 3
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/buildFullPath.js",
+     "lines": 76
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "examples/ejs/index.js",
+     "lines": 57
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/adapters/http.js",
+     "lines": 1609
+    },
+    {
+     "repo": "expressjs_express",
+     "path": "test/express.raw.js",
+     "lines": 513
+    },
+    {
+     "repo": "axios_axios",
+     "path": "lib/core/AxiosHeaders.js",
+     "lines": 487
+    }
+   ],
+   "n_files": 150,
+   "n_lines": 19009,
+   "pool_files": 221
+  },
+  "typescript": {
+   "files": [
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/treeshake/default-locale.test.ts",
+     "lines": 82
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/helpers/parse-body.ts",
+     "lines": 9
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/core/tests/locales/nl.test.ts",
+     "lines": 46
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/formdata-searchparams.ts",
+     "lines": 185
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/bench/boolean.ts",
+     "lines": 16
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/helpers/with-page.ts",
+     "lines": 82
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/pipe.test.ts",
+     "lines": 101
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/types/request.ts",
+     "lines": 4
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/helpers/util.ts",
+     "lines": 224
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/headers.ts",
+     "lines": 1105
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+     "lines": 176
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/errors/NetworkError.ts",
+     "lines": 19
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/bn.ts",
+     "lines": 123
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/stream.ts",
+     "lines": 1528
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/treeshake/zod-full.ts",
+     "lines": 7
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/types/standard-schema.ts",
+     "lines": 48
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/treeshake/zod-locales.ts",
+     "lines": 5
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/utils/timeout.ts",
+     "lines": 46
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/treeshake/zod-default-import.ts",
+     "lines": 4
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/browser.ts",
+     "lines": 905
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/file.test.ts",
+     "lines": 96
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/errors/SchemaValidationError.ts",
+     "lines": 33
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/nan.test.ts",
+     "lines": 21
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/http-semantics.ts",
+     "lines": 155
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/cs.ts",
+     "lines": 123
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/resilience.ts",
+     "lines": 1121
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/sk.ts",
+     "lines": 123
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/errors/NonError.ts",
+     "lines": 37
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/sl.ts",
+     "lines": 123
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/errors/TimeoutError.ts",
+     "lines": 15
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/safeparse.test.ts",
+     "lines": 27
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/helpers/create-http-test-server.ts",
+     "lines": 59
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/enum.test.ts",
+     "lines": 80
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/utils/types.ts",
+     "lines": 3
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/id.ts",
+     "lines": 120
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/utils/is.ts",
+     "lines": 24
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/benchmarks/realworld.ts",
+     "lines": 63
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/helpers/with-performance.ts",
+     "lines": 30
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/core/tests/index.test.ts",
+     "lines": 46
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/utils/body.ts",
+     "lines": 242
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/mini/tests/codec.test.ts",
+     "lines": 582
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/type-guards.ts",
+     "lines": 110
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/benchmarks/primitives.ts",
+     "lines": 162
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/http-metadata.ts",
+     "lines": 198
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/pt-BR.ts",
+     "lines": 161
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/helpers/index.ts",
+     "lines": 4
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/tsc/bench/object-with-extend.ts",
+     "lines": 34
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/prefix.ts",
+     "lines": 88
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/default-locale.test.ts",
+     "lines": 32
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/utils/delay.ts",
+     "lines": 29
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/tuple.test.ts",
+     "lines": 90
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/index.ts",
+     "lines": 114
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/tsc/bench/index.ts",
+     "lines": 25
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/fetch.ts",
+     "lines": 979
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/branded.test.ts",
+     "lines": 53
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/core/Ky.ts",
+     "lines": 1376
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/async-refinements.test.ts",
+     "lines": 46
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/errors/KyError.ts",
+     "lines": 14
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/treeshake/zod-mini-boolean.ts",
+     "lines": 4
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/response-handling.ts",
+     "lines": 309
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/custom.test.ts",
+     "lines": 31
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/utils/is-network-error.ts",
+     "lines": 46
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/is.ts",
+     "lines": 124
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/merge.ts",
+     "lines": 389
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/bench/compile-passthrough.ts",
+     "lines": 310
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/types/common.ts",
+     "lines": 6
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/uz.ts",
+     "lines": 120
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/context.ts",
+     "lines": 403
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/bench/memory/harness.ts",
+     "lines": 82
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/retry-decisions.ts",
+     "lines": 424
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/nested-refine.test.ts",
+     "lines": 168
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/types/response.ts",
+     "lines": 4
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/bigint.test.ts",
+     "lines": 89
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/http-redirects.ts",
+     "lines": 154
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/core/tests/polyfill-collision.test.ts",
+     "lines": 46
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/request-construction.ts",
+     "lines": 404
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/parse.ts",
+     "lines": 88
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/utils/normalize.ts",
+     "lines": 100
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/bench/compile-codec-direction.ts",
+     "lines": 154
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/bytes.ts",
+     "lines": 82
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/nativeEnum.test.ts",
+     "lines": 87
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/helpers/create-large-file.ts",
+     "lines": 7
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/core/doc.ts",
+     "lines": 52
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/base-url.ts",
+     "lines": 160
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/parser.test.ts",
+     "lines": 41
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/memory-leak.ts",
+     "lines": 52
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/bench/compile-validate-vs-parse.ts",
+     "lines": 194
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/response-consumption.ts",
+     "lines": 262
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/bench/ipv4-regex.ts",
+     "lines": 46
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/types/retry.ts",
+     "lines": 189
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/zh-CN.ts",
+     "lines": 121
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/request-options.ts",
+     "lines": 48
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/transformer.test.ts",
+     "lines": 233
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/core/retry-timing.ts",
+     "lines": 173
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/array.test.ts",
+     "lines": 71
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/body-size.ts",
+     "lines": 233
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/set.test.ts",
+     "lines": 196
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/request-stream-support-runtimes.ts",
+     "lines": 48
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v3/tests/async-parsing.test.ts",
+     "lines": 388
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/retry-timing.ts",
+     "lines": 162
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/void.test.ts",
+     "lines": 12
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/response-size.ts",
+     "lines": 569
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/bench/compile-base64-inline-vs-hoist.ts",
+     "lines": 120
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/utils/type-guards.ts",
+     "lines": 155
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/hu.ts",
+     "lines": 122
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/http-error.ts",
+     "lines": 951
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/locales/az.ts",
+     "lines": 116
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/with-page.ts",
+     "lines": 28
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/mini/tests/prototypes.test.ts",
+     "lines": 43
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/main.ts",
+     "lines": 4366
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/error-utils.test.ts",
+     "lines": 917
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "source/errors/ResponseSizeError.ts",
+     "lines": 30
+    },
+    {
+     "repo": "colinhacks_zod",
+     "path": "packages/zod/src/v4/classic/tests/literal.test.ts",
+     "lines": 128
+    },
+    {
+     "repo": "sindresorhus_ky",
+     "path": "test/retry.ts",
+     "lines": 5414
+    }
+   ],
+   "n_files": 114,
+   "n_lines": 30624,
+   "pool_files": 510
+  },
+  "rust": {
+   "files": [
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/printer/src/summary.rs",
+     "lines": 1150
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/bin/bat/directories.rs",
+     "lines": 51
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/regex/src/ban.rs",
+     "lines": 83
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/controller.rs",
+     "lines": 353
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/pcre2/src/lib.rs",
+     "lines": 16
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/printer.rs",
+     "lines": 1025
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/globset/src/pathutil.rs",
+     "lines": 141
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/test_pretty_printer.rs",
+     "lines": 16
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/searcher/examples/search-stdin.rs",
+     "lines": 34
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/utils/mocked_pagers.rs",
+     "lines": 81
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/printer/src/standard.rs",
+     "lines": 3987
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/utils/command.rs",
+     "lines": 41
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/cli/src/pattern.rs",
+     "lines": 181
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/assets/lazy_theme_set.rs",
+     "lines": 103
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/pcre2/src/error.rs",
+     "lines": 48
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/assets/build_assets/acknowledgements.rs",
+     "lines": 226
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/searcher/src/line_buffer.rs",
+     "lines": 965
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/bin/bat/assets.rs",
+     "lines": 62
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/core/flags/complete/bash.rs",
+     "lines": 107
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/bin/bat/input.rs",
+     "lines": 20
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/core/flags/complete/mod.rs",
+     "lines": 10
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/lib.rs",
+     "lines": 64
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/regex/src/literal.rs",
+     "lines": 1016
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/theme.rs",
+     "lines": 570
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/ignore/src/dir.rs",
+     "lines": 1613
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/macros.rs",
+     "lines": 7
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/searcher/src/macros.rs",
+     "lines": 25
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/tester/mod.rs",
+     "lines": 102
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/matcher/tests/util.rs",
+     "lines": 96
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/syntax-tests/source/Rust/output.rs",
+     "lines": 161
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/core/flags/doc/mod.rs",
+     "lines": 38
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/wrapping.rs",
+     "lines": 13
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/printer/src/macros.rs",
+     "lines": 24
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/diff.rs",
+     "lines": 197
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/ignore/benches/workloads.rs",
+     "lines": 587
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/paging.rs",
+     "lines": 7
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/searcher/src/searcher/mod.rs",
+     "lines": 1088
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/config.rs",
+     "lines": 242
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/searcher/src/lines.rs",
+     "lines": 466
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/line_range.rs",
+     "lines": 768
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/ignore/tests/gitignore_skip_bom.rs",
+     "lines": 17
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/syntax_mapping.rs",
+     "lines": 315
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/core/main.rs",
+     "lines": 483
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/lessopen.rs",
+     "lines": 495
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/cli/src/lib.rs",
+     "lines": 295
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/bin/bat/main.rs",
+     "lines": 481
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/core/logger.rs",
+     "lines": 72
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/bin/bat/clap_app.rs",
+     "lines": 829
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/searcher/src/sink.rs",
+     "lines": 663
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/output.rs",
+     "lines": 268
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/ignore/src/pathutil.rs",
+     "lines": 218
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/github-actions.rs",
+     "lines": 47
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/searcher/src/searcher/glue.rs",
+     "lines": 1549
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/no_duplicate_extensions.rs",
+     "lines": 37
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/globset/src/fnv.rs",
+     "lines": 30
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/syntax_mapping/builtin.rs",
+     "lines": 91
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/core/flags/complete/zsh.rs",
+     "lines": 32
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/assets/assets_metadata.rs",
+     "lines": 82
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/globset/src/glob.rs",
+     "lines": 1686
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/bin/bat/completions.rs",
+     "lines": 6
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/core/search.rs",
+     "lines": 449
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/assets.rs",
+     "lines": 865
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/core/flags/lowargs.rs",
+     "lines": 723
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/decorations.rs",
+     "lines": 166
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/searcher/src/lib.rs",
+     "lines": 106
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/pager.rs",
+     "lines": 138
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/regex/src/ast.rs",
+     "lines": 216
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/bin/bat/app.rs",
+     "lines": 689
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/globset/benches/bench.rs",
+     "lines": 113
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/utils/mod.rs",
+     "lines": 2
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/regex/src/error.rs",
+     "lines": 94
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/style.rs",
+     "lines": 364
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/printer/src/jsont.rs",
+     "lines": 294
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/pretty_printer.rs",
+     "lines": 414
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/printer/src/color.rs",
+     "lines": 396
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "src/assets/build_assets.rs",
+     "lines": 180
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/printer/src/util.rs",
+     "lines": 608
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/snapshots/sample.rs",
+     "lines": 18
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/cli/src/wtr.rs",
+     "lines": 149
+    },
+    {
+     "repo": "sharkdp_bat",
+     "path": "tests/assets.rs",
+     "lines": 45
+    },
+    {
+     "repo": "BurntSushi_ripgrep",
+     "path": "crates/regex/src/matcher.rs",
+     "lines": 670
+    }
+   ],
+   "n_files": 81,
+   "n_lines": 30179,
+   "pool_files": 141
+  },
+  "go": {
+   "files": [
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/man_docs_test.go",
+     "lines": 231
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/xml.go",
+     "lines": 34
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "active_help_test.go",
+     "lines": 400
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "testdata/protoexample/test.pb.go",
+     "lines": 298
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "cobra_test.go",
+     "lines": 301
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "response_writer.go",
+     "lines": 148
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "zsh_completions_test.go",
+     "lines": 33
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "debug.go",
+     "lines": 114
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "bash_completionsV2_test.go",
+     "lines": 33
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "test_helpers.go",
+     "lines": 57
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "active_help.go",
+     "lines": 60
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/toml_test.go",
+     "lines": 22
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/yaml_docs_test.go",
+     "lines": 100
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/yaml_test.go",
+     "lines": 21
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "args.go",
+     "lines": 144
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "codec/json/jsoniter.go",
+     "lines": 44
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/man_examples_test.go",
+     "lines": 49
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "gin.go",
+     "lines": 861
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "bash_completions_test.go",
+     "lines": 289
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/multipart_form_mapping.go",
+     "lines": 74
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/man_docs.go",
+     "lines": 246
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "deprecated_test.go",
+     "lines": 33
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/md_docs.go",
+     "lines": 158
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/form_mapping.go",
+     "lines": 550
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "command_notwin.go",
+     "lines": 20
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/binding_test.go",
+     "lines": 1434
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "args_test.go",
+     "lines": 578
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/query.go",
+     "lines": 21
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "completions_test.go",
+     "lines": 4129
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "routergroup_test.go",
+     "lines": 245
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/md_docs_test.go",
+     "lines": 125
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/toml.go",
+     "lines": 36
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "command_test.go",
+     "lines": 2954
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/json.go",
+     "lines": 56
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "completions.go",
+     "lines": 1024
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/protobuf.go",
+     "lines": 41
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "flag_groups.go",
+     "lines": 290
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "ginS/gins_test.go",
+     "lines": 259
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "bash_completionsV2.go",
+     "lines": 484
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "tree_test.go",
+     "lines": 1113
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "bash_completions.go",
+     "lines": 709
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "fs.go",
+     "lines": 50
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/rest_docs_test.go",
+     "lines": 112
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/form_mapping_benchmark_test.go",
+     "lines": 67
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "command_win.go",
+     "lines": 41
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "fs_test.go",
+     "lines": 72
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "shell_completions.go",
+     "lines": 98
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "auth.go",
+     "lines": 116
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "fish_completions.go",
+     "lines": 292
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "gin_integration_test.go",
+     "lines": 608
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "flag_groups_test.go",
+     "lines": 195
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "response_writer_test.go",
+     "lines": 344
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "powershell_completions_test.go",
+     "lines": 33
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "mode_test.go",
+     "lines": 62
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "command.go",
+     "lines": 2072
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "codec/json/api.go",
+     "lines": 57
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/yaml_docs.go",
+     "lines": 175
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/reader.go",
+     "lines": 48
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/cmd_test.go",
+     "lines": 105
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/bson.go",
+     "lines": 30
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/util.go",
+     "lines": 52
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "mode.go",
+     "lines": 100
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "doc/rest_docs.go",
+     "lines": 186
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "internal/fs/fs.go",
+     "lines": 21
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "fish_completions_test.go",
+     "lines": 143
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "routergroup.go",
+     "lines": 295
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "zsh_completions.go",
+     "lines": 308
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/json.go",
+     "lines": 194
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "cobra.go",
+     "lines": 246
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "benchmarks_test.go",
+     "lines": 160
+    },
+    {
+     "repo": "spf13_cobra",
+     "path": "powershell_completions.go",
+     "lines": 350
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/binding_msgpack_test.go",
+     "lines": 59
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/toml.go",
+     "lines": 35
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "version.go",
+     "lines": 8
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/render.go",
+     "lines": 42
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "codec/json/sonic.go",
+     "lines": 44
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/yaml.go",
+     "lines": 36
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "tree.go",
+     "lines": 957
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "doc.go",
+     "lines": 22
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "context_file_test.go",
+     "lines": 35
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "path_test.go",
+     "lines": 192
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "codec/json/json.go",
+     "lines": 41
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "deprecated.go",
+     "lines": 23
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "recovery_test.go",
+     "lines": 413
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/binding_nomsgpack.go",
+     "lines": 121
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "path.go",
+     "lines": 203
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/data.go",
+     "lines": 31
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/default_validator.go",
+     "lines": 98
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/validate_test.go",
+     "lines": 253
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/pdf.go",
+     "lines": 26
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/plain.go",
+     "lines": 56
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "internal/bytesconv/bytesconv.go",
+     "lines": 21
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "debug_test.go",
+     "lines": 180
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/html.go",
+     "lines": 107
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "errors_test.go",
+     "lines": 140
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "errors.go",
+     "lines": 173
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/render_msgpack_test.go",
+     "lines": 80
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/xml.go",
+     "lines": 28
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/default_validator_benchmark_test.go",
+     "lines": 27
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/msgpack.go",
+     "lines": 37
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "render/msgpack.go",
+     "lines": 43
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/form_mapping_test.go",
+     "lines": 1146
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "binding/yaml.go",
+     "lines": 35
+    },
+    {
+     "repo": "gin-gonic_gin",
+     "path": "routes_test.go",
+     "lines": 969
+    }
+   ],
+   "n_files": 104,
+   "n_lines": 30131,
+   "pool_files": 135
+  },
+  "c": {
+   "files": [
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/sds.c",
+     "lines": 1317
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/win/stream.c",
+     "lines": 332
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/listpack.h",
+     "lines": 117
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-getters-setters.c",
+     "lines": 114
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/latency.h",
+     "lines": 118
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/win/fs-fd-hash-inl.h",
+     "lines": 199
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/crc16_slottable.c",
+     "lines": 835
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "include/uv/win.h",
+     "lines": 710
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/sha256.c",
+     "lines": 163
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-tty-duplicate-key.c",
+     "lines": 381
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/trace/trace_commands.h",
+     "lines": 93
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-run-once.c",
+     "lines": 48
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/modules/lua/script_lua.h",
+     "lines": 97
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/appcontainer.c",
+     "lines": 610
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/modules/lua/list.c",
+     "lines": 77
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/thread-common.c",
+     "lines": 175
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/modules/hellohook.c",
+     "lines": 95
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-cwd-and-chdir.c",
+     "lines": 57
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/crccombine.c",
+     "lines": 253
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/timer.c",
+     "lines": 199
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/multi.c",
+     "lines": 725
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-tcp-read-stop.c",
+     "lines": 76
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/commandlog.h",
+     "lines": 52
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/unix/aix.c",
+     "lines": 1288
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/rax.h",
+     "lines": 222
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/unix/aix-common.c",
+     "lines": 89
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/geohash.h",
+     "lines": 142
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "include/uv/posix.h",
+     "lines": 31
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/trace/trace_server.c",
+     "lines": 20
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/win/process.c",
+     "lines": 1488
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/db.c",
+     "lines": 3198
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/unix/os390-syscalls.h",
+     "lines": 73
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/monotonic.c",
+     "lines": 229
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/win/winsock.c",
+     "lines": 535
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/mt19937-64.c",
+     "lines": 187
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-semaphore.c",
+     "lines": 111
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/lrulfu.h",
+     "lines": 86
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/unix/tcp.c",
+     "lines": 677
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/mt19937-64.h",
+     "lines": 87
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/unix/core.c",
+     "lines": 2208
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/lazyfree.c",
+     "lines": 304
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-multiple-listen.c",
+     "lines": 109
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/sparkline.h",
+     "lines": 56
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/benchmark-pound.c",
+     "lines": 351
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/compression.h",
+     "lines": 83
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-mutexes.c",
+     "lines": 182
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/crc64.h",
+     "lines": 9
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/runner.h",
+     "lines": 188
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/module.h",
+     "lines": 254
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-tcp-connect-timeout.c",
+     "lines": 196
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/sparkline.c",
+     "lines": 178
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-tcp-write-to-half-open-connection.c",
+     "lines": 141
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/modules/lua/engine_lua.c",
+     "lines": 572
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-get-loadavg.c",
+     "lines": 35
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/anet.c",
+     "lines": 983
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-udp-sendmmsg-error.c",
+     "lines": 75
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/forkless.c",
+     "lines": 437
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-loop-oom.c",
+     "lines": 181
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/pqsort.h",
+     "lines": 40
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/win/getnameinfo.c",
+     "lines": 146
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/call_reply.c",
+     "lines": 868
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/benchmark-sizes.c",
+     "lines": 46
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/queues.h",
+     "lines": 144
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-thread-name.c",
+     "lines": 183
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/crcspeed.c",
+     "lines": 410
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-pipe-set-non-blocking.c",
+     "lines": 131
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/trace/trace.h",
+     "lines": 43
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/benchmark-ping-udp.c",
+     "lines": 169
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/localtime.c",
+     "lines": 127
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-list.h",
+     "lines": 1383
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/sds.h",
+     "lines": 299
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/unix/async.c",
+     "lines": 369
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/stream.h",
+     "lines": 161
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/benchmark-pump.c",
+     "lines": 478
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/throttle.c",
+     "lines": 414
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/benchmark-async-pummel.c",
+     "lines": 120
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/crc16_slottable.h",
+     "lines": 9
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-tcp-unexpected-read.c",
+     "lines": 117
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/space_saving.h",
+     "lines": 106
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/win/loop-watcher.c",
+     "lines": 122
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/siphash.c",
+     "lines": 372
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "test/test-ipc-heavy-traffic-deadlock-bug.c",
+     "lines": 159
+    },
+    {
+     "repo": "valkey-io_valkey",
+     "path": "src/commandlog.c",
+     "lines": 270
+    },
+    {
+     "repo": "libuv_libuv",
+     "path": "src/win/fs.c",
+     "lines": 3825
+    }
+   ],
+   "n_files": 84,
+   "n_lines": 32359,
+   "pool_files": 604
+  },
+  "lua": {
+   "files": [
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/lsp/handlers.lua",
+     "lines": 746
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/utils_spec.lua",
+     "lines": 393
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/nvim/dir.lua",
+     "lines": 404
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/from_entry.lua",
+     "lines": 45
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/lsp/log.lua",
+     "lines": 131
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/async_job.lua",
+     "lines": 322
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/async/_queue.lua",
+     "lines": 104
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/finders/async_oneshot_finder.lua",
+     "lines": 104
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/_init_packages.lua",
+     "lines": 101
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/pickers/scroller.lua",
+     "lines": 124
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/treesitter/query.lua",
+     "lines": 1172
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/telescope_spec.lua",
+     "lines": 218
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/nvim/dir/fs.lua",
+     "lines": 123
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/builtin/__internal.lua",
+     "lines": 1555
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/nvim/zip.lua",
+     "lines": 604
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/command_spec.lua",
+     "lines": 102
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/_core/log.lua",
+     "lines": 30
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/pickers/layout_strategies.lua",
+     "lines": 964
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/_core/marks.lua",
+     "lines": 174
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/diagnostics_spec.lua",
+     "lines": 66
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/F.lua",
+     "lines": 83
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/builtin/__git.lua",
+     "lines": 522
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/_core/editor.lua",
+     "lines": 1500
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/helpers.lua",
+     "lines": 87
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/_core/ui.lua",
+     "lines": 23
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/actions/set.lua",
+     "lines": 315
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/net/_transport.lua",
+     "lines": 259
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/builtin/__diagnostics.lua",
+     "lines": 206
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/lsp/inlay_hint.lua",
+     "lines": 423
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/entry_display_spec.lua",
+     "lines": 34
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/async.lua",
+     "lines": 317
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/linked_list_spec.lua",
+     "lines": 133
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/provider/python.lua",
+     "lines": 159
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "plugin/telescope.lua",
+     "lines": 151
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/health.lua",
+     "lines": 580
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/utils.lua",
+     "lines": 775
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/_core/vimfn.lua",
+     "lines": 28
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/log.lua",
+     "lines": 4
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/filetype.lua",
+     "lines": 3424
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/sorters.lua",
+     "lines": 624
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/diagnostic/_store.lua",
+     "lines": 313
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/actions/init.lua",
+     "lines": 1591
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/lsp/codelens.lua",
+     "lines": 510
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/previewer_spec.lua",
+     "lines": 55
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/lsp/completion.lua",
+     "lines": 1450
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/state.lua",
+     "lines": 39
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/_core/swapfile.lua",
+     "lines": 86
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/config/resolve.lua",
+     "lines": 327
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/pack/health.lua",
+     "lines": 409
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/builtin/init.lua",
+     "lines": 725
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/_core/ui2/cmdline.lua",
+     "lines": 203
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/_extensions/init.lua",
+     "lines": 73
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/editorconfig.lua",
+     "lines": 356
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/action_spec.lua",
+     "lines": 510
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/nvim/zip/health.lua",
+     "lines": 60
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/debounce.lua",
+     "lines": 165
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/lsp.lua",
+     "lines": 1610
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/sorters_spec.lua",
+     "lines": 84
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/_core/spell.lua",
+     "lines": 43
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/tests/automated/resolver_spec.lua",
+     "lines": 208
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/pack.lua",
+     "lines": 1751
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/pickers/highlights.lua",
+     "lines": 125
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/nvim/autoread.lua",
+     "lines": 203
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/pickers/entry_display.lua",
+     "lines": 167
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/lsp/_changetracking.lua",
+     "lines": 430
+    },
+    {
+     "repo": "nvim-telescope_telescope.nvim",
+     "path": "lua/telescope/previewers/utils.lua",
+     "lines": 284
+    },
+    {
+     "repo": "neovim_neovim",
+     "path": "runtime/lua/vim/async/_core.lua",
+     "lines": 1129
+    }
+   ],
+   "n_files": 67,
+   "n_lines": 30035,
+   "pool_files": 213
+  },
+  "bash": {
+   "files": [
+    {
+     "repo": "nvm-sh_nvm",
+     "path": "test/common.sh",
+     "lines": 306
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/knife.completion.bash",
+     "lines": 205
+    },
+    {
+     "repo": "nvm-sh_nvm",
+     "path": "rename_test.sh",
+     "lines": 52
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/zork/zork.theme.bash",
+     "lines": 91
+    },
+    {
+     "repo": "nvm-sh_nvm",
+     "path": "update_test_mocks.sh",
+     "lines": 69
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/purity/purity.theme.bash",
+     "lines": 44
+    },
+    {
+     "repo": "nvm-sh_nvm",
+     "path": "release-notes.sh",
+     "lines": 153
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/bash-it.aliases.bash",
+     "lines": 24
+    },
+    {
+     "repo": "nvm-sh_nvm",
+     "path": "nvm.sh",
+     "lines": 5642
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "lib/search.bash",
+     "lines": 373
+    },
+    {
+     "repo": "nvm-sh_nvm",
+     "path": "install.sh",
+     "lines": 536
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/vault.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/mbriggs/mbriggs.theme.bash",
+     "lines": 39
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/nvm.completion.bash",
+     "lines": 7
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/gitline/gitline.theme.bash",
+     "lines": 73
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/nvm.plugin.bash",
+     "lines": 39
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/hawaii50/hawaii50.theme.bash",
+     "lines": 203
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/n0qorg/n0qorg.theme.bash",
+     "lines": 28
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/inretio/inretio.theme.bash",
+     "lines": 100
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/maven.completion.bash",
+     "lines": 42
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/iterate/iterate.theme.bash",
+     "lines": 62
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/pew.completion.bash",
+     "lines": 11
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/cooperkid/cooperkid.theme.bash",
+     "lines": 43
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/node.plugin.bash",
+     "lines": 15
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/virtualenv.plugin.bash",
+     "lines": 48
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/nwinkler_random_colors/nwinkler_random_colors.theme.bash",
+     "lines": 115
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/postgres.plugin.bash",
+     "lines": 79
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/travis.completion.bash",
+     "lines": 14
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/kitsune/kitsune.theme.bash",
+     "lines": 40
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/docker-compose.plugin.bash",
+     "lines": 22
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/consul.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/rainbowbrite/rainbowbrite.theme.bash",
+     "lines": 28
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/herdr.completion.bash",
+     "lines": 13
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/pack.plugin.bash",
+     "lines": 611
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/bundler.aliases.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/textmate.aliases.bash",
+     "lines": 11
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/hg.aliases.bash",
+     "lines": 7
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/man.plugin.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/docker-compose.aliases.bash",
+     "lines": 11
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/history.plugin.bash",
+     "lines": 37
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/todo.completion.bash",
+     "lines": 4
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/powerline-plain/powerline-plain.base.bash",
+     "lines": 67
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/powerline/powerline.base.bash",
+     "lines": 338
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "lint_clean_files.sh",
+     "lines": 29
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/svn.aliases.bash",
+     "lines": 16
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/rustup.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "bash_it.sh",
+     "lines": 124
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/direnv.plugin.bash",
+     "lines": 8
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/colors.plugin.bash",
+     "lines": 202
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/gitstatus.plugin.bash",
+     "lines": 29
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/chruby-auto.plugin.bash",
+     "lines": 8
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/pete/pete.theme.bash",
+     "lines": 23
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/brunton/brunton.theme.bash",
+     "lines": 31
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "hooks/dot-sh.sh",
+     "lines": 21
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/chruby.plugin.bash",
+     "lines": 7
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/zoxide.plugin.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/less-pretty-cat.plugin.bash",
+     "lines": 24
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/powerline-plain/powerline-plain.theme.bash",
+     "lines": 99
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/npm.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/git.completion.bash",
+     "lines": 44
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/pipsi.plugin.bash",
+     "lines": 8
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "hooks/dot-bash.sh",
+     "lines": 22
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/metal/metal.theme.bash",
+     "lines": 84
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/phoenix.aliases.bash",
+     "lines": 50
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/yarn.completion.bash",
+     "lines": 5
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/norbu/norbu.theme.bash",
+     "lines": 29
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/morris/morris.theme.bash",
+     "lines": 29
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/rvm.plugin.bash",
+     "lines": 35
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/hub.plugin.bash",
+     "lines": 8
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/gradle.plugin.bash",
+     "lines": 14
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/ssh.completion.bash",
+     "lines": 47
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/ssh.plugin.bash",
+     "lines": 31
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/pro/pro.theme.bash",
+     "lines": 23
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/clipboard.aliases.bash",
+     "lines": 17
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/hub.completion.bash",
+     "lines": 418
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/git_flow.completion.bash",
+     "lines": 172
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/pip.completion.bash",
+     "lines": 25
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/jboss7.completion.bash",
+     "lines": 4
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/dirs.completion.bash",
+     "lines": 13
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/powerline-multiline/powerline-multiline.base.bash",
+     "lines": 121
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/pip3.completion.bash",
+     "lines": 25
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/bobby/bobby.theme.bash",
+     "lines": 40
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "lib/helpers.bash",
+     "lines": 1302
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/minikube.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/essential/essential.theme.bash",
+     "lines": 93
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/standard/standard.theme.bash",
+     "lines": 28
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/history-eternal.plugin.bash",
+     "lines": 25
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/modern-t/modern-t.theme.bash",
+     "lines": 54
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/rbenv.plugin.bash",
+     "lines": 11
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/github-cli.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/git.aliases.bash",
+     "lines": 250
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/vagrant.completion.bash",
+     "lines": 174
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/todo.aliases.bash",
+     "lines": 9
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/docker.plugin.bash",
+     "lines": 87
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/p4helpers.theme.bash",
+     "lines": 45
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/history-search.plugin.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/powerturk/powerturk.theme.bash",
+     "lines": 189
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/maven.aliases.bash",
+     "lines": 26
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/flutter.completion.bash",
+     "lines": 14
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/osx.aliases.bash",
+     "lines": 58
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "install.sh",
+     "lines": 318
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/rvm.completion.bash",
+     "lines": 8
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/apm.completion.bash",
+     "lines": 4
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/powerline-naked/powerline-naked.base.bash",
+     "lines": 40
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/redline/redline.theme.bash",
+     "lines": 64
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/git.plugin.bash",
+     "lines": 317
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/node.aliases.bash",
+     "lines": 9
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/kubectl.aliases.bash",
+     "lines": 17
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/laravel.completion.bash",
+     "lines": 25
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/grunt.completion.bash",
+     "lines": 82
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/rake.completion.bash",
+     "lines": 25
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "lib/history.bash",
+     "lines": 49
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/yarn.aliases.bash",
+     "lines": 27
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/edit-mode-emacs.plugin.bash",
+     "lines": 6
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/gem.completion.bash",
+     "lines": 37
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/packer.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "template/bashrc.template.bash",
+     "lines": 76
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/emacs.aliases.bash",
+     "lines": 17
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/jungle.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/elixr/elixr.theme.bash",
+     "lines": 24
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/gulp.completion.bash",
+     "lines": 57
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/pyenv.plugin.bash",
+     "lines": 35
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/nwinkler/nwinkler.theme.bash",
+     "lines": 47
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/todo.plugin.bash",
+     "lines": 7
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/bundler.completion.bash",
+     "lines": 310
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/systemd.aliases.bash",
+     "lines": 23
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/export.completion.bash",
+     "lines": 4
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "test/test_helper.bash",
+     "lines": 121
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/axin/axin.theme.bash",
+     "lines": 38
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/subversion.plugin.bash",
+     "lines": 23
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/atomic/atomic.theme.bash",
+     "lines": 324
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/rails.aliases.bash",
+     "lines": 23
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/git-subrepo.plugin.bash",
+     "lines": 8
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/conda.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/go.plugin.bash",
+     "lines": 33
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/vim.aliases.bash",
+     "lines": 17
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/git-omz.aliases.bash",
+     "lines": 35
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/extract.plugin.bash",
+     "lines": 87
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/awless.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/fuck.aliases.bash",
+     "lines": 11
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/history-substring-search.plugin.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/fabric.completion.bash",
+     "lines": 137
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/codeword/codeword.theme.bash",
+     "lines": 26
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/openshift.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "plugins/available/osx.plugin.bash",
+     "lines": 133
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "completion/available/minishift.completion.bash",
+     "lines": 10
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/robbyrussell/robbyrussell.theme.bash",
+     "lines": 29
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/docker.aliases.bash",
+     "lines": 44
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "aliases/available/terraform.aliases.bash",
+     "lines": 23
+    },
+    {
+     "repo": "Bash-it_bash-it",
+     "path": "themes/barbuk/barbuk.theme.bash",
+     "lines": 337
+    }
+   ],
+   "n_files": 150,
+   "n_lines": 17099,
+   "pool_files": 337
+  },
+  "elisp": {
+   "files": [
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-extras.el",
+     "lines": 880
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-abbrev.el",
+     "lines": 54
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-commit.el",
+     "lines": 878
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/cmake-tests.el",
+     "lines": 44
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-tag.el",
+     "lines": 261
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-semantic.el",
+     "lines": 168
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-wip.el",
+     "lines": 389
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/frontends-tests.el",
+     "lines": 539
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-transient.el",
+     "lines": 286
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-childframe.el",
+     "lines": 295
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-core.el",
+     "lines": 139
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-cmake.el",
+     "lines": 204
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-patch.el",
+     "lines": 349
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/all.el",
+     "lines": 30
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-diff.el",
+     "lines": 4109
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-dabbrev-code.el",
+     "lines": 193
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/git-rebase.el",
+     "lines": 960
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/template-tests.el",
+     "lines": 170
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-pull.el",
+     "lines": 222
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/clang-tests.el",
+     "lines": 64
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-dired.el",
+     "lines": 129
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-oddmuse.el",
+     "lines": 57
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-subtree.el",
+     "lines": 203
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-ispell.el",
+     "lines": 99
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-reset.el",
+     "lines": 153
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/async-tests.el",
+     "lines": 226
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-margin.el",
+     "lines": 276
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-css.el",
+     "lines": 446
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-process.el",
+     "lines": 1385
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/transformers-tests.el",
+     "lines": 58
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-branch.el",
+     "lines": 1045
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-gtags.el",
+     "lines": 160
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-bisect.el",
+     "lines": 340
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company.el",
+     "lines": 4913
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-stash.el",
+     "lines": 702
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/capf-tests.el",
+     "lines": 201
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-autorevert.el",
+     "lines": 278
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/gtags-tests.el",
+     "lines": 68
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-sparse-checkout.el",
+     "lines": 166
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-dabbrev.el",
+     "lines": 233
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-bundle.el",
+     "lines": 155
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-etags.el",
+     "lines": 151
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-log.el",
+     "lines": 2172
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-clang.el",
+     "lines": 430
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-fetch.el",
+     "lines": 204
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-files.el",
+     "lines": 157
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/git-commit.el",
+     "lines": 1397
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/core-tests.el",
+     "lines": 1060
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-status.el",
+     "lines": 887
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "company-tests.el",
+     "lines": 46
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-gitignore.el",
+     "lines": 220
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": ".dir-locals.el",
+     "lines": 7
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit.el",
+     "lines": 816
+    },
+    {
+     "repo": "company-mode_company-mode",
+     "path": "test/bbdb-tests.el",
+     "lines": 46
+    },
+    {
+     "repo": "magit_magit",
+     "path": "lisp/magit-mode.el",
+     "lines": 1655
+    }
+   ],
+   "n_files": 55,
+   "n_lines": 30775,
+   "pool_files": 85
+  },
+  "java": {
+   "files": [
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/internal/bind/IgnoreJRERequirement.java",
+     "lines": 11
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/CharUtilsPerfRun.java",
+     "lines": 152
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/metrics/PerformanceTest.java",
+     "lines": 368
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/ToStringBuilderNoForceTest.java",
+     "lines": 28
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/TypeAdapterTest.java",
+     "lines": 128
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/function/FailableToIntFunction.java",
+     "lines": 56
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/JsonArrayTest.java",
+     "lines": 614
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/ClassLoaderUtilsTest.java",
+     "lines": 65
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/stream/JsonScope.java",
+     "lines": 51
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/math/NumberUtilsBenchmark.java",
+     "lines": 210
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/JsonParseException.java",
+     "lines": 64
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/reflect/testbed/Ambig.java",
+     "lines": 26
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/JsonObjectTest.java",
+     "lines": 358
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/ReflectionToStringBuilderCustomImplementationNoForceTest.java",
+     "lines": 28
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/JsonDeserializer.java",
+     "lines": 96
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/function/IntToCharFunction.java",
+     "lines": 43
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/ToNumberPolicyFunctionalTest.java",
+     "lines": 148
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/ReflectionToStringBuilderTest.java",
+     "lines": 34
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java-templates/com/google/gson/internal/GsonBuildConfig.java",
+     "lines": 32
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/function/FailableDoubleSupplier.java",
+     "lines": 38
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/InstanceCreator.java",
+     "lines": 93
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/function/FailableLongSupplierTest.java",
+     "lines": 48
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/internal/bind/util/ISO8601Utils.java",
+     "lines": 386
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/concurrent/AtomicInitializerNonObjectTest.java",
+     "lines": 61
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/JsonAdapterSerializerDeserializerTest.java",
+     "lines": 266
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/ReflectionDiffBuilderTest.java",
+     "lines": 808
+    },
+    {
+     "repo": "google_gson",
+     "path": "proto/src/test/java/com/google/gson/protobuf/functional/TestMessages.java",
+     "lines": 90
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/StringUtilsSubstringTest.java",
+     "lines": 494
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/internal/bind/JsonTreeWriterTest.java",
+     "lines": 319
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/ReflectionToStringBuilderExcludeNoForceTest.java",
+     "lines": 28
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/internal/NonNullElementWrapperList.java",
+     "lines": 147
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/reflect/TypeUtilsTest.java",
+     "lines": 2339
+    },
+    {
+     "repo": "google_gson",
+     "path": "test-shrinker/src/main/java/com/example/ClassWithAdapter.java",
+     "lines": 44
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/StringUtilsEmptyBlankTest.java",
+     "lines": 184
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/PrettyPrintingTest.java",
+     "lines": 170
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/text/translate/OctalUnescaper.java",
+     "lines": 81
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/internal/NumberLimits.java",
+     "lines": 36
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/CharEncoding.java",
+     "lines": 138
+    },
+    {
+     "repo": "google_gson",
+     "path": "test-shrinker/src/main/java/com/example/NoSerializedNameMain.java",
+     "lines": 59
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/concurrent/ConcurrentRuntimeExceptionTest.java",
+     "lines": 53
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/ReflectionAccessTest.java",
+     "lines": 173
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/ConversionTest.java",
+     "lines": 1777
+    },
+    {
+     "repo": "google_gson",
+     "path": "metrics/src/main/java/com/google/gson/metrics/BagOfPrimitivesDeserializationBenchmark.java",
+     "lines": 122
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/exception/ExceptionUtilsTest.java",
+     "lines": 1112
+    },
+    {
+     "repo": "google_gson",
+     "path": "test-jpms/src/test/java/com/google/gson/jpms_test/ReflectionInaccessibleTest.java",
+     "lines": 66
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/RandomUtils.java",
+     "lines": 477
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/internal/LinkedTreeMapSuiteTest.java",
+     "lines": 84
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/StringEscapeUtils.java",
+     "lines": 877
+    },
+    {
+     "repo": "google_gson",
+     "path": "extras/src/test/java/com/google/gson/typeadapters/PostConstructAdapterFactoryTest.java",
+     "lines": 119
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/StandardToStringStyleTest.java",
+     "lines": 230
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/ToNumberStrategy.java",
+     "lines": 70
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/function/FailableRunnable.java",
+     "lines": 35
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/LongSerializationPolicy.java",
+     "lines": 84
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/function/FailableToLongFunctionTest.java",
+     "lines": 59
+    },
+    {
+     "repo": "google_gson",
+     "path": "test-shrinker/src/main/java/com/example/EnumClass.java",
+     "lines": 6
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/IDKeyTest.java",
+     "lines": 38
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/annotations/JsonAdapter.java",
+     "lines": 135
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/builder/CompareToBuilder.java",
+     "lines": 1031
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/JsonParser.java",
+     "lines": 178
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/AutoCloseables.java",
+     "lines": 146
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/JsonArrayAsListTest.java",
+     "lines": 347
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/time/FastDateParser.java",
+     "lines": 1276
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/internal/sql/SqlTypesSupport.java",
+     "lines": 98
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/StringUtilsValueOfTest.java",
+     "lines": 43
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/ReflectionAccessFilterTest.java",
+     "lines": 532
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/function/FailableBiPredicate.java",
+     "lines": 110
+    },
+    {
+     "repo": "google_gson",
+     "path": "proto/src/test/java/com/google/gson/protobuf/functional/ProtosWithAnnotationsAndJsonNamesTest.java",
+     "lines": 202
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/reflect/testbed/Grandchild.java",
+     "lines": 22
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/JsonStreamParserTest.java",
+     "lines": 105
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/time/DurationFormatUtilsTest.java",
+     "lines": 914
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/StringTest.java",
+     "lines": 177
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/concurrent/ConstantInitializerTest.java",
+     "lines": 144
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/DelegateTypeAdapterTest.java",
+     "lines": 96
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/RegExUtilsTest.java",
+     "lines": 368
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/JsonStreamParser.java",
+     "lines": 125
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/reflect/Lang1703Test.java",
+     "lines": 35
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/UncategorizedTest.java",
+     "lines": 149
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/reflect/InheritanceUtils.java",
+     "lines": 69
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/ExclusionStrategy.java",
+     "lines": 111
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/function/FailableObjDoubleConsumerTest.java",
+     "lines": 67
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/ParameterizedTypesTest.java",
+     "lines": 551
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/function/FailableToDoubleBiFunctionTest.java",
+     "lines": 59
+    },
+    {
+     "repo": "google_gson",
+     "path": "test-shrinker/src/main/java/com/example/UnusedClass.java",
+     "lines": 16
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/concurrent/AtomicSafeInitializerInitTest.java",
+     "lines": 101
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/internal/reflect/ReflectionHelper.java",
+     "lines": 325
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/mutable/MutableInt.java",
+     "lines": 373
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/FieldNamingTest.java",
+     "lines": 114
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/stream/FailableStreamTest.java",
+     "lines": 97
+    },
+    {
+     "repo": "google_gson",
+     "path": "metrics/src/main/java/com/google/gson/metrics/NonUploadingCaliperRunner.java",
+     "lines": 40
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/builder/MultilineRecursiveToStringStyle.java",
+     "lines": 217
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/SecurityTest.java",
+     "lines": 101
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/DiffBuilderNoForceTest.java",
+     "lines": 28
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/TypeHierarchyAdapterTest.java",
+     "lines": 233
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/concurrent/ConcurrentUtils.java",
+     "lines": 358
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/FieldAttributesTest.java",
+     "lines": 81
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/function/TriConsumer.java",
+     "lines": 70
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/internal/bind/RecursiveTypesResolveTest.java",
+     "lines": 104
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/text/translate/CodePointTranslator.java",
+     "lines": 62
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/internal/bind/TreeTypeAdapter.java",
+     "lines": 209
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/builder/ReflectionDiffBuilder.java",
+     "lines": 345
+    },
+    {
+     "repo": "google_gson",
+     "path": "test-shrinker/src/main/java/com/example/Main.java",
+     "lines": 316
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/concurrent/ConstantInitializer.java",
+     "lines": 135
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/InnerClassExclusionStrategyTest.java",
+     "lines": 83
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/tuple/ImmutableTriple.java",
+     "lines": 168
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/internal/UnsafeAllocatorInstantiationTest.java",
+     "lines": 64
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/mutable/MutableObjectTest.java",
+     "lines": 107
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/internal/StreamsTest.java",
+     "lines": 114
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/ReflectionToStringBuilderExcludeNullValuesTest.java",
+     "lines": 164
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/JsonElement.java",
+     "lines": 434
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/IntegerRange.java",
+     "lines": 121
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/internal/LinkedTreeMapTest.java",
+     "lines": 254
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/builder/EqualsBuilderNoForceTest.java",
+     "lines": 42
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/GsonVersionDiagnosticsTest.java",
+     "lines": 99
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/stream/package-info.java",
+     "lines": 29
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/JsonParserTest.java",
+     "lines": 198
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/reflect/testbed/PackageBeanOtherPackage.java",
+     "lines": 44
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+     "lines": 323
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/text/translate/UnicodeEscaperTest.java",
+     "lines": 64
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/internal/bind/ArrayTypeAdapter.java",
+     "lines": 112
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/LongRangeTest.java",
+     "lines": 435
+    },
+    {
+     "repo": "google_gson",
+     "path": "test-shrinker/src/main/java/com/example/ClassWithNoArgsConstructor.java",
+     "lines": 13
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/mutable/Mutable.java",
+     "lines": 66
+    },
+    {
+     "repo": "google_gson",
+     "path": "test-graal-native-image/src/test/java/com/google/gson/native_test/Java17RecordReflectionTest.java",
+     "lines": 182
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/concurrent/MultiBackgroundInitializerTest.java",
+     "lines": 529
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/SerializedNameTest.java",
+     "lines": 65
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/concurrent/ThresholdCircuitBreaker.java",
+     "lines": 147
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/VersioningTest.java",
+     "lines": 210
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/tuple/TripleTest.java",
+     "lines": 154
+    },
+    {
+     "repo": "google_gson",
+     "path": "extras/src/main/java/com/google/gson/typeadapters/RuntimeTypeAdapterFactory.java",
+     "lines": 331
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/main/java/org/apache/commons/lang3/function/TriFunction.java",
+     "lines": 65
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/test/java/com/google/gson/functional/ObjectTest.java",
+     "lines": 776
+    },
+    {
+     "repo": "apache_commons-lang",
+     "path": "src/test/java/org/apache/commons/lang3/concurrent/AbstractConcurrentInitializerCloseAndExceptionsTest.java",
+     "lines": 183
+    },
+    {
+     "repo": "google_gson",
+     "path": "gson/src/main/java/com/google/gson/JsonArray.java",
+     "lines": 436
+    }
+   ],
+   "n_files": 133,
+   "n_lines": 30150,
+   "pool_files": 890
+  }
+ }
+}

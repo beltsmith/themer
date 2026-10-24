@@ -1,0 +1,16 @@
+# Hybrid, draft 2: landmark + the definition hue in QUIET form at use sites of callables
+# and types. Tests whether a "same family, quieter" link between definition and use
+# helps or just spends salience budget. It costs no extra hue: quiet = chroma-reduced accent.
+name: hybrid
+inherits: landmark
+
+# Draft 2.1: explicit. When `definition` is dropped, use sites go to default, not bold.
+families:
+  definition: {hue: true, keep: 3, fallback: {family: null, tier: strong},
+               quiet_fallback: {tier: default}}
+
+styles:
+  function.call:    {family: definition, tier: quiet}
+  function.builtin: {family: definition, tier: quiet}
+  type.use:         {family: definition, tier: quiet}
+  type.builtin:     {family: definition, tier: quiet}

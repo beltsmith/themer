@@ -1,0 +1,94 @@
+lang,kind,char_share,token_share,per_screen_mean,per_screen_median,line_frac
+ALL,ALL bindings incl. local var/param/field,0.078775,0.048351,8.976615,8.444444,0.212907
+ALL,ALL beacon bindings (fn/type/macro/const/top var),0.039688,0.015064,2.699889,2.111111,0.08187
+ALL,function.def,0.025798,0.008935,1.656523,1.333333,0.050378
+ALL,variable.def.local,0.022345,0.017971,3.365229,2.333333,0.094396
+ALL,parameter.def (locals),0.012287,0.012559,2.387087,1.666667,0.050204
+ALL,constant.def,0.008037,0.003447,0.53653,0.111111,0.016373
+ALL,field.def (locals),0.004456,0.002758,0.52441,0.0,0.015229
+ALL,type.def,0.00327,0.00137,0.268595,0.0,0.008126
+ALL,variable.def.top,0.00243,0.001248,0.225062,0.0,0.006934
+ALL,macro.def,0.000153,6.5e-05,0.013178,0.0,0.000395
+python,ALL bindings incl. local var/param/field,0.105439,0.067715,10.703608,10.0,0.270673
+python,ALL beacon bindings (fn/type/macro/const/top var),0.057613,0.021265,3.349227,3.0,0.111338
+python,function.def,0.049078,0.017116,2.708763,2.0,0.089855
+python,variable.def.local,0.021287,0.023099,3.650773,3.0,0.113853
+python,parameter.def (locals),0.018631,0.018309,2.903351,2.0,0.068841
+python,field.def (locals),0.007908,0.005042,0.800258,0.0,0.026471
+python,type.def,0.006028,0.002801,0.44201,0.0,0.014706
+python,variable.def.top,0.001628,0.000909,0.128866,0.0,0.004518
+python,constant.def,0.000879,0.000438,0.069588,0.0,0.002259
+javascript,ALL bindings incl. local var/param/field,0.073019,0.054449,9.544031,9.0,0.211682
+javascript,parameter.def (locals),0.026648,0.02753,4.827789,4.0,0.094487
+javascript,ALL beacon bindings (fn/type/macro/const/top var),0.024679,0.010868,1.890411,2.0,0.058976
+javascript,variable.def.local,0.02067,0.015186,2.67319,2.0,0.08471
+javascript,function.def,0.015797,0.006583,1.146771,1.0,0.034818
+javascript,variable.def.top,0.007027,0.003708,0.643836,0.0,0.020941
+javascript,constant.def,0.001191,0.000344,0.058708,0.0,0.001955
+javascript,field.def (locals),0.001023,0.000866,0.152642,0.0,0.00492
+javascript,type.def,0.000664,0.000233,0.041096,0.0,0.001325
+typescript,ALL bindings incl. local var/param/field,0.075634,0.042039,10.40589,11.0,0.254762
+typescript,variable.def.local,0.034948,0.016945,4.201024,4.0,0.123526
+typescript,parameter.def (locals),0.019348,0.015153,3.756722,3.0,0.089819
+typescript,ALL beacon bindings (fn/type/macro/const/top var),0.01786,0.007798,1.916773,1.0,0.057602
+typescript,function.def,0.012292,0.005733,1.414853,1.0,0.042409
+typescript,field.def (locals),0.003478,0.002143,0.53137,0.0,0.012177
+typescript,variable.def.top,0.002848,0.00104,0.253521,0.0,0.007673
+typescript,type.def,0.00237,0.000876,0.211268,0.0,0.006489
+typescript,constant.def,0.00035,0.000149,0.037132,0.0,0.001107
+rust,ALL bindings incl. local var/param/field,0.071067,0.037827,7.806452,7.0,0.195318
+rust,ALL beacon bindings (fn/type/macro/const/top var),0.033974,0.012123,2.495484,2.0,0.071442
+rust,function.def,0.026739,0.008668,1.792258,2.0,0.051077
+rust,variable.def.local,0.021122,0.014913,3.08,2.0,0.084138
+rust,parameter.def (locals),0.009306,0.007671,1.585806,1.0,0.041353
+rust,field.def (locals),0.006665,0.00312,0.645161,0.0,0.018347
+rust,type.def,0.003621,0.001606,0.331613,0.0,0.009467
+rust,constant.def,0.003289,0.001725,0.347097,0.0,0.010164
+rust,macro.def,0.000325,0.000125,0.024516,0.0,0.000734
+go,ALL bindings incl. local var/param/field,0.07929,0.057734,11.005128,11.0,0.217396
+go,ALL beacon bindings (fn/type/macro/const/top var),0.040751,0.011701,2.230769,2.0,0.06783
+go,function.def,0.033795,0.00894,1.703846,1.0,0.051824
+go,variable.def.local,0.021562,0.024199,4.611538,4.0,0.112777
+go,parameter.def (locals),0.010515,0.017746,3.380769,3.0,0.064022
+go,field.def (locals),0.006462,0.004088,0.782051,0.0,0.023698
+go,type.def,0.002947,0.001159,0.221795,0.0,0.006721
+go,constant.def,0.002332,0.000784,0.148718,0.0,0.004545
+go,variable.def.top,0.001677,0.000818,0.15641,0.0,0.00474
+c,ALL bindings incl. local var/param/field,0.06013,0.034297,6.965018,6.0,0.164525
+c,ALL beacon bindings (fn/type/macro/const/top var),0.039225,0.014272,2.893848,2.0,0.083855
+c,function.def,0.023337,0.007714,1.562123,1.0,0.047121
+c,variable.def.local,0.011618,0.011701,2.381182,1.0,0.066266
+c,parameter.def (locals),0.006651,0.006517,1.322075,0.0,0.03022
+c,constant.def,0.005943,0.001896,0.383595,0.0,0.011581
+c,type.def,0.005728,0.002826,0.575392,0.0,0.016829
+c,variable.def.top,0.00317,0.001374,0.278649,0.0,0.008396
+c,field.def (locals),0.002636,0.001807,0.367913,0.0,0.010966
+c,macro.def,0.001047,0.000462,0.094089,0.0,0.002823
+lua,ALL bindings incl. local var/param/field,0.071676,0.057953,10.117955,10.0,0.20184
+lua,variable.def.local,0.030911,0.027176,4.747051,4.0,0.114404
+lua,ALL beacon bindings (fn/type/macro/const/top var),0.018805,0.010789,1.880734,1.0,0.053085
+lua,function.def,0.015147,0.007856,1.369594,1.0,0.03884
+lua,parameter.def (locals),0.014025,0.014608,2.551769,2.0,0.040991
+lua,field.def (locals),0.007936,0.00538,0.938401,0.0,0.025708
+lua,variable.def.top,0.003462,0.002536,0.441678,0.0,0.012279
+lua,constant.def,0.000195,0.000398,0.069463,0.0,0.001966
+bash,ALL bindings incl. local var/param/field,0.106362,0.049916,7.245243,6.0,0.224441
+bash,ALL beacon bindings (fn/type/macro/const/top var),0.081214,0.033525,4.860465,4.0,0.150317
+bash,constant.def,0.056405,0.024515,3.553911,1.0,0.108982
+bash,variable.def.local,0.025148,0.016392,2.384778,0.0,0.074457
+bash,function.def,0.022806,0.008196,1.190275,1.0,0.037663
+bash,variable.def.top,0.002003,0.000814,0.116279,0.0,0.003673
+elisp,ALL bindings incl. local var/param/field,0.066366,0.027945,4.59359,4.0,0.129112
+elisp,ALL beacon bindings (fn/type/macro/const/top var),0.055189,0.018539,3.047436,2.0,0.086725
+elisp,function.def,0.042542,0.013111,2.155128,2.0,0.061704
+elisp,variable.def.top,0.012647,0.005428,0.892308,0.0,0.025609
+elisp,variable.def.local,0.011178,0.009406,1.546154,0.0,0.042792
+java,ALL bindings incl. local var/param/field,0.06636,0.033229,6.996207,6.0,0.175529
+java,ALL beacon bindings (fn/type/macro/const/top var),0.043068,0.013237,2.78129,2.0,0.082388
+java,function.def,0.033187,0.009608,2.020228,2.0,0.0598
+java,variable.def.local,0.013841,0.012125,2.557522,1.0,0.075429
+java,type.def,0.008069,0.002828,0.594185,0.0,0.017601
+java,parameter.def (locals),0.005458,0.005494,1.155499,0.0,0.022104
+java,field.def (locals),0.003993,0.002374,0.501896,0.0,0.014773
+java,constant.def,0.001752,0.000771,0.160556,0.0,0.0048
+java,variable.def.top,6e-05,3e-05,0.006321,0.0,0.000186

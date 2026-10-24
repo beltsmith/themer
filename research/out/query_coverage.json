@@ -1,0 +1,141 @@
+{
+ "python": {
+  "patterns_total": 86,
+  "patterns_dropped": 0,
+  "dropped": [],
+  "parser": "pinned",
+  "query_source": "nvim-treesitter",
+  "files_with_parse_errors_first50": 0,
+  "files": 112,
+  "nonblank_lines": 23460,
+  "nonws_chars": 716368,
+  "tokens": 123163,
+  "screens": 776
+ },
+ "javascript": {
+  "patterns_total": 119,
+  "patterns_dropped": 2,
+  "dropped": [
+   [
+    "((jsx_element) @_jsx_element",
+    "Invalid predicate in pattern at row 0: #set! expects 1-2 arguments, got 3"
+   ],
+   [
+    "((jsx_attribute) @_jsx_attribute",
+    "Invalid predicate in pattern at row 0: #set! expects 1-2 arguments, got 3"
+   ]
+  ],
+  "parser": "pinned",
+  "query_source": "nvim-treesitter",
+  "files_with_parse_errors_first50": 0,
+  "files": 150,
+  "nonblank_lines": 15854,
+  "nonws_chars": 387089,
+  "tokens": 90084,
+  "screens": 511
+ },
+ "typescript": {
+  "patterns_total": 124,
+  "patterns_dropped": 0,
+  "dropped": [],
+  "parser": "pinned",
+  "query_source": "nvim-treesitter",
+  "files_with_parse_errors_first50": 0,
+  "files": 114,
+  "nonblank_lines": 26197,
+  "nonws_chars": 772520,
+  "tokens": 194153,
+  "screens": 781
+ },
+ "rust": {
+  "patterns_total": 109,
+  "patterns_dropped": 0,
+  "dropped": [],
+  "parser": "pinned",
+  "query_source": "nvim-treesitter",
+  "files_with_parse_errors_first50": 0,
+  "files": 81,
+  "nonblank_lines": 27253,
+  "nonws_chars": 738149,
+  "tokens": 160598,
+  "screens": 775
+ },
+ "go": {
+  "patterns_total": 49,
+  "patterns_dropped": 0,
+  "dropped": [],
+  "parser": "pinned",
+  "query_source": "nvim-treesitter",
+  "files_with_parse_errors_first50": 0,
+  "files": 104,
+  "nonblank_lines": 25741,
+  "nonws_chars": 738948,
+  "tokens": 149218,
+  "screens": 780
+ },
+ "c": {
+  "patterns_total": 65,
+  "patterns_dropped": 0,
+  "dropped": [],
+  "parser": "pinned",
+  "query_source": "nvim-treesitter",
+  "files_with_parse_errors_first50": 11,
+  "files": 84,
+  "nonblank_lines": 27631,
+  "nonws_chars": 874485,
+  "tokens": 168789,
+  "screens": 829
+ },
+ "lua": {
+  "patterns_total": 49,
+  "patterns_dropped": 0,
+  "dropped": [],
+  "parser": "pinned",
+  "query_source": "nvim-treesitter",
+  "files_with_parse_errors_first50": 0,
+  "files": 67,
+  "nonblank_lines": 26957,
+  "nonws_chars": 757948,
+  "tokens": 133280,
+  "screens": 763
+ },
+ "bash": {
+  "patterns_total": 49,
+  "patterns_dropped": 0,
+  "dropped": [],
+  "parser": "pinned",
+  "query_source": "nvim-treesitter",
+  "files_with_parse_errors_first50": 2,
+  "files": 150,
+  "nonblank_lines": 14975,
+  "nonws_chars": 423966,
+  "tokens": 68815,
+  "screens": 473
+ },
+ "elisp": {
+  "patterns_total": 25,
+  "patterns_dropped": 0,
+  "dropped": [],
+  "parser": "pinned",
+  "query_source": "Wilfred/tree-sitter-elisp",
+  "files_with_parse_errors_first50": 0,
+  "files": 55,
+  "nonblank_lines": 27178,
+  "nonws_chars": 928830,
+  "tokens": 128217,
+  "screens": 780
+ },
+ "java": {
+  "patterns_total": 64,
+  "patterns_dropped": 0,
+  "dropped": [],
+  "parser": "pinned",
+  "query_source": "nvim-treesitter",
+  "files_with_parse_errors_first50": 0,
+  "files": 133,
+  "nonblank_lines": 26873,
+  "nonws_chars": 938398,
+  "tokens": 167263,
+  "screens": 791
+ }
+}

@@ -1,0 +1,26 @@
+[
+ {
+  "id": "base16/gruvbox-dark-medium",
+  "variant": "dark",
+  "capacity": 4,
+  "tercile": "creator"
+ },
+ {
+  "id": "base16/monokai",
+  "variant": "dark",
+  "capacity": 4,
+  "tercile": "creator"
+ },
+ {
+  "id": "base16/kanagawa",
+  "variant": "dark",
+  "capacity": 4,
+  "tercile": "creator"
+ },
+ {
+  "id": "base16/zenburn",
+  "variant": "dark",
+  "capacity": 4,
+  "tercile": "creator"
+ }
+]

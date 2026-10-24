@@ -1,0 +1,122 @@
+lang,class,char_share,token_share,per_screen_mean,per_screen_median,line_frac
+ALL,"local variable, any (def+use)",0.07705,0.06247,11.554847,9.444444,0.252784
+ALL,painted constant.def+constant.use,0.027779,0.013599,2.243636,1.333333,0.055634
+ALL,ALL_CAPS identifier,0.027018,0.012502,2.040235,1.222222,0.050421
+ALL,"ALL_CAPS, not declared in file",0.024144,0.011326,1.799045,1.111111,0.044
+ALL,readonly_local (def+use),0.020122,0.01199,2.600698,1.444444,0.0599
+ALL,named constant = declared_const+enum_member (def+use),0.004179,0.001803,0.366041,0.0,0.010209
+ALL,"declared (const/enum/module_const), not ALL_CAPS",0.003986,0.001721,0.357438,0.0,0.010279
+ALL,declared_const (def+use),0.003214,0.001278,0.258303,0.0,0.007242
+ALL,ALL_CAPS and declared in file,0.002873,0.001176,0.24119,0.0,0.006754
+ALL,module_const JS/TS top-level const (def+use),0.00268,0.001095,0.232587,0.0,0.006679
+ALL,enum_member (def+use),0.000965,0.000525,0.107737,0.0,0.002967
+python,"local variable, any (def+use)",0.056994,0.064224,10.136598,7.0,0.25179
+python,ALL_CAPS identifier,0.003523,0.001802,0.286082,0.0,0.008269
+python,"ALL_CAPS, not declared in file",0.003523,0.001802,0.286082,0.0,0.008269
+python,painted constant.def+constant.use,0.002933,0.001664,0.264175,0.0,0.008056
+python,readonly_local (def+use),0.0,0.0,0.0,0.0,0.0
+python,declared_const (def+use),0.0,0.0,0.0,0.0,0.0
+python,enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+python,module_const JS/TS top-level const (def+use),0.0,0.0,0.0,0.0,0.0
+python,named constant = declared_const+enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+python,ALL_CAPS and declared in file,0.0,0.0,0.0,0.0,0.0
+python,"declared (const/enum/module_const), not ALL_CAPS",0.0,0.0,0.0,0.0,0.0
+javascript,"local variable, any (def+use)",0.07042,0.05375,9.450098,8.0,0.233443
+javascript,readonly_local (def+use),0.036712,0.019693,3.459883,0.0,0.080611
+javascript,module_const JS/TS top-level const (def+use),0.011413,0.004207,0.714286,0.0,0.021635
+javascript,"declared (const/enum/module_const), not ALL_CAPS",0.008724,0.003319,0.559687,0.0,0.017472
+javascript,ALL_CAPS identifier,0.006854,0.002187,0.379648,0.0,0.011227
+javascript,"ALL_CAPS, not declared in file",0.004164,0.001299,0.225049,0.0,0.006812
+javascript,painted constant.def+constant.use,0.003423,0.001254,0.219178,0.0,0.006623
+javascript,ALL_CAPS and declared in file,0.002689,0.000888,0.154599,0.0,0.004668
+javascript,declared_const (def+use),0.0,0.0,0.0,0.0,0.0
+javascript,enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+javascript,named constant = declared_const+enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+typescript,"local variable, any (def+use)",0.09026,0.044516,11.014085,10.0,0.269344
+typescript,readonly_local (def+use),0.079611,0.041632,10.300896,9.0,0.243196
+typescript,module_const JS/TS top-level const (def+use),0.012709,0.005645,1.379001,0.0,0.038478
+typescript,"declared (const/enum/module_const), not ALL_CAPS",0.011163,0.00497,1.213828,0.0,0.03466
+typescript,ALL_CAPS identifier,0.002594,0.001303,0.317542,0.0,0.009161
+typescript,painted constant.def+constant.use,0.001993,0.001128,0.275288,0.0,0.007978
+typescript,ALL_CAPS and declared in file,0.001546,0.000675,0.165173,0.0,0.004619
+typescript,"ALL_CAPS, not declared in file",0.001049,0.000628,0.152369,0.0,0.004581
+typescript,declared_const (def+use),0.0,0.0,0.0,0.0,0.0
+typescript,enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+typescript,named constant = declared_const+enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+rust,"local variable, any (def+use)",0.058762,0.043624,8.99871,6.0,0.187759
+rust,readonly_local (def+use),0.038901,0.027809,5.735484,4.0,0.130041
+rust,painted constant.def+constant.use,0.01589,0.009402,1.935484,1.0,0.051701
+rust,named constant = declared_const+enum_member (def+use),0.011171,0.006183,1.269677,0.0,0.035225
+rust,enum_member (def+use),0.007473,0.004309,0.886452,0.0,0.024181
+rust,"declared (const/enum/module_const), not ALL_CAPS",0.007432,0.004265,0.877419,0.0,0.023924
+rust,ALL_CAPS identifier,0.004888,0.002404,0.491613,0.0,0.01387
+rust,ALL_CAPS and declared in file,0.003739,0.001918,0.392258,0.0,0.011302
+rust,declared_const (def+use),0.003698,0.001874,0.383226,0.0,0.011045
+rust,"ALL_CAPS, not declared in file",0.001149,0.000486,0.099355,0.0,0.002642
+rust,module_const JS/TS top-level const (def+use),0.0,0.0,0.0,0.0,0.0
+go,"local variable, any (def+use)",0.078421,0.0831,15.826923,16.0,0.324968
+go,declared_const (def+use),0.007365,0.002553,0.487179,0.0,0.013985
+go,named constant = declared_const+enum_member (def+use),0.007365,0.002553,0.487179,0.0,0.013985
+go,"declared (const/enum/module_const), not ALL_CAPS",0.007163,0.002433,0.464103,0.0,0.013364
+go,painted constant.def+constant.use,0.002332,0.000784,0.148718,0.0,0.004545
+go,ALL_CAPS identifier,0.001601,0.00189,0.355128,0.0,0.010295
+go,"ALL_CAPS, not declared in file",0.001399,0.001769,0.332051,0.0,0.009673
+go,ALL_CAPS and declared in file,0.000202,0.000121,0.023077,0.0,0.000622
+go,readonly_local (def+use),0.0,0.0,0.0,0.0,0.0
+go,enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+go,module_const JS/TS top-level const (def+use),0.0,0.0,0.0,0.0,0.0
+c,"local variable, any (def+use)",0.057855,0.062765,12.73462,11.0,0.271651
+c,painted constant.def+constant.use,0.05337,0.020469,4.153197,3.0,0.109225
+c,ALL_CAPS identifier,0.05202,0.019978,4.054282,3.0,0.106764
+c,"ALL_CAPS, not declared in file",0.040959,0.016014,3.253317,2.0,0.085375
+c,named constant = declared_const+enum_member (def+use),0.012296,0.004408,0.890229,0.0,0.025623
+c,declared_const (def+use),0.011295,0.004123,0.832328,0.0,0.023922
+c,ALL_CAPS and declared in file,0.011061,0.003964,0.800965,0.0,0.022909
+c,"declared (const/enum/module_const), not ALL_CAPS",0.001235,0.000444,0.089264,0.0,0.002714
+c,enum_member (def+use),0.001002,0.000284,0.057901,0.0,0.001701
+c,readonly_local (def+use),0.000607,0.000314,0.063932,0.0,0.001665
+c,module_const JS/TS top-level const (def+use),0.0,0.0,0.0,0.0,0.0
+lua,"local variable, any (def+use)",0.090777,0.080905,14.108781,12.0,0.247023
+lua,ALL_CAPS identifier,0.001265,0.001471,0.256881,0.0,0.006677
+lua,"ALL_CAPS, not declared in file",0.001265,0.001471,0.256881,0.0,0.006677
+lua,painted constant.def+constant.use,0.000954,0.003159,0.534731,0.0,0.014801
+lua,readonly_local (def+use),0.0,0.0,0.0,0.0,0.0
+lua,declared_const (def+use),0.0,0.0,0.0,0.0,0.0
+lua,enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+lua,module_const JS/TS top-level const (def+use),0.0,0.0,0.0,0.0,0.0
+lua,named constant = declared_const+enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+lua,ALL_CAPS and declared in file,0.0,0.0,0.0,0.0,0.0
+lua,"declared (const/enum/module_const), not ALL_CAPS",0.0,0.0,0.0,0.0,0.0
+bash,ALL_CAPS identifier,0.158308,0.075274,10.911205,8.0,0.253289
+bash,"ALL_CAPS, not declared in file",0.158308,0.075274,10.911205,8.0,0.253289
+bash,painted constant.def+constant.use,0.157013,0.078311,11.350951,8.0,0.263506
+bash,"local variable, any (def+use)",0.138832,0.084793,12.325581,12.0,0.289282
+bash,readonly_local (def+use),0.001005,0.000654,0.095137,0.0,0.002538
+bash,declared_const (def+use),0.0,0.0,0.0,0.0,0.0
+bash,enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+bash,module_const JS/TS top-level const (def+use),0.0,0.0,0.0,0.0,0.0
+bash,named constant = declared_const+enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+bash,ALL_CAPS and declared in file,0.0,0.0,0.0,0.0,0.0
+bash,"declared (const/enum/module_const), not ALL_CAPS",0.0,0.0,0.0,0.0,0.0
+elisp,painted constant.def+constant.use,0.017983,0.017151,2.819231,0.0,0.075576
+elisp,"local variable, any (def+use)",0.011178,0.009406,1.546154,0.0,0.042792
+elisp,declared_const (def+use),0.000986,0.000281,0.046154,0.0,0.001325
+elisp,named constant = declared_const+enum_member (def+use),0.000986,0.000281,0.046154,0.0,0.001325
+elisp,"declared (const/enum/module_const), not ALL_CAPS",0.000986,0.000281,0.046154,0.0,0.001325
+elisp,readonly_local (def+use),0.0,0.0,0.0,0.0,0.0
+elisp,enum_member (def+use),0.0,0.0,0.0,0.0,0.0
+elisp,module_const JS/TS top-level const (def+use),0.0,0.0,0.0,0.0,0.0
+elisp,ALL_CAPS identifier,0.0,0.0,0.0,0.0,0.0
+elisp,ALL_CAPS and declared in file,0.0,0.0,0.0,0.0,0.0
+elisp,"ALL_CAPS, not declared in file",0.0,0.0,0.0,0.0,0.0
+java,"local variable, any (def+use)",0.051132,0.044553,9.39823,3.0,0.199792
+java,readonly_local (def+use),0.024263,0.01781,3.750948,0.0,0.081048
+java,painted constant.def+constant.use,0.012107,0.006218,1.310999,0.0,0.034272
+java,ALL_CAPS identifier,0.012105,0.006212,1.309735,0.0,0.034235
+java,named constant = declared_const+enum_member (def+use),0.006781,0.003079,0.647282,0.0,0.017043
+java,ALL_CAPS and declared in file,0.006623,0.003019,0.63464,0.0,0.016671
+java,declared_const (def+use),0.006572,0.002947,0.621997,0.0,0.016224
+java,"ALL_CAPS, not declared in file",0.005482,0.003193,0.675095,0.0,0.01868
+java,enum_member (def+use),0.000209,0.000132,0.025284,0.0,0.000819
+java,"declared (const/enum/module_const), not ALL_CAPS",0.000158,6e-05,0.012642,0.0,0.000372
+java,module_const JS/TS top-level const (def+use),0.0,0.0,0.0,0.0,0.0

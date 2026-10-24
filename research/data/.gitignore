@@ -1,0 +1,7 @@
+corpus/
+schemes/
+iterm2/
+nvim-treesitter/
+tree-sitter-elisp/
+parsers/
+cache/

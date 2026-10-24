@@ -1,0 +1,101 @@
+# Landmark standard, draft 2.2 (normative text: PATTERNS.md). Hue choice per family is the
+# creator's; this file fixes channels, tiers, families and role assignments.
+# 2.2: red may be used for syntax (diagnostics are identified by underline/gutter);
+# `keep` order is the reduced-conformance shedding order, not palette fitting.
+# Changes from landmark_v1, driven by out/palette_scores.md and out/role_stats.md:
+#  - Regions vs landmarks. Strings (~15% ink) and comments (~24%) are REGIONS: they need to
+#    be told apart from code (segmentation) but must not be salient. They move to
+#    low-chroma `quiet` (strings) and achromatic `dim` (comments). Loud hue is kept for
+#    rare LANDMARKS only. Fixes C1/C2 (v1: 48% coloured ink, C1 rho -0.35).
+#  - Salience = lightness contrast + chroma jointly ("salience" axis), so S1 is checkable.
+#  - Strings are the quiet form of the value hue; escapes/interpolation (the active parts
+#    of a string) and scalar literals/constants are the loud form. No `variant` needed.
+#  - The highest-weight distinctions are carried by lightness or weight first (CVD-robust)
+#    and by hue second: comment vs code = lightness; definition = bold.
+#  - Oddball (TODO) no longer needs its own hue (fallback: bold default ink).
+#  - Loud families ≤ 4 (CVD median capacity is 3, normal median 5).
+name: landmark
+
+# Monosemy declaration (C4). Each channel → one axis.
+channels:
+  hue: family
+  lightness+chroma: salience    # tiers below, jointly
+  weight: landmark              # bold = jump target: binding sites and oddballs
+  slant: prose                  # italic allowed on prose only, optional (human stance)
+  strike: deprecated
+  underline: reserved:diagnostic   # errors = red underline/gutter (fixed convention)
+  background: reserved:state       # diff add = green, delete = red (fixed convention)
+
+# Tiers, ascending salience. lc = |APCA Lc| [target, floor]; chroma = OKLCH C range.
+# `relative: default` means "measured against default ink" (fg).
+tiers:
+  faded:   {lc: [30, 15], chroma: [0, 0.03]}                       # punctuation, unused
+  dim:     {lc: [45, 20], below_default: 10, chroma: [0, 0.04]}    # prose regions; 2.1: below_default
+                                                                   # wins over lc target; flag fg Lc < 50
+  default: {lc: [60, 45]}
+  quiet:   {lc_within_default: 15, chroma: [0.05, 0.09],           # tinted regions
+            distinct_from: [default, dim], distinct_level: reliable} # 2.1: D1 at p=.8 (floor was too faint)
+  loud:    {lc: [45, 35], chroma: [0.08, null]}                    # landmarks
+  strong:  {base: loud, weight: bold}                              # binding sites
+  popout:  {weight: bold, chroma: max}                             # oddballs: bold + the most
+                                                                   # chromatic unused accent, else fg
+
+# Hue families. `keep`: higher = kept longer as capacity falls (no ties).
+# Only `loud` usage counts against capacity. A family's quiet use is a chroma-reduced
+# version of the same accent, so it costs no extra hue.
+families:
+  # Draft 2.1: value kept longest (ladder.py optimum); definition falls back to bold, so it
+  # stays a landmark without a hue. Strings must never fall back to `dim` (comment tier):
+  # that breaks the w=3 string/comment pair. They borrow any kept accent's quiet tint, else default.
+  value:      {hue: true, keep: 4, fallback: {family: null, tier: default},
+               quiet_fallback: {tier: quiet, family: any_kept, else: default}}
+  definition: {hue: true, keep: 3, fallback: {family: null, tier: strong},   # bold default ink
+               quiet_fallback: {tier: default}}
+  exit:       {hue: true, keep: 2, fallback: {family: null, tier: default}}
+  meta:       {hue: true, keep: 1, fallback: {family: null, tier: default}}
+  oddball:    {hue: false, fallback: {family: null, tier: popout}}            # uses a spare accent if any
+
+styles:
+  # landmarks: binding sites
+  function.def:     {family: definition, tier: strong}
+  macro.def:        {family: definition, tier: strong}
+  type.def:         {family: definition, tier: strong}
+  constant.def:     {family: definition, tier: strong}
+  variable.def:     {family: definition, tier: strong, scope: top-level}     # locals: default
+  # landmarks: values
+  constant.use:     {family: value, tier: loud}
+  constant.builtin: {family: value, tier: loud}
+  number:           {family: value, tier: loud}
+  boolean:          {family: value, tier: loud}
+  string.escape:    {family: value, tier: loud}
+  string.regexp:    {family: value, tier: quiet}
+  string:           {family: value, tier: quiet}
+  # landmarks: control exits, metaprogramming
+  keyword.exit:     {family: exit, tier: loud}
+  attribute:        {family: meta, tier: loud}
+  preproc:          {family: meta, tier: loud}
+  macro.call:       {family: meta, tier: loud}
+  # regions
+  comment:          {tier: dim}
+  comment.doc:      {tier: dim}
+  comment.todo:     {family: oddball, tier: popout}
+  # neutral ground
+  function.call:    {tier: default}
+  function.builtin: {tier: default}
+  type.use:         {tier: default}
+  type.builtin:     {tier: default}
+  module:           {tier: default}
+  variable.use:     {tier: default}
+  variable.builtin: {tier: default}
+  parameter:        {tier: default}
+  field:            {tier: default}
+  keyword.flow:     {tier: default}
+  keyword.decl:     {tier: default}
+  keyword.other:    {tier: default}
+  operator:         {tier: default}
+  label:            {tier: default}
+  default:          {tier: default}
+  punctuation:      {tier: faded}
+  # modifiers
+  mod.deprecated:   {strike: true}
+  mod.unnecessary:  {tier: faded}

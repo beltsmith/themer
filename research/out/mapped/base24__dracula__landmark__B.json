@@ -1,0 +1,458 @@
+{
+ "palette": "base24/dracula",
+ "family": "base24",
+ "variant": "dark",
+ "set": "landmark",
+ "mode": "B",
+ "version": 2,
+ "bg": "#282a36",
+ "fg": "#f8f8f2",
+ "max_fid": 0.05,
+ "capacity": 6,
+ "n_candidates": 11,
+ "reserve_diag": true,
+ "diagnostic": {
+  "error_slot": "base08",
+  "error": "#ff5555"
+ },
+ "hue_families_required": 4,
+ "families_kept": [
+  "value",
+  "definition",
+  "exit",
+  "meta"
+ ],
+ "families_dropped": [],
+ "objective": 1.7338,
+ "faded_mix_t": null,
+ "families": {
+  "meta": {
+   "src": "#8be9fd",
+   "slot": "base0C",
+   "hex": "#8be9fd",
+   "fidelity": 0.0,
+   "hue_name": "cyan",
+   "lc": 81.0,
+   "need": 227.541,
+   "C": 0.093
+  },
+  "exit": {
+   "src": "#ff79c6",
+   "slot": "base0E",
+   "hex": "#ff79c6",
+   "fidelity": 0.0,
+   "hue_name": "pink",
+   "lc": 51.6,
+   "need": 205.402,
+   "C": 0.183
+  },
+  "definition": {
+   "src": "#bd93f9",
+   "slot": "base0D",
+   "hex": "#bd93f9",
+   "fidelity": 0.0,
+   "hue_name": "purple",
+   "lc": 50.7,
+   "need": 67.305,
+   "C": 0.149
+  },
+  "value": {
+   "src": "#50fa7b",
+   "slot": "base0B",
+   "hex": "#50fa7b",
+   "fidelity": 0.0,
+   "hue_name": "green",
+   "lc": 81.9,
+   "need": 41.596,
+   "C": 0.22
+  }
+ },
+ "roles": {
+  "function.def": {
+   "fg": "#bd93f9",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "function.call": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "function.builtin": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "macro.def": {
+   "fg": "#bd93f9",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "macro.call": {
+   "fg": "#8be9fd",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "meta",
+   "tier": "loud"
+  },
+  "type.def": {
+   "fg": "#bd93f9",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "type.use": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "type.builtin": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "module": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "variable.def": {
+   "fg": "#bd93f9",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "variable.use": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "variable.builtin": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "parameter": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "field": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "constant.def": {
+   "fg": "#bd93f9",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "definition",
+   "tier": "strong"
+  },
+  "constant.use": {
+   "fg": "#50fa7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "constant.builtin": {
+   "fg": "#50fa7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "string": {
+   "fg": "#d9fcdd",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "quiet"
+  },
+  "string.escape": {
+   "fg": "#50fa7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "string.regexp": {
+   "fg": "#d9fcdd",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "quiet"
+  },
+  "number": {
+   "fg": "#50fa7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "boolean": {
+   "fg": "#50fa7b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "loud"
+  },
+  "keyword.exit": {
+   "fg": "#ff79c6",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "exit",
+   "tier": "loud"
+  },
+  "keyword.flow": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.decl": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.other": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "operator": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "attribute": {
+   "fg": "#8be9fd",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "meta",
+   "tier": "loud"
+  },
+  "preproc": {
+   "fg": "#8be9fd",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "meta",
+   "tier": "loud"
+  },
+  "label": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "comment": {
+   "fg": "#9b9d9f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "dim"
+  },
+  "comment.doc": {
+   "fg": "#9b9d9f",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "dim"
+  },
+  "comment.todo": {
+   "fg": "#f1fa8c",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "oddball",
+   "tier": "popout"
+  },
+  "punctuation": {
+   "fg": "#7d7f84",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "faded"
+  },
+  "default": {
+   "fg": "#f8f8f2",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "mod.deprecated": {
+   "fg": null,
+   "bold": false,
+   "italic": false,
+   "strike": true,
+   "family": null,
+   "tier": null,
+   "overlay": true
+  },
+  "mod.unnecessary": {
+   "fg": "#7d7f84",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "faded",
+   "overlay": true
+  }
+ },
+ "variant_fidelity_max": 0.0,
+ "tiers": {
+  "fg_limited": false,
+  "dim": "#9b9d9f",
+  "dim_lc": 45.2,
+  "dim_floor_ok": true,
+  "dim_below_fg_ok": true,
+  "dim_d1_fg": true,
+  "faded": "#7d7f84",
+  "faded_lc": 30.3,
+  "faded_distinct_ok": true
+ },
+ "quiet": {
+  "value": {
+   "hex": "#d9fcdd",
+   "ok": true,
+   "fallback": null,
+   "C": 0.055,
+   "dlc_fg": -3.0
+  }
+ },
+ "quiet_borrow": null,
+ "strings_quiet": "own",
+ "popout": {
+  "hex": "#f1fa8c",
+  "hue_name": "yellow",
+  "slot": "base0A",
+  "C": 0.134
+ },
+ "checks": {
+  "L1": "strict",
+  "fg_lc": 99.0,
+  "L2": "default",
+  "L3": "strict",
+  "L4": "strict",
+  "L123": "default",
+  "S1_sal": false,
+  "S1_pairs": {
+   "faded<dim": true,
+   "dim<default": true,
+   "default<quiet": true,
+   "quiet<loud": false,
+   "loud<strong": false,
+   "strong<popout": true
+  },
+  "S1a": true,
+  "S1b": true,
+  "S1": true,
+  "S1_v1": false,
+  "need_sal_rho": -0.4,
+  "confusion_normal": 0.04926900000000001,
+  "confusion_normal_disc": 0.0019970719999999986,
+  "confusion_normal_sep": 0.047696,
+  "confusion_normal_disc_sep": 0.0016871909999999985,
+  "confused_pairs_normal": 3,
+  "confusion_deutan": 0.21078500000000008,
+  "confusion_deutan_disc": 0.0021583281499999974,
+  "confusion_deutan_sep": 0.20921200000000006,
+  "confusion_deutan_disc_sep": 0.0018484471499999988,
+  "confused_pairs_deutan": 53,
+  "beacon_loss": 0.0,
+  "C6_disc": 0.0019970719999999986,
+  "C6_raw": 0.04926900000000001,
+  "C6_disc_deutan": 0.0021583281499999974,
+  "C6_disc_sep": 0.0016871909999999985,
+  "fg_limited": false,
+  "strings_quiet": "own",
+  "beacon_coverage": 0.8571428571428571,
+  "coloured_ink": 0.247788,
+  "coloured_ink_by_family": {
+   "definition": 0.039688,
+   "meta": 0.007124000000000001,
+   "value": 0.191239,
+   "exit": 0.009737,
+   "oddball": 0.0
+  },
+  "ink_split": {
+   "loud": 0.09345099999999999,
+   "quiet": 0.154337,
+   "dim": 0.240839,
+   "faded": 0.092021
+  },
+  "sal_weighted_ink": 0.06406851338176184,
+  "salience_budget_tier": 0.38092699999999996,
+  "C1_rho_tier": -0.5705331186685632,
+  "C1_rho": -0.51905220619337,
+  "C1_rho_v1model": -0.170854684538651
+ }
+}

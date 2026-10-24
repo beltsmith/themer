@@ -1,0 +1,21 @@
+# Creator hue assignments for mapper mode C (map_palette(p, set, mode='C', assign={family: slot})).
+# The theme creator decides which palette slot carries which family; the mapper only derives
+# lightness (fidelity cap 0.05) and reports conformance. Keys: set name -> palette id -> {family: slot}.
+# label only: optional `string_override: slot` colours the `string` role from that slot instead of
+# the value family (the theme's real string colour).
+landmark:
+  base16/gruvbox-dark-medium: {definition: base0B, value: base0E, exit: base08, meta: base0C}
+  base16/monokai:             {definition: base0B, value: base0E, exit: base08, meta: base0D}
+  base16/kanagawa:            {definition: base0D, value: base09, exit: base0E, meta: base08}
+  base16/zenburn:             {definition: base0C, value: base08, exit: base0A, meta: base09}
+label:
+  base16/gruvbox-dark-medium: {callable: base0B, type: base0A, value: base0E, keyword: base08, meta: base0C, field: base0D, prose: base03, oddball: base09, string_override: base0B}
+  base16/monokai:             {callable: base0B, type: base0D, value: base0E, keyword: base08, meta: base0D, field: base05, prose: base03, oddball: base09, string_override: base0A}
+  base16/kanagawa:            {callable: base0D, type: base0A, value: base09, keyword: base0E, meta: base08, field: base0C, prose: base03, oddball: base0F, string_override: base0B}
+  base16/zenburn:             {callable: base0C, type: base0D, value: base08, keyword: base0A, meta: base09, field: base05, prose: base03, oddball: base0E}
+# reader (draft 3): one hue per kind family; mirrors each theme's own keyword / function / constant / type / meta slots.
+reader:
+  base16/gruvbox-dark-medium: {syntax: base08, callable: base0B, value: base0E, type: base0A, meta: base0C}
+  base16/monokai:             {syntax: base08, callable: base0B, value: base0E, type: base0D, meta: base09}
+  base16/kanagawa:            {syntax: base0E, callable: base0D, value: base09, type: base0A, meta: base08}
+  base16/zenburn:             {syntax: base0A, callable: base0C, value: base08, type: base0D, meta: base09}

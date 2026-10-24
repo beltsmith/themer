@@ -1,0 +1,421 @@
+{
+ "palette": "base16/gruvbox-dark-hard",
+ "family": "base16",
+ "variant": "dark",
+ "set": "label",
+ "mode": "B",
+ "version": 1,
+ "bg": "#1d2021",
+ "fg": "#d5c4a1",
+ "max_fid": 0.05,
+ "capacity": 3,
+ "n_candidates": 6,
+ "reserve_diag": true,
+ "diagnostic": {
+  "error_slot": "base08",
+  "error": "#fb4934"
+ },
+ "hue_families_required": 8,
+ "families_kept": [
+  "oddball",
+  "prose",
+  "value"
+ ],
+ "families_dropped": [
+  "field",
+  "meta",
+  "keyword",
+  "type",
+  "callable"
+ ],
+ "objective": 1.4496,
+ "faded_mix_t": 0.421,
+ "families": {
+  "value": {
+   "src": "#8ec07c",
+   "slot": "base0C",
+   "hex": "#8ec07c",
+   "fidelity": 0.0,
+   "hue_name": "green",
+   "lc": 59.1,
+   "need": 9.685,
+   "C": 0.108
+  },
+  "prose": {
+   "src": "#d3869b",
+   "slot": "base0E",
+   "hex": "#d3869b",
+   "fidelity": 0.0,
+   "hue_name": "pink",
+   "lc": 46.9,
+   "need": 6.311,
+   "C": 0.098
+  },
+  "oddball": {
+   "src": "#fe8019",
+   "slot": "base09",
+   "hex": "#fe8019",
+   "fidelity": 0.0,
+   "hue_name": "orange",
+   "lc": 51.1,
+   "need": 30000.0,
+   "C": 0.182
+  }
+ },
+ "roles": {
+  "function.def": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "function.call": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "function.builtin": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "macro.def": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "macro.call": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "type.def": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "type.use": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "type.builtin": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "module": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "variable.def": {
+   "fg": "#d5c4a1",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "strong"
+  },
+  "variable.use": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "variable.builtin": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "parameter": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "field": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "constant.def": {
+   "fg": "#8ec07c",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "strong"
+  },
+  "constant.use": {
+   "fg": "#8ec07c",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "constant.builtin": {
+   "fg": "#8ec07c",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "string": {
+   "fg": "#8ec07c",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "string.escape": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "string.regexp": {
+   "fg": "#aadd98",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "number": {
+   "fg": "#8ec07c",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "boolean": {
+   "fg": "#8ec07c",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "value",
+   "tier": "salient"
+  },
+  "keyword.exit": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.flow": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.decl": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "keyword.other": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "operator": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "attribute": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "preproc": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "label": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "comment": {
+   "fg": "#d3869b",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "prose",
+   "tier": "salient"
+  },
+  "comment.doc": {
+   "fg": "#f1a2b7",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": "prose",
+   "tier": "salient"
+  },
+  "comment.todo": {
+   "fg": "#ff9551",
+   "bold": true,
+   "italic": false,
+   "strike": false,
+   "family": "oddball",
+   "tier": "popout"
+  },
+  "punctuation": {
+   "fg": "#817a68",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "faded"
+  },
+  "default": {
+   "fg": "#d5c4a1",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "default"
+  },
+  "mod.deprecated": {
+   "fg": null,
+   "bold": false,
+   "italic": false,
+   "strike": true,
+   "family": null,
+   "tier": null,
+   "overlay": true
+  },
+  "mod.unnecessary": {
+   "fg": "#817a68",
+   "bold": false,
+   "italic": false,
+   "strike": false,
+   "family": null,
+   "tier": "faded",
+   "overlay": true
+  }
+ },
+ "variant_fidelity_max": 0.0898,
+ "checks": {
+  "L1": "default",
+  "fg_lc": 69.8,
+  "L2": "default",
+  "L3": "floor",
+  "L4": "strict",
+  "L123": "floor",
+  "S1_sal": false,
+  "S1_pairs": {
+   "faded<default": true,
+   "default<salient": false,
+   "salient<strong": false,
+   "strong<popout": true
+  },
+  "S1a": true,
+  "S1b": null,
+  "S1": true,
+  "S1_v1": false,
+  "need_sal_rho": 1.0,
+  "confusion_normal": 0.41943199999999986,
+  "confusion_normal_disc": 0.0038153579999999987,
+  "confusion_normal_sep": 0.41785899999999987,
+  "confusion_normal_disc_sep": 0.0035054769999999986,
+  "confused_pairs_normal": 216,
+  "confusion_deutan": 0.664694,
+  "confusion_deutan_disc": 0.004309061999999998,
+  "confusion_deutan_sep": 0.663121,
+  "confusion_deutan_disc_sep": 0.003999180999999999,
+  "confused_pairs_deutan": 357,
+  "beacon_loss": 0.30686699999999995,
+  "C6_disc": 0.004270928370407805,
+  "C6_raw": 0.609954254444057,
+  "C6_disc_deutan": 0.004764632370407805,
+  "C6_disc_sep": 0.003961047370407805,
+  "fg_limited": false,
+  "strings_quiet": "",
+  "beacon_coverage": 0.42857142857142855,
+  "coloured_ink": 0.4382940000000001,
+  "coloured_ink_by_family": {
+   "value": 0.19745500000000002,
+   "prose": 0.240839,
+   "oddball": 0.0
+  },
+  "ink_split": {
+   "loud": 0.4382940000000001,
+   "quiet": 0.0,
+   "dim": 0.0,
+   "faded": 0.092021
+  },
+  "sal_weighted_ink": 0.1714306319868069,
+  "salience_budget_tier": 0.451191,
+  "C1_rho_tier": -0.08811939209750885,
+  "C1_rho": -0.25647649862901994,
+  "C1_rho_v1model": -0.45809253589760845
+ }
+}

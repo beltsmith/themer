@@ -1,0 +1,52 @@
+# Value weights w for distinguishing roles. HUMAN-EDITABLE (00-framework.md §5.1).
+# Seeded from notes/01: search/beacon tasks dominate (P:I3, I14). Scale 0–3:
+#   3 = confusion causes real misreads (or hides a beacon)
+#   2 = useful distinction
+#   1 = nice to have
+#   0 = do not care
+# Pairs not listed default to `default_pair`. Symmetric.
+
+default_pair: 1
+
+# Beacon value of a role standing out from default ink (used for salience need).
+beacon:
+  function.def: 3
+  type.def: 3
+  constant.def: 2
+  variable.def: 1
+  macro.def: 2
+  keyword.exit: 2
+  comment.todo: 3
+  string: 2
+  number: 1
+  boolean: 1
+  constant.use: 2
+  comment: 2
+  comment.doc: 1
+  attribute: 1
+  preproc: 2
+  macro.call: 2
+  function.call: 1
+  type.use: 1
+  keyword.flow: 1
+  keyword.decl: 0
+  keyword.other: 0
+  operator: 0
+  punctuation: 0
+  variable.use: 0
+  parameter: 1
+  field: 1
+
+pairs:
+  # must not be confused
+  - [string, comment, 3]              # commented-out string vs live string
+  - [comment, default, 3]             # comment vs live code (P:I8)
+  - [function.def, function.call, 2]
+  - [constant.use, variable.use, 2]   # mutability at a glance
+  - [parameter, variable.use, 1]
+  - [field, variable.use, 1]
+  - [macro.call, function.call, 2]    # macros break evaluation rules
+  - [keyword.exit, keyword.flow, 1]
+  - [string, number, 0]               # lexically obvious
+  - [type.use, function.call, 1]
+  - [string.escape, string, 1]

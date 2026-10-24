@@ -1,0 +1,150 @@
+# Shared role vocabulary. A role = (token type, modifier set); see 00-framework.md §1.
+# `captures` are nvim-treesitter capture names (most specific wins, as in editors).
+# `lsp` gives the equivalent LSP semantic token type + modifiers, where one exists.
+# `site` / `provenance` are the modifier axes this role fixes (absent = any).
+#
+# Binding sites of variables are not a distinct capture in highlights.scm.
+# Approximate them with locals.scm `@local.definition*` captures that overlap a
+# highlights capture.
+
+roles:
+  # --- callables
+  - id: function.def
+    captures: ["@function", "@function.method", "@constructor.definition"]
+    lsp: {type: [function, method], modifiers: [declaration]}
+    site: binding
+  - id: function.call
+    captures: ["@function.call", "@function.method.call", "@constructor"]
+    lsp: {type: [function, method]}
+    site: use
+  - id: function.builtin
+    captures: ["@function.builtin"]
+    lsp: {type: [function], modifiers: [defaultLibrary]}
+    site: use
+    provenance: library
+  - id: macro.def
+    captures: ["@function.macro"]          # nvim uses this for both; split by locals if possible
+    lsp: {type: [macro], modifiers: [declaration]}
+    site: binding
+  - id: macro.call
+    captures: ["@function.macro.call"]
+    lsp: {type: [macro]}
+    site: use
+
+  # --- types and modules
+  - id: type.def
+    captures: ["@type.definition"]
+    lsp: {type: [type, class, struct, interface, enum, typeParameter], modifiers: [declaration]}
+    site: binding
+  - id: type.use
+    captures: ["@type"]
+    lsp: {type: [type, class, struct, interface, enum, typeParameter]}
+    site: use
+  - id: type.builtin
+    captures: ["@type.builtin"]
+    lsp: {type: [type], modifiers: [defaultLibrary]}
+    provenance: intrinsic
+  - id: module
+    captures: ["@module", "@module.builtin"]
+    lsp: {type: [namespace]}
+
+  # --- bindings
+  - id: variable.def
+    captures: ["@local.definition.var", "@local.definition"]   # via locals.scm
+    lsp: {type: [variable], modifiers: [declaration]}
+    site: binding
+  - id: variable.use
+    captures: ["@variable"]
+    lsp: {type: [variable]}
+    site: use
+  - id: variable.builtin
+    captures: ["@variable.builtin"]        # self, this, super
+    lsp: {type: [variable], modifiers: [defaultLibrary]}
+    provenance: intrinsic
+  - id: parameter
+    captures: ["@variable.parameter", "@variable.parameter.builtin"]
+    lsp: {type: [parameter]}
+  - id: field
+    captures: ["@variable.member", "@property"]
+    lsp: {type: [property]}
+  - id: constant.def
+    captures: ["@constant"]                # treat as binding where locals says so; else use
+    lsp: {type: [variable], modifiers: [readonly, declaration]}
+    site: binding
+  - id: constant.use
+    captures: ["@constant", "@constant.macro"]
+    lsp: {type: [variable, enumMember], modifiers: [readonly]}
+    site: use
+  - id: constant.builtin
+    captures: ["@constant.builtin"]        # nil, None, null
+    lsp: {type: [variable], modifiers: [readonly, defaultLibrary]}
+    provenance: intrinsic
+
+  # --- literals
+  - id: string
+    captures: ["@string", "@character"]
+    lsp: {type: [string]}
+  - id: string.escape
+    captures: ["@string.escape", "@string.special", "@character.special"]
+  - id: string.regexp
+    captures: ["@string.regexp"]
+    lsp: {type: [regexp]}
+  - id: number
+    captures: ["@number", "@number.float"]
+    lsp: {type: [number]}
+  - id: boolean
+    captures: ["@boolean"]
+
+  # --- keywords
+  # Exit = control leaves the current function/loop and does not come back here.
+  # Narrowed by text: the nvim captures also catch try/catch/finally, async, throws,
+  # assert!/panic!, and await (1.3% of TS ink, too frequent to be a beacon; it resumes,
+  # so it is not an exit). Those go to flow/decl/macro.call.
+  - id: keyword.exit
+    captures: ["@keyword.return"]
+    text: [return, raise, throw, yield, break, continue, goto]   # any keyword with this text is an exit
+  - id: keyword.flow
+    captures: ["@keyword.conditional", "@keyword.repeat", "@keyword.conditional.ternary",
+               "@keyword.exception", "@keyword.coroutine"]   # try/catch/finally, await
+  - id: keyword.decl
+    captures: ["@keyword.function", "@keyword.type", "@keyword.modifier", "@keyword.import",
+               "@keyword.storage"]   # + async, throws (by text)
+  - id: keyword.other
+    captures: ["@keyword", "@keyword.operator", "@keyword.debug"]
+    lsp: {type: [keyword]}
+  - id: operator
+    captures: ["@operator"]
+    lsp: {type: [operator]}
+
+  # --- meta
+  - id: attribute
+    captures: ["@attribute", "@attribute.builtin"]
+    lsp: {type: [decorator]}
+  - id: preproc
+    captures: ["@keyword.directive", "@keyword.directive.define"]
+  - id: label
+    captures: ["@label"]
+
+  # --- commentary
+  - id: comment
+    captures: ["@comment"]
+    lsp: {type: [comment]}
+  - id: comment.doc
+    captures: ["@comment.documentation", "@string.documentation"]   # docstrings are prose, not values
+    lsp: {type: [comment], modifiers: [documentation]}
+  - id: comment.todo
+    captures: ["@comment.todo", "@comment.error", "@comment.warning", "@comment.note"]
+
+  # --- structure
+  - id: punctuation
+    captures: ["@punctuation.delimiter", "@punctuation.bracket", "@punctuation.special"]
+  - id: default
+    captures: []                           # uncaptured text
+
+  # --- modifier-only roles (overlay on whatever role the token already has)
+  - id: mod.deprecated
+    lsp: {modifiers: [deprecated]}
+    overlay: true
+  - id: mod.unnecessary
+    lsp: {diagnostic_tag: unnecessary}
+    overlay: true

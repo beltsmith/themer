@@ -1,0 +1,22 @@
+# Hybrid set: landmark + low-salience hue for callables and types at use sites.
+# Use sites get their family hue at reduced chroma (a derived variant), so they read as
+# "related to the definition hue" but quieter. Tests whether a second hue tier helps
+# or just spends budget (H12).
+name: hybrid_v1
+inherits: landmark_v1
+
+families:
+  definition: {hue: true, ladder: 4, fallback: {family: null, tier: strong}}
+  callable:   {hue: true, ladder: 1, fallback: {family: null, tier: default}}
+  type:       {hue: true, ladder: 0, fallback: {family: callable}}
+
+styles:
+  function.def:     {family: callable, tier: strong}
+  function.call:    {family: callable, tier: salient, variant: chroma-low}
+  function.builtin: {family: callable, tier: salient, variant: chroma-low}
+  type.def:         {family: type, tier: strong}
+  type.use:         {family: type, tier: salient, variant: chroma-low}
+  type.builtin:     {family: type, tier: salient, variant: chroma-low}
+  macro.def:        {family: definition, tier: strong}
+  constant.def:     {family: definition, tier: strong}
+  variable.def:     {family: definition, tier: strong, scope: top-level}

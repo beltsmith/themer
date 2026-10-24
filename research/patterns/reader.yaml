@@ -1,0 +1,96 @@
+# Reader set, draft 3. "Label quietly, landmark loudly."
+# Motivation: human review of landmark (2026-10-23). Landmark optimised for FINDING and made
+# READING hard. Go/TS/Rust/C lines were unparseable at a glance: syntax, types, calls and
+# variables all in default ink. Lexical recoverability measures what a reader can work
+# out by reading each token, not what they can see before reading. Colour gives a
+# pre-attentive segmentation of syntax vs names, and of kinds of name.
+#
+# Two layers share one hue per KIND FAMILY:
+#   reading layer: low-salience category cues on every token (recessive / quiet)
+#   finding layer: the same hue, loud, on landmarks (+ bold on binding sites)
+# Hue = kind family. Lightness+chroma = importance. Bold = landmark.
+# Variables/params/fields stay default ink: "the logic stands out".
+name: reader   # draft 3.1
+
+channels:
+  hue: kind_family
+  lightness+chroma: salience
+  weight: landmark            # binding sites, TODO
+  slant: prose                # optional on comments
+  strike: deprecated
+  underline: reserved:diagnostic
+  background: reserved:state
+
+tiers:
+  faded:     {lc: [30, 15], chroma: [0, 0.03]}                      # punctuation
+  dim:       {lc: [45, 20], below_default: 10, chroma: [0, 0.04]}   # comments
+  recessive: {below_default: [6, 18], chroma: [0.04, 0.12],         # keywords: hued but receding;
+              distinct_from: [default, dim, faded, own_loud], distinct_level: reliable}  # brighter than dim
+  default:   {lc: [60, 45]}                                         # bindings: the logic
+  quiet:     {lc_within_default: 12, chroma: [0.04, 0.10],          # type/call/string cues. A 0.08 ceiling was
+              distinct_from: [default, dim, recessive, other_quiet], distinct_level: reliable}  # tried in 3.1: S1b +13pt, but
+              # quiet cues failed on 3/4 creator palettes and parse load rose; reading wins, ceiling reverted.
+  loud:      {lc: [45, 35], chroma: [0.08, null]}                   # landmarks
+  strong:    {base: loud, weight: bold}                             # binding sites
+  popout:    {weight: bold, chroma: max}
+
+# keep: shedding order for reduced conformance (higher kept longer). For each family,
+# the reading-layer cue goes before the loud form; see `shed` below.
+families:
+  syntax:   {hue: true, keep: 5}    # keywords recessive; exits loud
+  callable: {hue: true, keep: 4}    # calls quiet; definitions strong
+  value:    {hue: true, keep: 6}    # strings quiet; scalars/constants/escapes loud
+  type:     {hue: true, keep: 3, fallback: {family: callable}}   # uses quiet; definitions strong
+  meta:     {hue: true, keep: 1, fallback: {family: syntax, tier: loud}}   # optional 5th hue
+  oddball:  {hue: false, fallback: {family: null, tier: popout}}
+# Shedding (reduced conformance): drop meta → syntax loud; then type → callable (types and
+# calls share a hue, and position separates them); then quiet cues → default (keep loud and
+# bold); syntax recessive is kept to the end because it carries syntax-vs-name.
+
+styles:
+  # syntax family
+  keyword.decl:     {family: syntax, tier: recessive}
+  keyword.flow:     {family: syntax, tier: recessive}
+  keyword.other:    {family: syntax, tier: recessive}
+  keyword.exit:     {family: syntax, tier: strong}   # 3.1: bold — exits are landmarks; loud alone
+                                                     # was outshone by recessive keywords (32% of palettes)
+  variable.builtin: {family: syntax, tier: recessive}   # self/this: language-provided names
+  operator:         {tier: default}
+  punctuation:      {tier: faded}
+  label:            {family: syntax, tier: recessive}
+  # callable family
+  function.def:     {family: callable, tier: strong}
+  macro.def:        {family: meta, tier: strong}
+  function.call:    {family: callable, tier: quiet}
+  function.builtin: {family: callable, tier: quiet}
+  # type family
+  type.def:         {family: type, tier: strong}
+  type.use:         {family: type, tier: quiet}
+  type.builtin:     {family: type, tier: quiet}
+  module:           {family: type, tier: quiet}     # namespaces read like type qualifiers
+  # value family
+  string:           {family: value, tier: quiet}
+  string.regexp:    {family: value, tier: quiet}
+  string.escape:    {family: value, tier: loud}
+  number:           {family: value, tier: loud}
+  boolean:          {family: value, tier: loud}
+  constant.builtin: {family: value, tier: loud}
+  constant.use:     {family: value, tier: loud}
+  constant.def:     {family: value, tier: strong}
+  # meta family
+  attribute:        {family: meta, tier: loud}
+  preproc:          {family: meta, tier: loud}
+  macro.call:       {family: meta, tier: quiet}
+  # bindings: the logic
+  variable.def:     {tier: default, bold_if: top-level}   # module-level bindings bold
+  variable.use:     {tier: default}
+  parameter:        {tier: default}
+  field:            {tier: default}
+  default:          {tier: default}
+  # prose
+  comment:          {tier: dim}
+  comment.doc:      {tier: dim}
+  comment.todo:     {family: oddball, tier: popout}
+  # modifiers
+  mod.deprecated:   {strike: true}
+  mod.unnecessary:  {tier: faded}
