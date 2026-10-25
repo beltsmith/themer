@@ -173,6 +173,8 @@ The buttons are **Save**, **Export standalone**, **Import base16** (it
 asks which slot each field takes, with defaults from the base16 conventions
 and the slots' hue names), **Revert** and **Check** (the full report). TAB
 and S-TAB move between fields, `C-c C-c` saves and `C-c C-k` cancels.
+`C-c C-a` in a hex field adjusts it with `themer-picker-adjust` (below),
+and the form re-derives as the colour changes.
 
 Save writes `:palette` and the slots' references as they are, so a theme
 file read and saved unchanged is byte-identical. It writes
@@ -432,6 +434,28 @@ compile against the installed grammar is skipped with a message.
   re-enabling an unchanged theme, or going back to an earlier colour in
   the form, is instant.
 
+## `themer-picker-adjust`
+
+`M-x themer-picker-adjust` picks up the `#rrggbb` (or `#rgb`) at point, or
+the one in the region, in any buffer, and adjusts it in place. The text and
+a swatch over it update with each key:
+
+| Key | |
+|---|---|
+| `l` / `L` | OKLCH lightness down / up |
+| `c` / `C` | chroma down / up |
+| `h` / `H` | hue down / up |
+| `r` | read a new colour (`read-color`) |
+| `RET` | accept |
+| `C-g`, `q` | revert |
+
+A prefix argument multiplies the step (`C-u l`, `5 H`), and any other key
+accepts and then runs as usual. The colour is held in OKLCH, so its hue
+survives a trip through grey; out-of-gamut values are fitted to sRGB, and
+the echo area shows the chroma you actually got. An upper-case hex stays
+upper-case. The whole adjustment is one undo step. In a
+`themer-preview-mode` buffer the theme reloads as you adjust.
+
 ## Options
 
 | Option | Default | |
@@ -450,6 +474,7 @@ compile against the installed grammar is skipped with a message.
 | `themer-reader-form-sample-languages` | `t` (all) | Languages whose samples the form shows at first |
 | `themer-reader-fade-commented-code` | `nil` | Draw code-like comments in the faded tier |
 | `themer-reader-italic-comments` | `nil` | Italic comments |
+| `themer-picker-steps` | `(0.01 0.005 2.0)` | `themer-picker-adjust` steps: OKLCH lightness, chroma, hue in degrees |
 
 ## Requirements
 

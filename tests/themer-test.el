@@ -25,7 +25,7 @@
 
 (add-to-list 'load-path themer-test--root)
 ;; Load the sources, so a long-running session tests the current code.
-(dolist (f '("themer-colour" "themer-reader" "themer-preview" "themer-reader-form"))
+(dolist (f '("themer-colour" "themer-picker" "themer-reader" "themer-preview" "themer-reader-form"))
   (load (expand-file-name (concat f ".el") themer-test--root) nil t))
 (themer-colour-clear-caches)
 (clrhash themer-reader--cache)
@@ -1063,10 +1063,78 @@ function definition, macro a macro definition.")
       (kill-buffer buf)
       (delete-directory dir t))))
 
+;;;; Picker
+
+(ert-deftest themer-picker-adjust-in-place ()
+  "Steps rewrite the hex in place; revert restores it; accept is one undo step."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (insert "(fg \"#CC6666\")")
+    (undo-boundary)
+    (goto-char 8)
+    (unwind-protect
+        (progn
+          (themer-picker-adjust)
+          (themer-picker-lighter 3)
+          (let ((hex (buffer-substring 6 13)))
+            (should (equal hex (upcase (themer-colour-from-oklch (+ 0.630832 0.03) 0.129782 21.43699))))
+            (should (equal hex (upcase hex))))
+          (themer-picker-hue-up 180)
+          (themer-picker-revert)
+          (should (equal (buffer-string) "(fg \"#CC6666\")"))
+          (should-not (overlays-in (point-min) (point-max)))
+          ;; Through grey and back keeps the hue.
+          (themer-picker-adjust)
+          (themer-picker-less-chroma 100)
+          (should (equal (buffer-substring 6 13) (upcase (themer-colour-from-oklch 0.630832 0.0 0))))
+          (themer-picker-more-chroma 100)
+          (themer-picker-darker 1)
+          (themer-picker-accept)
+          (let ((done (buffer-string)))
+            (should-not (equal done "(fg \"#CC6666\")"))
+            (primitive-undo 1 buffer-undo-list)
+            (should (equal (buffer-string) "(fg \"#CC6666\")"))))
+      (themer-picker-revert))))
+
+(ert-deftest themer-picker-bounds ()
+  "The hex at point or in the region, short forms included; nil elsewhere."
+  (with-temp-buffer
+    (insert "a #abc b #12ab34x c")
+    (goto-char 4)
+    (should (equal (themer-picker--bounds) '(3 . 7)))
+    (goto-char 7)
+    (should (equal (themer-picker--bounds) '(3 . 7)))
+    (goto-char 12)
+    (should-not (themer-picker--bounds))
+    (goto-char 1)
+    (should-not (themer-picker--bounds))
+    (should-error (themer-picker-adjust) :type 'user-error)))
+
+(ert-deftest themer-picker-widget-field ()
+  "Adjusting inside a widget field keeps the field and notifies it."
+  (with-temp-buffer
+    (let* ((n 0)
+           (w (widget-create 'editable-field :size 8 :format "%v" :value "#cc6666"
+                             :notify (lambda (&rest _) (cl-incf n)))))
+      (widget-insert "\n")
+      (use-local-map widget-keymap)
+      (widget-setup)
+      (goto-char (1+ (widget-field-start w)))
+      (unwind-protect
+          (progn
+            (themer-picker-adjust)
+            (themer-picker-darker 5)
+            (themer-picker-accept)
+            (should (equal (string-trim (widget-value w))
+                           (themer-colour-from-oklch (- 0.630832 0.05) 0.129782 21.43699)))
+            (should (> n 0)))
+        (themer-picker-revert)))))
+
 ;;;; Package hygiene
 
 (defconst themer-test--files
-  '("themer.el" "themer-colour.el" "themer-reader.el" "themer-preview.el" "themer-reader-form.el")
+  '("themer.el" "themer-colour.el" "themer-reader.el" "themer-preview.el" "themer-reader-form.el"
+    "themer-picker.el")
   "Files held to the no-warnings and checkdoc rules.")
 
 (ert-deftest themer-byte-compile-clean ()

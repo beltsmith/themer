@@ -22,7 +22,8 @@
 ;; `themer-preview-delay' idle seconds, only when a colour changed.  "Apply"
 ;; enables the theme globally until it is toggled off or the form is killed.
 ;;
-;; Keys: TAB and S-TAB move between fields, C-c C-c saves, C-c C-k cancels.
+;; Keys: TAB and S-TAB move between fields, C-c C-c saves, C-c C-k cancels,
+;; C-c C-a adjusts the hex in the field (`themer-picker-adjust').
 
 ;;; Code:
 
@@ -32,6 +33,7 @@
 (require 'color)
 (require 'themer-colour)
 (require 'themer-reader)
+(require 'themer-picker)
 
 (defvar themer-preview-delay)
 (defvar treesit-font-lock-level)
@@ -707,7 +709,7 @@ Windows showing it keep their point and scroll."
       (themer-reader-form--update-samples)))
   themer-reader-form--sample-buffer)
 
-(defconst themer-reader-form--sample-width 80
+(defconst themer-reader-form--sample-width 120
   "Columns for the sample window when it sits beside the form.")
 
 (defconst themer-reader-form--form-min-width 100
@@ -775,7 +777,8 @@ The name widget's :themer-name is the name the slots know the entry by.")
 (defvar-keymap themer-reader-form-field-map
   :parent widget-field-keymap
   "C-c C-c" #'themer-reader-form-save
-  "C-c C-k" #'themer-reader-form-cancel)
+  "C-c C-k" #'themer-reader-form-cancel
+  "C-c C-a" #'themer-picker-adjust)
 
 (define-derived-mode themer-reader-form-mode nil "Reader-Theme"
   "Form for a reader theme.
@@ -828,7 +831,7 @@ Signal a `user-error' if a field can't be saved."
   "A swatch for HEX on BG: a block and sample text, BOLD if non-nil."
   (concat (propertize "  " 'face `(:background ,hex))
           (propertize " Abc " 'face `(:foreground ,hex :background ,bg
-                                      :weight ,(if bold 'bold 'normal)))))
+                                                  :weight ,(if bold 'bold 'normal)))))
 
 (defun themer-reader-form--status-string (items)
   "Status ITEMS, a list of (SEVERITY . TEXT), as one string."
@@ -902,9 +905,9 @@ Signal a `user-error' if a field can't be saved."
     (dolist (fam themer-reader-families)
       (let ((loud (alist-get fam (plist-get tiers :loud))))
         (insert (format "  %-12s " (if (and (not loud) (plist-get (plist-get derived :spec)
-                                                                   (intern (format ":%s" fam))))
-                                        (format "%s (shed)" fam)
-                                      fam))
+                                                                  (intern (format ":%s" fam))))
+                                       (format "%s (shed)" fam)
+                                     fam))
                 (funcall cell (and (eq fam 'syntax) (plist-get tiers :recessive))) "  "
                 (funcall cell (alist-get fam (plist-get tiers :quiet))) "  "
                 (funcall cell loud) "  "
@@ -1118,12 +1121,12 @@ The fields show STATE, a form state, if given, else MODEL."
         (unless (eq sec section)
           (setq section sec)
           (widget-insert "\n" (propertize (pcase sec ('base "Base") ('family "Families")
-                                            ('cue "Optional cues") ('ui "UI")
-                                            ('convention "Conventions"))
+                                                 ('cue "Optional cues") ('ui "UI")
+                                                 ('convention "Conventions"))
                                           'face 'bold)
                          (pcase sec ('cue "  (empty: none / automatic)")
-                           ('ui "  (empty: popout, else callable; never colours syntax)")
-                           ('convention "  (empty: derived default)") (_ ""))
+                                ('ui "  (empty: popout, else callable; never colours syntax)")
+                                ('convention "  (empty: derived default)") (_ ""))
                          "\n"))
         (widget-insert (format "  %-11s " (concat label (if required "" "?"))))
         (themer-reader-form--field key (alist-get key (plist-get state :slots)) 14)
@@ -1423,9 +1426,9 @@ the entry name it again."
   "Alist KEY -> slot name: the default mapping of base16 SLOTS."
   (cl-loop for (key d) in themer-reader-form--base16-defaults
            collect (cons key (if (stringp d) d
-                                 (car (cl-find-if (lambda (s) (and (string-match-p "\\`base0[89A-F]" (car s))
-                                                                   (eq (themer-colour-hue-name (cdr s)) d)))
-                                                  slots))))))
+                               (car (cl-find-if (lambda (s) (and (string-match-p "\\`base0[89A-F]" (car s))
+                                                                 (eq (themer-colour-hue-name (cdr s)) d)))
+                                                slots))))))
 
 (defun themer-reader-form-import-base16 (&optional file)
   "Fill the palette from base16 (or base24) YAML FILE, and point the slots at it.

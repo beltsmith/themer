@@ -34,6 +34,10 @@
 ;;   A form for creating and editing reader themes, with live swatches,
 ;;   derived tiers, a fontified sample and the conformance checks.
 ;;
+;; `themer-picker-adjust'  (themer-picker.el)
+;;   Adjust the hex colour at point or in the region in OKLCH, in place,
+;;   with single keys and a live swatch.
+;;
 ;; themer-colour.el holds the colour maths: OKLab/OKLCH, CIELAB, APCA,
 ;; Szafir text distinguishability, gamut fitting and CVD simulation.
 
@@ -49,6 +53,7 @@
 (require 'themer-colour)
 (require 'themer-reader)
 (require 'themer-reader-form)
+(require 'themer-picker)
 
 (provide 'themer)
 

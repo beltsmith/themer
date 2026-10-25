@@ -14,6 +14,7 @@ behind the standard; the package implements it.
 | `themer-render.el` | `themer-render`, `themer-render-compare`, headless `themer-batch-render FILE OUT.svg [SETTLE] [LINES]` |
 | `themer-colour.el` | Colour maths: OKLab/OKLCH, CIELAB, APCA, Szafir text-size ΔE, gamut fit, CVD simulation |
 | `themer-reader.el` | The standard: `themer-reader-deftheme`, palettes, tier derivation, conformance, face mapping, UI accent, `themer-reader-treesit-mode` rules, export, theme load path |
+| `themer-picker.el` | `themer-picker-adjust`: adjust the hex at point/region in OKLCH, in place |
 | `themer-reader-form.el` | Widget form (`themer-reader-new-theme` / `-edit-theme`), sample buffer |
 | `samples/` | `sample.EXT` code samples the theme form fontifies; discovered by name, modes from `auto-mode-alist` |
 | `examples/` | Four reader themes (gruvbox, monokai, kanagawa, zenburn) + renders |
