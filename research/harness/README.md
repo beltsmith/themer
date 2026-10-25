@@ -133,7 +133,15 @@ uv run $D python harness/mapper.py                               # -> out/mapped
 uv run $D python harness/mapper.py 'base16/nord' --set landmark --mode A   # one palette
 uv run $D python harness/score_palettes.py                       # -> out/palette_scores.{csv,md}, ~1-2 min on 16 cores
 uv run --with pyyaml python harness/ladder.py                    # -> out/ladder.md (H8), < 1 s
+uv run $D python harness/generate.py spec.txt --name my-theme    # -> my-theme-theme.el, ~20 s
+uv run $D python harness/test_generate.py [--fast]                # generator tests (~30 s; --fast < 1 s)
 ```
+
+- `generate.py` writes the most readable reader theme for a background, a foreground and a hue name
+  (or a hex) per family. A trailing `?` marks type/meta optional. The spec is `Key value` lines or
+  `key=value` arguments. Every candidate is scored by `map_reader` mode C, so the
+  `themer-reader-deftheme` it writes derives the same way in Elisp. The docstring gives the search and
+  the score.
 
 - `colour.py` is the metric library: OKLCH, ΔE_OK and ΔE00, the Szafir line model `de_text`, D1–D4,
   L-tiers, APCA (from `apca.py`), CVD simulation (Machado for deutan/protan, Brettel for tritan,

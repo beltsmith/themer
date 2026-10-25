@@ -324,6 +324,45 @@ entries the faces use are bound in a `let` and the faces name them
 stays readable. With a prefix argument it adds a note
 about the faces that need the rules mode.
 
+### Generating a theme
+
+`research/harness/generate.py` writes the most readable theme for a
+background, a foreground and a hue name per family. Write the spec as
+`Key value` lines:
+
+```
+Background  #1c1d21
+Foreground  #dddfe4
+Syntax      red
+Callable    blue
+Type?       yellow
+Value       purple
+Meta?       green
+```
+
+```sh
+cd research
+uv run --with coloraide --with pyyaml --with numpy --with scipy \
+  python harness/generate.py spec.txt --name my-theme   # -> my-theme-theme.el, ~20 s
+```
+
+A family can be a hue name (`red orange yellow green cyan blue purple pink`)
+or a hex, which is kept as given. A trailing `?` makes type or meta
+optional: if it can't conform, the theme is generated without it and
+reported at the level §4 gives (R1 without meta, R2 without type). You can
+also pass `popout=` and `binding=` (`binding=none` for no parameter tint).
+The spec can be given as `key=value` arguments instead.
+
+The script searches each family's hue within its name's range, then the
+lightness and chroma of its loud form. Every candidate is scored by the
+reference mapper (`map_reader`, mode C), in this order: the level, then
+the fewest MUST failures, then the fewest failures under CVD simulation,
+then the loud SHOULDs (Lc ≥ 45, distinct from its own quiet form), then
+the least distinct pair of cues. The TODO marker (also the UI accent) and
+the parameter tint get hues no family uses. The file it writes is an
+ordinary `themer-reader-deftheme`, and `themer-reader-check` derives the
+same tiers from it. The search and the score are documented in the script.
+
 ### Tree-sitter rules
 
 Emacs's tree-sitter modes don't separate exits from other keywords, or type
