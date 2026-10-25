@@ -317,6 +317,38 @@ Every colour key takes a palette name or a `"#rrggbb"` string.
 UI faces (region, `hl-line`, mode line, completion, diff and diagnostics)
 come from OKLab mixes of `:bg` and `:fg` and the fixed colours.
 Diagnostics are wavy underlines in the error and warning colours.
+End-of-line diagnostics (`flymake-*-echo-at-eol`) are smaller, in dim or
+diagnostic ink, and italic only with `themer-reader-italic-comments`.
+
+The standard's conventions carry into other packages:
+
+- **Diffs.** `magit` and `diff-hl` use the same green and red backgrounds
+  as `diff-mode`. Magit's current hunk gets `diff-added`'s mix, and the
+  other hunks a lighter one.
+- **Org.** `org-todo` is the popout colour, as TODO is in code comments.
+  `org-done` uses the added colour. Metadata (meta lines, drawers,
+  keywords, tags, block delimiters) is dim, like comments. Blocks and
+  quotes get a subtle background. `org-code` is a loud value and
+  `org-verbatim` a string. Heading level 1 is the accent. Levels 2–8
+  (`outline-2`…`outline-8`, which org's levels inherit) step through the
+  families' loud colours.
+- **Completion.** `marginalia` draws function names in the call colour
+  and types in the type colour, as code does.
+- **Editor state.** `dired` flags are error-coloured and marks
+  warning-coloured. Ignored files are dim. Unmatched rainbow delimiters
+  are errors. Deprecated `corfu` candidates are struck through.
+- **Terminal colours.** The 16 `ansi-color-*` faces (term and vterm
+  inherit them) must look like their names, whatever hues the families
+  use. Each takes the first match from: the error, added or warning colour
+  (for red, green, yellow), then the families' loud colours, choosing one
+  with the right hue name and Lc ≥ 35. Failing that, the colour is made at
+  the loud colours' mean lightness and chroma. Bright forms are 0.08
+  lighter (darker on a light background). Black, white and their bright
+  forms come from the neutral tiers.
+
+Syntax hue isn't spent on things with no kind behind them: rainbow
+delimiter depths, `avy` and `ace-window` hints, and evil-state or magit
+branch colours keep their packages' defaults.
 
 ### UI accent
 

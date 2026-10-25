@@ -847,6 +847,53 @@ the resolved colours."
                                                           :failures (plist-get (plist-get x :checks) :failures))))
                                   built))))))
 
+;;;; Terminal colours
+
+(defconst themer-reader--ansi-hues
+  '((red . 27) (green . 145) (yellow . 95) (blue . 255) (magenta . 330) (cyan . 200))
+  "ANSI colour -> OKLCH hue, for a colour the theme has no match for.")
+
+(defun themer-reader--ansi (tiers)
+  "Alist ANSI-NAME -> (NORMAL . BRIGHT) hex colours for TIERS.
+The colours must look like their names whatever the families' hues.
+Each is the first of the error, added or warning colour (for red, green
+and yellow: the meanings terminals give them) and the loud family
+colours that has its hue name and Lc >= 35 (the loud MUST), else one
+made at the loud colours' mean lightness and chroma.  Bright forms are
+0.08 lighter (darker on a light background).  Black and white are
+neutral: on a dark background black is the raised surface and bright
+black dim ink (grey text must stay readable), white is between dim and
+default ink and bright white the default; a light background swaps the
+roles."
+  (let* ((tg (lambda (k) (plist-get tiers k)))
+         (dark (themer-colour-dark-p (funcall tg :bg)))
+         (louds (mapcar #'cdr (funcall tg :loud)))
+         (lc (mapcar #'themer-colour-oklch louds))
+         (l (/ (apply #'+ (mapcar #'car lc)) (float (length lc))))
+         (c (max 0.08 (/ (apply #'+ (mapcar #'cadr lc)) (float (length lc)))))
+         (bright (lambda (hex)
+                   (pcase-let ((`(,hl ,hc ,hh) (themer-colour-oklch hex)))
+                     (themer-colour-from-oklch (+ hl (if dark 0.08 -0.08)) hc hh)))))
+    (append
+     (cl-loop for (name . hue) in themer-reader--ansi-hues
+              for names = (pcase name ('magenta '(purple pink)) (_ (list name)))
+              for hex = (or (cl-find-if
+                             (lambda (x)
+                               (and x (memq (themer-colour-hue-name x) names)
+                                    (>= (themer-colour-alc x (funcall tg :bg)) 35)))
+                             (cons (pcase name
+                                     ('red (funcall tg :error))
+                                     ('green (funcall tg :added))
+                                     ('yellow (funcall tg :warning)))
+                                   louds))
+                            (themer-colour-from-oklch l c hue))
+              collect (cons name (cons hex (funcall bright hex))))
+     (if dark
+         `((black ,(funcall tg :raised) . ,(funcall tg :dim))
+           (white ,(themer-colour-mix (funcall tg :dim) (funcall tg :fg) 0.5) . ,(funcall tg :fg)))
+       `((black ,(funcall tg :fg) . ,(funcall tg :dim))
+         (white ,(funcall tg :raised) . ,(funcall tg :subtle)))))))
+
 ;;;; Faces
 
 (defface themer-reader-exit
@@ -927,7 +974,8 @@ the resolved colours."
          (mix (lambda (a tt) (themer-colour-mix bg a tt)))
          (r (lambda (role) (themer-reader--attrs derived role)))
          (wave (lambda (c) (list :underline (list :style 'wave :color c))))
-         (plain '(:weight normal :slant normal)))
+         (plain '(:weight normal :slant normal))
+         (prose (and themer-reader-italic-comments '(:slant italic))))
     `(;; Basics
       (default :foreground ,fg :background ,bg)
       (cursor :background ,accent)
@@ -1065,6 +1113,15 @@ the resolved colours."
       (compilation-mode-line-fail :foreground ,err :weight bold)
       (compilation-mode-line-exit :foreground ,add :weight bold)
       (compilation-mode-line-run :foreground ,warn)
+      (flymake-error-echo :foreground ,err)
+      (flymake-warning-echo :foreground ,warn)
+      (flymake-note-echo :foreground ,(funcall loud 'callable))
+      ;; End-of-line diagnostics sit in the code: smaller, and in prose type.
+      (flymake-end-of-line-diagnostics-face :foreground ,dim :height 0.9 ,@prose)
+      (flymake-error-echo-at-eol :foreground ,err :height 0.9 ,@prose)
+      (flymake-warning-echo-at-eol :foreground ,warn :height 0.9 ,@prose)
+      (flymake-note-echo-at-eol :foreground ,(funcall loud 'callable) :height 0.9 ,@prose)
+      (eglot-code-action-indicator-face :foreground ,warn :weight bold)
       ;; Diff
       (diff-added :background ,(funcall mix add 0.18) :extend t)
       (diff-removed :background ,(funcall mix rem 0.18) :extend t)
@@ -1079,6 +1136,20 @@ the resolved colours."
       (diff-file-header :background ,raised :weight bold :extend t)
       (diff-hunk-header :foreground ,accent :background ,subtle :extend t)
       (diff-context :foreground ,dim)
+      (diff-hl-insert :foreground ,add :background ,(funcall mix add 0.18))
+      (diff-hl-delete :foreground ,rem :background ,(funcall mix rem 0.18))
+      (diff-hl-change :foreground ,warn :background ,(funcall mix warn 0.15))
+      (magit-diff-added :foreground ,fg :background ,(funcall mix add 0.12) :extend t)
+      (magit-diff-added-highlight :foreground ,fg :background ,(funcall mix add 0.18) :extend t)
+      (magit-diff-removed :foreground ,fg :background ,(funcall mix rem 0.12) :extend t)
+      (magit-diff-removed-highlight :foreground ,fg :background ,(funcall mix rem 0.18) :extend t)
+      (magit-diff-context :foreground ,dim :extend t)
+      (magit-diff-context-highlight :foreground ,dim :background ,subtle :extend t)
+      (magit-diff-file-heading :weight bold :extend t)
+      (magit-diff-file-heading-highlight :background ,raised :weight bold :extend t)
+      (magit-diff-hunk-heading :foreground ,dim :background ,subtle :extend t)
+      (magit-diffstat-added :foreground ,add)
+      (magit-diffstat-removed :foreground ,rem)
       ;; Whitespace
       (whitespace-space :foreground ,border)
       (whitespace-tab :foreground ,border)
@@ -1106,6 +1177,52 @@ the resolved colours."
       (orderless-match-face-1 :foreground ,(funcall loud 'value) :weight bold)
       (orderless-match-face-2 :foreground ,(funcall loud 'type) :weight bold)
       (orderless-match-face-3 :foreground ,(funcall loud 'syntax) :weight bold)
+      (corfu-deprecated :foreground ,dim :strike-through t)
+      (vertico-posframe-border :background ,border)
+      (embark-target :background ,raised)
+      (consult-preview-line :background ,subtle :extend t)
+      ;; Completion annotations draw kinds as code does.
+      (marginalia-function ,@(funcall r 'function.call))
+      (marginalia-type ,@(funcall r 'type.use))
+      (marginalia-documentation :foreground ,dim ,@prose)
+      (which-key-separator-face :foreground ,dim)
+      ;; Editor state
+      (fill-column-indicator :foreground ,border)
+      (mode-line-emphasis :weight bold)
+      (dired-flagged :foreground ,err :weight bold)
+      (dired-marked :foreground ,warn :weight bold)
+      (dired-ignored :foreground ,dim)
+      (rainbow-delimiters-unmatched-face :foreground ,err :weight bold)
+      (rainbow-delimiters-mismatched-face :foreground ,err :weight bold)
+      ;; Org: TODO is the popout, as in code comments; metadata is dim, as
+      ;; comments are; inline code and verbatim are values.
+      (org-todo ,@(funcall r 'comment.todo))
+      (org-done :foreground ,add :weight bold)
+      (org-headline-done :foreground ,dim)
+      (org-meta-line :foreground ,dim)
+      (org-drawer :foreground ,dim)
+      (org-special-keyword :foreground ,dim)
+      (org-tag :foreground ,dim :weight normal)
+      (org-document-info-keyword :foreground ,dim)
+      (org-block :background ,subtle :extend t)
+      (org-block-begin-line :foreground ,dim :background ,subtle :extend t)
+      (org-block-end-line :inherit org-block-begin-line)
+      (org-quote :background ,subtle :extend t)
+      (org-code ,@(funcall r 'constant.use))
+      (org-verbatim ,@(funcall r 'string))
+      ;; Heading levels below the first step through the families' loud
+      ;; colours (org-level-N inherit outline-N).
+      ,@(cl-loop for n from 2 to 8
+                 for louds = (mapcar #'cdr (funcall tg :loud))
+                 collect `(,(intern (format "outline-%d" n))
+                           :foreground ,(nth (mod (- n 2) (length louds)) louds)
+                           :weight bold))
+      ;; Terminal colours (term and vterm faces inherit these).
+      ,@(cl-loop for (name normal . bright) in (themer-reader--ansi tiers)
+                 collect `(,(intern (format "ansi-color-%s" name))
+                           :foreground ,normal :background ,normal)
+                 collect `(,(intern (format "ansi-color-bright-%s" name))
+                           :foreground ,bright :background ,bright))
       ;; The UI accent (`:accent'): chrome only, never a syntax face.
       (marginalia-key :foreground ,accent)
       (consult-highlight-match :foreground ,accent :weight bold)
