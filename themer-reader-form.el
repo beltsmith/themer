@@ -37,6 +37,18 @@
 
 (defvar themer-preview-delay)
 (defvar treesit-font-lock-level)
+(defvar eglot-sync-connect)
+(defvar eglot--semtok-state)
+(defvar eglot-semantic-tokens-mode)
+(declare-function eglot "eglot")
+(declare-function eglot--guess-contact "eglot")
+(declare-function eglot--lookup-mode "eglot")
+(declare-function eglot--managed-buffers "eglot")
+(declare-function eglot-current-server "eglot")
+(declare-function eglot-managed-p "eglot")
+(declare-function eglot-server-capable "eglot")
+(declare-function eglot-semantic-tokens-mode "eglot")
+(declare-function eglot-shutdown "eglot")
 (declare-function custom-theme--load-path "custom")
 
 ;;;; Model
@@ -560,6 +572,16 @@ a file with no mode is named for its extension, with no modes."
          (or (not (string-suffix-p "-ts-mode" name))
              (treesit-language-available-p (intern (string-remove-suffix "-ts-mode" name)))))))
 
+(defun themer-reader-form--runs (string &optional prop)
+  "STRING's runs of text property PROP (default `face'): a list of (BEG END VALUE)."
+  (let ((prop (or prop 'face)) (pos 0) runs)
+    (while (< pos (length string))
+      (let ((next (next-single-property-change pos prop string (length string)))
+            (v (get-text-property pos prop string)))
+        (when v (push (list pos next v) runs))
+        (setq pos next)))
+    (nreverse runs)))
+
 (defun themer-reader-form--sample-runs (modes text)
   "TEXT fontified by the first usable of MODES: (TEXT . RUNS), or :none.
 RUNS is a list of (BEG END FACE), BEG and END 0-based string indices.
@@ -581,13 +603,8 @@ colours, are level-4 features."
                      (themer-reader--install)
                      (font-lock-mode 1)
                      (font-lock-ensure))
-                   (let ((pos (point-min)))
-                     (while (< pos (point-max))
-                       (let ((next (next-single-property-change pos 'face nil (point-max)))
-                             (face (get-text-property pos 'face)))
-                         (when face (push (list (1- pos) (1- next) face) runs))
-                         (setq pos next)))))
-                 (cons text (nreverse runs))))
+                   (setq runs (themer-reader-form--runs (buffer-string))))
+                 (cons text runs)))
            :none)
          themer-reader-form--fontified))))
 
@@ -630,8 +647,12 @@ so the theme need not be enabled."
            for (modes . file) = (alist-get lang samples)
            when file
            collect (let* ((name (themer-reader-form--language-name lang))
-                          (run (themer-reader-form--sample-runs
-                                modes (themer-reader-form--sample-file-text file))))
+                          (text (themer-reader-form--sample-file-text file))
+                          (run (themer-reader-form--sample-runs modes text))
+                          (tokens (and (consp run) (themer-reader-form--semtok-tokens file modes text)))
+                          (run (if tokens
+                                   (cons text (themer-reader-form--layer-tokens text (cdr run) tokens))
+                                 run)))
                      (cons (propertize (format "── %s ──" name) 'face `(:foreground ,dim :background ,bg))
                            (if (eq run :none)
                                (propertize (format "(no major mode available for %s)" name)
@@ -650,6 +671,161 @@ so the theme need not be enabled."
                                           'face `(:background ,bg))))
                     (cons head (split-string body "\n")) "\n"))
        blocks "\n\n"))))
+
+;;;; Semantic tokens
+;;
+;; Eglot paints semantic tokens in front of the font-lock faces, so the
+;; samples get them too: the form visits a sample's file, connects eglot
+;; without blocking, lets eglot paint, and reads the face lists eglot put
+;; in the `eglot--semtok-faces' property.  A timer polls the pending
+;; files and redraws the forms when tokens arrive.
+
+(defcustom themer-reader-form-semantic-tokens t
+  "Non-nil: layer eglot semantic tokens onto the samples, as eglot does.
+Only for samples whose mode has an installed server in
+`eglot-server-programs'.  The form visits the sample file and connects
+eglot in the background, or uses a server already managing it; servers
+and buffers it started go when the last form is killed."
+  :type 'boolean
+  :group 'themer)
+
+(defcustom themer-reader-form-semantic-tokens-timeout 60
+  "Seconds to wait for a sample's semantic tokens before giving up."
+  :type 'number
+  :group 'themer)
+
+(defvar themer-reader-form--semtok (make-hash-table :test #'equal)
+  "Semantic tokens per sample FILE -> plist.
+:status is pending, done or none; :tokens a list of (BEG END FACES) over
+:text; :buffer the visiting buffer, :created if the form visited it;
+:started if the form started its server; :deadline when to give up.")
+
+(defvar themer-reader-form--semtok-timer nil "Timer polling pending semantic tokens.")
+
+(defun themer-reader-form--layer-tokens (text runs tokens)
+  "RUNS over TEXT with semantic TOKENS layered on, as eglot paints them.
+RUNS and TOKENS are lists of (BEG END FACE) and (BEG END FACES)."
+  (let ((s (copy-sequence text)))
+    (pcase-dolist (`(,b ,e ,face) runs)
+      (put-text-property b e 'face face s))
+    (pcase-dolist (`(,b ,e ,faces) tokens)
+      (when (<= e (length s))
+        (dolist (f faces) (add-face-text-property b e f nil s))))
+    (themer-reader-form--runs s)))
+
+(defun themer-reader-form--semtok-tokens (file modes text)
+  "Semantic tokens for sample FILE if they are in and match TEXT, else nil.
+Asks for them, in the background, when FILE has a server for MODES."
+  (when themer-reader-form-semantic-tokens
+    (let ((e (gethash file themer-reader-form--semtok)))
+      (unless e
+        (setq e (themer-reader-form--semtok-start file modes))
+        (puthash file e themer-reader-form--semtok))
+      (and (eq (plist-get e :status) 'done)
+           (equal (plist-get e :text) text)
+           (plist-get e :tokens)))))
+
+(defun themer-reader-form--semtok-contact (mode)
+  "Eglot's contact for MODE if its server is installed, else nil."
+  (when-let* ((guess (cdr (ignore-errors (eglot--lookup-mode mode)))))
+    (or (functionp guess)
+        (not (stringp (car-safe guess)))
+        (executable-find (car guess)))))
+
+(defun themer-reader-form--semtok-start (file modes)
+  "Start getting semantic tokens for sample FILE: its table entry.
+MODES are the sample's candidate modes."
+  (or (ignore-errors
+        (when (and (require 'eglot nil t)
+                   (cl-some #'themer-reader-form--semtok-contact
+                            (cl-remove-if-not #'fboundp modes)))
+          (let* ((existing (get-file-buffer file))
+                 (buf (or existing (find-file-noselect file t)))
+                 started)
+            (with-current-buffer buf
+              (unless (or (eglot-managed-p) (eglot-current-server))
+                (when-let* ((contact (ignore-errors (eglot--guess-contact)))
+                            (program (car-safe (nth 3 contact)))
+                            ((or (not (stringp program)) (executable-find program))))
+                  ;; Connects in the background: the server is registered,
+                  ;; and the buffer managed, once it has initialised.
+                  (let ((eglot-sync-connect nil))
+                    (apply #'eglot contact))
+                  (setq started t))))
+            (if (or started (with-current-buffer buf (eglot-managed-p)))
+                (progn
+                  (themer-reader-form--semtok-schedule)
+                  (list :status 'pending :buffer buf :created (not existing) :started started
+                        :deadline (+ (float-time) themer-reader-form-semantic-tokens-timeout)))
+              (unless existing (kill-buffer buf))
+              nil))))
+      (list :status 'none)))
+
+(defun themer-reader-form--semtok-schedule ()
+  "Start the polling timer if it isn't running."
+  (unless (timerp themer-reader-form--semtok-timer)
+    (setq themer-reader-form--semtok-timer
+          (run-with-timer 0.5 0.5 #'themer-reader-form--semtok-poll))))
+
+(defun themer-reader-form--semtok-harvest (buf)
+  "BUF's text, final newline dropped, and eglot's tokens in it, or nil.
+Tokens are (BEG END FACES), 0-based; nil until eglot has painted."
+  (with-current-buffer buf
+    (when (and (eglot-managed-p) (eglot-server-capable :semanticTokensProvider))
+      (unless eglot-semantic-tokens-mode (eglot-semantic-tokens-mode 1))
+      (save-restriction
+        (widen)
+        (font-lock-ensure)
+        (when (plist-get eglot--semtok-state :data)
+          (let ((s (buffer-string)))
+            (cons (string-remove-suffix "\n" (substring-no-properties s))
+                  (themer-reader-form--runs s 'eglot--semtok-faces))))))))
+
+(defun themer-reader-form--semtok-poll ()
+  "Collect the semantic tokens that have arrived; redraw the forms if any did."
+  (let (changed pending)
+    (maphash
+     (lambda (_file e)
+       (when (eq (plist-get e :status) 'pending)
+         (let* ((buf (plist-get e :buffer))
+                (got (condition-case err
+                         (and (buffer-live-p buf) (themer-reader-form--semtok-harvest buf))
+                       (error (message "themer: semantic tokens: %s" (error-message-string err))
+                              (plist-put e :status 'none)
+                              nil))))
+           (cond (got (plist-put e :status 'done)
+                      (plist-put e :text (car got))
+                      (plist-put e :tokens (cdr got))
+                      (setq changed t))
+                 ((or (not (buffer-live-p buf)) (> (float-time) (plist-get e :deadline)))
+                  (plist-put e :status 'none))
+                 ((eq (plist-get e :status) 'pending) (setq pending t))))))
+     themer-reader-form--semtok)
+    (unless pending
+      (cancel-timer themer-reader-form--semtok-timer)
+      (setq themer-reader-form--semtok-timer nil))
+    (when changed
+      (dolist (b (buffer-list))
+        (with-current-buffer b
+          (when (derived-mode-p 'themer-reader-form-mode)
+            (themer-reader-form--update-samples)))))))
+
+(defun themer-reader-form--semtok-stop ()
+  "Shut down the servers and kill the buffers the forms started."
+  (when (timerp themer-reader-form--semtok-timer)
+    (cancel-timer themer-reader-form--semtok-timer))
+  (setq themer-reader-form--semtok-timer nil)
+  (maphash
+   (lambda (_file e)
+     (let* ((buf (plist-get e :buffer))
+            (server (and (plist-get e :started) (buffer-live-p buf)
+                         (with-current-buffer buf (eglot-current-server)))))
+       (when (and server (cl-every (lambda (b) (eq b buf)) (eglot--managed-buffers server)))
+         (ignore-errors (eglot-shutdown server)))
+       (when (and (plist-get e :created) (buffer-live-p buf) (not (buffer-modified-p buf)))
+         (kill-buffer buf))))
+   themer-reader-form--semtok)
+  (clrhash themer-reader-form--semtok))
 
 ;;;; The sample buffer
 
@@ -1033,7 +1209,11 @@ With INTERRUPTIBLE, input aborts the derivation and reschedules it."
   (when (timerp themer-reader-form--timer)
     (cancel-timer themer-reader-form--timer))
   (themer-reader-form--apply nil)
-  (themer-reader-form--kill-samples))
+  (themer-reader-form--kill-samples)
+  (unless (cl-some (lambda (b) (and (not (eq b (current-buffer)))
+                                    (eq (buffer-local-value 'major-mode b) 'themer-reader-form-mode)))
+                   (buffer-list))
+    (themer-reader-form--semtok-stop)))
 
 ;;;; Building the form
 

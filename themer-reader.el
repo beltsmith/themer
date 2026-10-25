@@ -859,6 +859,11 @@ the resolved colours."
   "The name in a type definition."
   :group 'themer)
 
+(defface themer-reader-module
+  '((t :inherit font-lock-type-face))
+  "Module and namespace names in paths."
+  :group 'themer)
+
 (defface themer-reader-meta
   '((t :inherit font-lock-preprocessor-face))
   "Decorators, attributes and annotations."
@@ -1001,6 +1006,7 @@ the resolved colours."
       (font-lock-warning-face :foreground ,warn :weight bold)
       (themer-reader-exit ,@(funcall r 'keyword.exit))
       (themer-reader-type-definition ,@(funcall r 'type.def))
+      (themer-reader-module ,@(funcall r 'module))
       (themer-reader-meta ,@(funcall r 'attribute))
       (themer-reader-macro-call ,@(funcall r 'macro.call))
       (themer-reader-macro-definition ,@(funcall r 'macro.def))
@@ -1011,35 +1017,31 @@ the resolved colours."
       (themer-reader-parameter ,@(funcall r 'parameter))
       (themer-reader-module-variable ,@(plist-put (funcall r 'variable.def) :weight 'bold))
       (themer-reader-constant-definition ,@(funcall r 'constant.def))
-      ;; Eglot semantic tokens.  Types eglot doesn't know a reader colour for
-      ;; are left empty so the tree-sitter face shows: eglot maps declaration
-      ;; and definition modifiers to the function-name face, which would make
-      ;; every binding bold.
+      ;; Eglot semantic tokens.  Eglot puts its faces in front of the
+      ;; tree-sitter ones, so a coloured eglot face hides the reader's finer
+      ;; distinctions (exits, TODO, escapes, definitions in bold).  Only what
+      ;; tree-sitter can't know is coloured: parameter uses, enum members,
+      ;; macro uses, deprecation.  The rest are left empty, the tree-sitter
+      ;; face showing through; servers also mislabel (rust-analyzer calls
+      ;; `u32' and `derive' namespaces).
       ,@(when (facep 'eglot-semantic-namespace)
-          `((eglot-semantic-namespace ,@(funcall r 'module))
-            (eglot-semantic-type) (eglot-semantic-class) (eglot-semantic-enum)
-            (eglot-semantic-interface) (eglot-semantic-struct)
-            (eglot-semantic-typeParameter)
-            (eglot-semantic-parameter ,@(if (funcall tg :binding) (funcall r 'parameter) plain))
-            (eglot-semantic-variable) (eglot-semantic-property) (eglot-semantic-event)
+          `((eglot-semantic-parameter ,@(if (funcall tg :binding) (funcall r 'parameter) plain))
             (eglot-semantic-enumMember ,@(funcall r 'constant.use))
-            (eglot-semantic-function) (eglot-semantic-method)
-            (eglot-semantic-macro ,@(funcall r 'macro.call))
-            (eglot-semantic-keyword ,@(funcall r 'keyword.other))
-            (eglot-semantic-modifier ,@(funcall r 'keyword.decl))
-            (eglot-semantic-comment ,@(funcall r 'comment))
-            (eglot-semantic-string ,@(funcall r 'string))
-            (eglot-semantic-number ,@(funcall r 'number))
-            (eglot-semantic-regexp ,@(funcall r 'string.regexp))
-            (eglot-semantic-operator)
+            (eglot-semantic-macro :foreground ,(plist-get (funcall r 'macro.call) :foreground))
             (eglot-semantic-decorator ,@(funcall r 'attribute))
-            (eglot-semantic-declaration) (eglot-semantic-definition)
-            (eglot-semantic-readonly) (eglot-semantic-static)
             (eglot-semantic-deprecated :strike-through t)
-            (eglot-semantic-abstract) (eglot-semantic-async)
-            (eglot-semantic-modification)
-            (eglot-semantic-documentation ,@(funcall r 'comment.doc))
-            (eglot-semantic-defaultLibrary)))
+            ,@(mapcar #'list
+                      '(eglot-semantic-namespace eglot-semantic-type eglot-semantic-class
+                        eglot-semantic-enum eglot-semantic-interface eglot-semantic-struct
+                        eglot-semantic-typeParameter eglot-semantic-variable
+                        eglot-semantic-property eglot-semantic-event eglot-semantic-function
+                        eglot-semantic-method eglot-semantic-keyword eglot-semantic-modifier
+                        eglot-semantic-comment eglot-semantic-string eglot-semantic-number
+                        eglot-semantic-regexp eglot-semantic-operator
+                        eglot-semantic-declaration eglot-semantic-definition
+                        eglot-semantic-readonly eglot-semantic-static eglot-semantic-abstract
+                        eglot-semantic-async eglot-semantic-modification
+                        eglot-semantic-documentation eglot-semantic-defaultLibrary))))
       ;; Diagnostics
       (flymake-error ,@(funcall wave err))
       (flymake-warning ,@(funcall wave warn))
@@ -1249,6 +1251,14 @@ That is the :palette list and palette names."
      (macro (macro_invocation macro: (identifier) @themer-reader-macro-call "!" @themer-reader-macro-call)
             (macro_invocation macro: (scoped_identifier name: (identifier) @themer-reader-macro-call))
             (macro_definition name: (identifier) @themer-reader-macro-definition))
+     (module (scoped_identifier path: (identifier) @themer-reader--fontify-rust-module)
+             (scoped_identifier path: (scoped_identifier name: (identifier) @themer-reader--fontify-rust-module))
+             (scoped_type_identifier path: (identifier) @themer-reader--fontify-rust-module)
+             (scoped_type_identifier path: (scoped_identifier name: (identifier) @themer-reader--fontify-rust-module))
+             (scoped_use_list path: (identifier) @themer-reader--fontify-rust-module)
+             (scoped_use_list path: (scoped_identifier name: (identifier) @themer-reader--fontify-rust-module))
+             (use_wildcard (identifier) @themer-reader--fontify-rust-module)
+             (mod_item name: (identifier) @themer-reader-module))
      (parameter (parameter pattern: (identifier) @themer-reader-parameter))
      (binding (const_item name: (identifier) @themer-reader--fontify-constant)
               (static_item name: (identifier) @themer-reader--fontify-rust-static)))
@@ -1445,6 +1455,19 @@ for tree-sitter font-lock functions."
         (while (re-search-forward "\\_<\\(?:TODO\\|FIXME\\|XXX\\)\\_>" fin t)
           (treesit-fontify-with-override (match-beginning 0) (match-end 0)
                                          'themer-reader-todo override start end))))))
+
+;;;; Module paths
+
+(defun themer-reader--fontify-rust-module (node override start end &rest _)
+  "Module face on NODE, a Rust path segment, unless it names a type.
+Capitalised segments are types (`Config::new'), as are primitives
+\(`u32::MAX'); `rust-ts-mode' draws the rest in the constant face.
+OVERRIDE, START and END as usual."
+  (let ((case-fold-search nil) (text (treesit-node-text node t)))
+    (unless (or (string-match-p "\\`[A-Z]" text)
+                (string-match-p "\\`\\(?:[iu]\\(?:8\\|16\\|32\\|64\\|128\\|size\\)\\|f32\\|f64\\|bool\\|char\\|str\\)\\'" text))
+      (treesit-fontify-with-override (treesit-node-start node) (treesit-node-end node)
+                                     'themer-reader-module override start end))))
 
 ;;;; Module-level bindings and constant definitions
 ;;
@@ -1668,10 +1691,10 @@ OVERRIDE, START and END as usual."
 For python, javascript, typescript, tsx, rust, go, c, c++, java, lua and
 bash, where the grammar is installed: exits (return, raise/throw, break,
 continue, yield, goto, Rust `?') in `themer-reader-exit', type definition
-names, decorators and attributes, macro calls, parameter declarations,
-module-level bindings and constant definitions, TODO/FIXME/XXX in
-comments, and commented-out code when `themer-reader-fade-commented-code'
-is set."
+names, Rust module paths, decorators and attributes, macro calls,
+parameter declarations, module-level bindings and constant definitions,
+TODO/FIXME/XXX in comments, and commented-out code when
+`themer-reader-fade-commented-code' is set."
   :global t
   :group 'themer
   ;; Install from `prog-mode-hook' first, before other mode hooks fontify

@@ -145,6 +145,41 @@ section has a checkbox per language; ticking one updates the sample buffer
 at once, without re-deriving. The choice lasts for the session and starts
 from `themer-reader-form-sample-languages` (all of them, by default).
 
+Eglot semantic tokens are layered on too, so the samples look as the code
+will in your editor. Eglot puts its faces in front of the font-lock and
+tree-sitter ones (`(eglot-semantic-keyword themer-reader-exit)`), and
+wherever the theme gives an eglot face a colour, that colour wins. A
+preview without tokens can therefore show a distinction your buffers
+won't. This is how the theme's eglot faces were found hiding exits, TODO
+markers and attributes; see Limitations.
+
+For each sample whose mode has an installed server in
+`eglot-server-programs`, the form visits the sample file and connects eglot
+in the background, or uses a server already managing the file. Once eglot
+has painted, the form copies the face lists eglot applied (its
+`eglot--semtok-faces` property) onto the sample in the order eglot adds
+them. The face lists therefore match a real buffer exactly. The samples
+show tree-sitter colours at once and redraw when the tokens arrive;
+`themer-reader-form-semantic-tokens-timeout` (60 s) bounds the wait.
+Servers and buffers the form started are shut down and killed when the
+last form is killed. A server that manages other buffers is left alone.
+Set `themer-reader-form-semantic-tokens` to nil to turn this off.
+
+What to expect:
+
+- Only languages whose server you have installed get tokens. The others,
+  and every sample until the tokens arrive, show tree-sitter alone.
+- The first set of tokens the server sends is used. For these single-file
+  samples that is the full set (rust-analyzer treats `sample.rs` as a
+  standalone file, without a `Cargo.toml`). A server that answers before
+  it has finished analysing leaves the sample with a partial set until the
+  form is reopened.
+- Servers differ in what they emit. rust-analyzer sends no `parameter`
+  tokens for the Rust sample, for one, so its parameter uses stay plain in
+  the sample and in your buffers alike.
+- It uses eglot internals (`eglot--semtok-state`, `eglot--semtok-faces`,
+  `eglot--lookup-mode`, `eglot--guess-contact`); see Requirements.
+
 To use your own code, point `themer-reader-form-sample-directory` at a
 directory of files named `sample.EXT`. Every such file there is a sample:
 one named like a built-in (`sample.rs`, `sample.py`, ...) replaces it, and
@@ -424,9 +459,11 @@ compile against the installed grammar is skipped with a message.
 - The tree-sitter rules only mark parameter *declarations*. Parameter uses
   get the binding tint only from eglot semantic tokens
   (`eglot-semantic-parameter`).
-- Eglot semantic-token faces that would override tree-sitter's more
-  specific faces are left empty. For example, eglot maps every
-  `declaration` modifier to the function-name face.
+- Eglot puts its semantic-token faces in front of tree-sitter's, so only
+  what tree-sitter can't know is coloured: parameter uses, enum members,
+  macro uses, decorators and deprecation. The rest (keywords, comments,
+  strings, namespaces, ...) are left empty so exits, TODO markers, escapes
+  and bold definitions show through.
 - On muted palettes the quiet tints sit close to default ink, as the
   standard intends, and can be hard to see. Kanagawa's call tint is one
   example. Low-chroma palettes such as zenburn struggle most.
@@ -472,6 +509,8 @@ upper-case. The whole adjustment is one undo step. In a
 | `themer-reader-enable-rules` | `t` | Loading a reader theme turns on `themer-reader-treesit-mode` |
 | `themer-reader-form-sample-directory` | `nil` | Your own `sample.EXT` files; each is a sample, and replaces a built-in of the same name |
 | `themer-reader-form-sample-languages` | `t` (all) | Languages whose samples the form shows at first |
+| `themer-reader-form-semantic-tokens` | `t` | Layer eglot semantic tokens onto the samples |
+| `themer-reader-form-semantic-tokens-timeout` | `60` | Seconds to wait for a sample's tokens |
 | `themer-reader-fade-commented-code` | `nil` | Draw code-like comments in the faded tier |
 | `themer-reader-italic-comments` | `nil` | Italic comments |
 | `themer-picker-steps` | `(0.01 0.005 2.0)` | `themer-picker-adjust` steps: OKLCH lightness, chroma, hue in degrees |
@@ -479,6 +518,9 @@ upper-case. The whole adjustment is one undo step. In a
 ## Requirements
 
 Emacs 29.1+. The reader rules need the tree-sitter grammars for the
-languages you use. The semantic-token comparison needs the eglot that ships with
-Emacs 31: it reads eglot's internal `eglot--semtok-state` to tell when
-tokens have arrived.
+languages you use. The semantic-token comparison (`themer-render-compare`)
+and the semantic tokens in the theme form's samples need the eglot that
+ships with Emacs 31: they read eglot's internal `eglot--semtok-state` to
+tell when tokens have arrived, and the form also reads the
+`eglot--semtok-faces` property. If a later eglot changes these, the
+samples fall back to tree-sitter alone.

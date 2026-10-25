@@ -277,8 +277,9 @@ use.  The binding tint is mapper.apply_options's search run on that build.")
         (progn
           (themer-reader-treesit-mode 1)
           (with-temp-buffer
-            (insert "fn f() -> R {\n    // TODO: tidy\n    // let x = compute(a, b);\n"
-                    "    let v = g()?;\n    Ok(v)\n}\nstruct P { x: i32 }\n")
+            (insert "use std::collections::HashMap;\nuse a::{b, c};\nmod m;\n"
+                    "fn f() -> R {\n    // TODO: tidy\n    // let x = compute(a, b);\n"
+                    "    let v = g()?;\n    Ok(v)\n}\nstruct P { x: i32 }\nconst M: i32 = i32::MAX;\n")
             (rust-ts-mode)
             (run-hooks 'after-change-major-mode-hook)
             (font-lock-ensure)
@@ -287,7 +288,13 @@ use.  The binding tint is mapper.apply_options's search run on that build.")
               (should (eq (face-at "?;") 'themer-reader-exit))
               (should (eq (face-at "TODO") 'themer-reader-todo))
               (should (eq (face-at "let x") 'themer-reader-commented-code))
-              (should (eq (face-at "P {") 'themer-reader-type-definition)))))
+              (should (eq (face-at "P {") 'themer-reader-type-definition))
+              (should (eq (face-at "std::") 'themer-reader-module))
+              (should (eq (face-at "collections::") 'themer-reader-module))
+              (should (eq (face-at "a::{") 'themer-reader-module))
+              (should (eq (face-at "m;") 'themer-reader-module))
+              (should (eq (face-at "HashMap") 'font-lock-type-face))
+              (should-not (eq (face-at "i32::") 'themer-reader-module)))))
       (themer-reader-treesit-mode (if was 1 -1)))))
 
 (defconst themer-test--bindings
@@ -780,10 +787,52 @@ function definition, macro a macro definition.")
         (when (memq lang '(rust go c python typescript))
           (should (memq 'themer-reader-exit faces)))))))
 
+(ert-deftest themer-reader-form-layer-tokens ()
+  "Semantic tokens go in front of the runs, splitting them, as eglot paints."
+  (should (equal (themer-reader-form--layer-tokens
+                  "fn f(a)" '((0 2 kw) (3 4 fun)) '((3 7 (sem-x sem-y)) (5 6 (sem-p))))
+                 '((0 2 kw) (3 4 (sem-y sem-x fun)) (4 5 (sem-y sem-x))
+                   (5 6 (sem-p sem-y sem-x)) (6 7 (sem-y sem-x))))))
+
+(ert-deftest themer-reader-eglot-faces ()
+  "Eglot faces are empty where tree-sitter knows better, coloured where it can't."
+  (skip-unless (require 'eglot nil t))
+  (let* ((d (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes))))
+         (faces (themer-reader-faces d)))
+    (dolist (f '(eglot-semantic-keyword eglot-semantic-comment eglot-semantic-string
+                 eglot-semantic-namespace eglot-semantic-documentation))
+      (should (equal (list f nil) (list f (alist-get f faces)))))
+    (should (plist-get (alist-get 'eglot-semantic-parameter faces) :foreground))
+    (should (plist-get (alist-get 'eglot-semantic-macro faces) :foreground))))
+
+(ert-deftest themer-reader-form-semantic-tokens ()
+  "The Rust sample gets rust-analyzer's tokens; the servers go afterwards."
+  :tags '(:expensive)
+  (skip-unless (and (require 'eglot nil t) (executable-find "rust-analyzer")
+                    (treesit-language-available-p 'rust)))
+  (pcase-let* ((themer-reader-form-semantic-tokens t)
+               (themer-reader-form-sample-directory nil)
+               (`(,modes . ,file) (alist-get 'rust (themer-reader-form--samples)))
+               (text (themer-reader-form--sample-file-text file))
+               (deadline (+ (float-time) 60))
+               (tokens nil))
+    (skip-unless (not (get-file-buffer file)))
+    (unwind-protect
+        (progn
+          (while (and (not (setq tokens (themer-reader-form--semtok-tokens file modes text)))
+                      (eq (plist-get (gethash file themer-reader-form--semtok) :status) 'pending)
+                      (< (float-time) deadline))
+            (accept-process-output nil 0.2))
+          (should tokens)
+          (should (cl-some (lambda (tok) (memq 'eglot-semantic-macro (nth 2 tok))) tokens)))
+      (themer-reader-form--semtok-stop))
+    (should-not (get-file-buffer file))))
+
 (ert-deftest themer-reader-form-sample-directory ()
   "The user's sample.EXT files are found: they replace or add languages."
   (let* ((dir (make-temp-file "themer-samples" t))
          (themer-reader-form-sample-directory dir)
+         (themer-reader-form-semantic-tokens nil)
          (themer-reader-form--selected :unset)
          (themer-reader-form-sample-languages t)
          (major-mode-remap-alist nil)
@@ -835,6 +884,7 @@ function definition, macro a macro definition.")
 (ert-deftest themer-reader-form-sample-buffer ()
   "The sample buffer opens with the form, follows its choices, and dies with it."
   (let ((themer-reader-form--selected :unset)
+        (themer-reader-form-semantic-tokens nil)
         (file (expand-file-name "examples/reader-gruvbox-theme.el" themer-test--root))
         form samples)
     (save-window-excursion
