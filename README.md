@@ -9,7 +9,7 @@ With [straight.el](https://github.com/radian-software/straight.el):
 ```elisp
 (straight-use-package
  '(themer :type git :host github :repo "beltsmith/themer"
-          :files (:defaults "examples")))
+          :files (:defaults "examples" "samples")))
 (require 'themer)
 ```
 
@@ -18,12 +18,13 @@ Or with `use-package`:
 ```elisp
 (use-package themer
   :straight (themer :type git :host github :repo "beltsmith/themer"
-                    :files (:defaults "examples"))
+                    :files (:defaults "examples" "samples"))
   :demand t)
 ```
 
 `:files` has to include `examples` for the example themes (reader-gruvbox,
--monokai, -kanagawa, -zenburn) to be available. Load the package eagerly
+-monokai, -kanagawa, -zenburn) to be available, and `samples` for the theme
+form's code samples. Load the package eagerly
 (`require` or `:demand t`): loading it is what puts your theme directory
 and the examples on `custom-theme-load-path`, so until then reader themes
 don't show up in `load-theme` or `consult-theme`.
@@ -131,24 +132,34 @@ redraws on every re-derive, keeping its window's point and scroll, and is
 killed with the form. If you close its window, the form's **Show samples**
 button brings it back.
 
-There are samples for TypeScript, Python, Rust, C, Go and Emacs Lisp, each
-exercising the standard's roles: keywords, exits, calls, types, function
-definitions, module-level bindings and constants, parameters, literals,
-strings with escapes, comments, a doc comment, a TODO, commented-out code,
-and macros, decorators and attributes. Each is fontified by its real major
-mode: the tree-sitter mode if its grammar is installed, else the classic
-mode (`rust-mode`, `go-mode`, ...); a language with neither shows a one-line
-note. `themer-reader-treesit-mode`'s rules apply as well. The form's
-**Samples** section has a checkbox per language; ticking one updates the
-sample buffer at once, without re-deriving. The choice lasts for the
-session and starts from `themer-reader-form-sample-languages`. Add a
-language to `themer-reader-form-samples`, an alist of
-`(LANGUAGE (MODE...) . CODE)`:
+There are samples for C, Emacs Lisp, Go, Python, Rust and TypeScript, in
+[samples/](samples/), each exercising the standard's roles: keywords,
+exits, calls, types, function definitions, module-level bindings and
+constants, parameters, literals, strings with escapes, comments, a doc
+comment, a TODO, commented-out code, and macros, decorators and
+attributes. Each is fontified by its real major mode: the tree-sitter mode
+if its grammar is installed, else the classic mode (`rust-mode`,
+`go-mode`, ...); a language with neither shows a one-line note.
+`themer-reader-treesit-mode`'s rules apply as well. The form's **Samples**
+section has a checkbox per language; ticking one updates the sample buffer
+at once, without re-deriving. The choice lasts for the session and starts
+from `themer-reader-form-sample-languages` (all of them, by default).
+
+To use your own code, point `themer-reader-form-sample-directory` at a
+directory of files named `sample.EXT`. Every such file there is a sample:
+one named like a built-in (`sample.rs`, `sample.py`, ...) replaces it, and
+any other extension adds a language.
 
 ```elisp
-(add-to-list 'themer-reader-form-samples
-             '(ruby (ruby-ts-mode ruby-mode) . "def hi = puts(\"hi\")"))
+(setq themer-reader-form-sample-directory "~/.emacs.d/themer-samples/")
+;; ~/.emacs.d/themer-samples/sample.rb  -> a Ruby sample
+;; ~/.emacs.d/themer-samples/sample.rs  -> replaces the built-in Rust one
 ```
+
+A sample's mode is the one your Emacs uses for the file, from
+`auto-mode-alist` and `major-mode-remap-alist`, and the language is named
+after it (`ruby-mode` → Ruby). The tree-sitter variant (`ruby-ts-mode`) is
+tried first when its grammar is installed, then the classic mode.
 
 ### Editing
 
@@ -396,8 +407,8 @@ compile against the installed grammar is skipped with a message.
 | `themer-reader-theme-directory` | `themes/` in `user-emacs-directory` | Where new themes are saved, and searched by `themer-reader-edit-theme`. Put on `custom-theme-load-path` |
 | `themer-reader-include-examples` | `t` | Put the package's `examples/` on `custom-theme-load-path` |
 | `themer-reader-enable-rules` | `t` | Loading a reader theme turns on `themer-reader-treesit-mode` |
-| `themer-reader-form-sample-languages` | `(typescript python rust c go elisp)` | Languages whose samples the form shows at first |
-| `themer-reader-form-samples` | six built-in samples | Alist `(LANGUAGE (MODE...) . CODE)` of sample code; add your own |
+| `themer-reader-form-sample-directory` | `nil` | Your own `sample.EXT` files; each is a sample, and replaces a built-in of the same name |
+| `themer-reader-form-sample-languages` | `t` (all) | Languages whose samples the form shows at first |
 | `themer-reader-fade-commented-code` | `nil` | Draw code-like comments in the faded tier |
 | `themer-reader-italic-comments` | `nil` | Italic comments |
 

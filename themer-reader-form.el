@@ -467,228 +467,26 @@ SEVERITY is `ok', `must' or `should'."
 (defvar-local themer-reader-form--derived nil "The last derivation shown.")
 (defvar-local themer-reader-form--model nil "The model the form was opened on.")
 
-(defcustom themer-reader-form-samples
-  '((typescript (typescript-ts-mode typescript-mode) . "\
-import { readFile } from \"fs/promises\";
-
-const MAX_RETRIES = 3;
-let cache = new Map<string, Config>();
-
-interface Config { path: string; retries: number }
-type Result = Config | null;
-
-/** Load a config file, retrying on failure. */
-// TODO: handle timeouts
-// console.log(\"debug\");
-@sealed
-class Loader {
-  ready = true;
-  async run(path: string, retries = MAX_RETRIES): Promise<Result> {
-    for (let i = 0; i < retries; i++) {
-      const text = await readFile(path, \"utf8\");
-      if (!text) continue;
-      if (i > 5) break;
-      cache.set(path, JSON.parse(text) as Config);
-      console.log(`read ${path}\\n`);
-      return cache.get(path) ?? null;
-    }
-    throw new Error(\"no config at \" + path);
-  }
-}
-
-export async function load(path: string): Promise<Result> {
-  return new Loader().run(path);
-}")
-    (python (python-ts-mode python-mode) . "\
-\"\"\"Config loading.\"\"\"
-import json
-from dataclasses import dataclass
-
-MAX_RETRIES = 3
-registry: dict[str, \"Config\"] = {}
-verbose = True
-
-
-@dataclass
-class Config:
-    path: str
-    retries: int = MAX_RETRIES
-
-
-# TODO: handle timeouts
-# print(\"debug\")
-def load(path: str, retries: int = MAX_RETRIES) -> Config:
-    \"\"\"Load a config, retrying on failure.\"\"\"
-    result = None
-    for attempt in range(retries):
-        try:
-            with open(path) as f:
-                text = f.read()
-        except OSError:
-            continue
-        if not text:
-            break
-        registry[path] = Config(json.loads(text), attempt)
-        return registry[path]
-    print(f\"no config at {path}\\n\")
-    raise ValueError(\"gave up\\n\")")
-    (rust (rust-ts-mode rust-mode) . "\
-//! Config loading.
-use std::collections::HashMap;
-use std::fs;
-
-const MAX_RETRIES: u32 = 3;
-static GREETING: &str = \"hello\\n\";
-
-#[derive(Debug, Clone)]
-pub struct Config {
-    path: String,
-    retries: u32,
-}
-
-/// Load a config, retrying on failure.
-// TODO: handle timeouts
-// let verbose = true;
-pub fn load(path: &str, retries: u32) -> Result<Config, std::io::Error> {
-    let mut cache: HashMap<String, Config> = HashMap::new();
-    let found: Option<Config> = None;
-    for attempt in 0..retries {
-        let text = fs::read_to_string(path)?;
-        if text.is_empty() {
-            continue;
-        }
-        if attempt > MAX_RETRIES {
-            break;
-        }
-        println!(\"read {} bytes\\t{}\", text.len(), GREETING);
-        cache.insert(path.to_string(), Config { path: text, retries });
-    }
-    if found.is_none() && retries == 0 {
-        return Ok(Config { path: String::new(), retries: 0 });
-    }
-    Ok(Config { path: String::from(path), retries })
-}")
-    (c (c-ts-mode c-mode) . "\
-#include <stdbool.h>
-#include <stdio.h>
-
-#define MAX_ITEMS 64
-#define SQUARE(x) ((x) * (x))
-
-typedef struct node {
-    int value;
-    struct node *next;
-} node_t;
-
-static const double RATIO = 0.75;
-static int counter = 0;
-
-/* Sum a list, stopping at a negative value. */
-// TODO: guard against cycles
-// printf(\"debug\\n\");
-int sum_list(const node_t *head, int limit)
-{
-    int total = 0;
-    bool done = false;
-    for (const node_t *n = head; n != NULL; n = n->next) {
-        if (n->value < 0)
-            break;
-        if (n->value == 0)
-            continue;
-        total += SQUARE(n->value);
-        if (total > limit)
-            return -1;
-    }
-    printf(\"total: %d\\n\", total);
-    counter++;
-    return done ? 0 : total;
-}")
-    (go (go-ts-mode go-mode) . "\
-package main
-
-import (
-	\"errors\"
-	\"fmt\"
-)
-
-const MaxRetries = 3
-
-var registry = map[string]int{}
-
-// Point is a position.
-type Point struct{ X, Y float64 }
-
-type Shape interface{ Area() float64 }
-
-// TODO: support negative scales
-// fmt.Println(\"debug\")
-func scale(p Point, factor float64, tries int) (Point, error) {
-	ok := true
-	var last error = nil
-	for i := 0; i < tries; i++ {
-		if i == 2 {
-			continue
-		}
-		if i > MaxRetries {
-			break
-		}
-		registry[fmt.Sprint(i)] = i
-	}
-	if factor > MaxRetries {
-		return Point{}, errors.New(\"too big\\n\")
-	}
-	fmt.Printf(\"scaled %v: %t\\n\", p, ok)
-	return Point{p.X * factor, p.Y * factor}, last
-}")
-    (elisp (emacs-lisp-mode) . "\
-;;; sample.el --- Config loading  -*- lexical-binding: t; -*-
-
-(require 'cl-lib)
-
-(defconst sample-max-retries 3 \"Attempts before giving up.\")
-(defvar sample-cache (make-hash-table :test 'equal))
-
-(defmacro sample-quietly (&rest body)
-  \"Run BODY without messages.\"
-  `(let ((inhibit-message t)) ,@body))
-
-;; TODO: handle timeouts
-;; (message \"debug\")
-(defun sample-load (path &optional retries)
-  \"Read PATH, trying RETRIES times.\"
-  (let ((tries (or retries sample-max-retries))
-        (found nil))
-    (cl-loop for i from 1 to tries
-             when (file-readable-p path)
-             do (setq found (with-temp-buffer
-                              (insert-file-contents path)
-                              (message \"read %s\\n\" path)
-                              (buffer-string)))
-             and return t)
-    (puthash path found sample-cache)
-    (unless found (error \"No config at %s\" path))
-    (if (> tries 1) t nil)))"))
-  "Sample code per language: an alist (LANGUAGE (MODE...) . TEXT).
-The first MODE that is available fontifies TEXT: a tree-sitter mode
-\(named FOO-ts-mode) counts only if its grammar FOO is installed.
-`themer-reader-treesit-mode's rules apply as well.  Add your own with
-`add-to-list'; the form's Samples section offers every language here."
-  :type '(alist :key-type symbol
-                :value-type (cons (repeat :tag "Modes, in order of preference" function)
-                                  (string :tag "Code")))
+(defcustom themer-reader-form-sample-directory nil
+  "Directory of your own samples, read as well as the package's samples/.
+Each file named sample.EXT is a sample; its mode, as `auto-mode-alist'
+and `major-mode-remap-alist' give it, names the language.  A file here
+replaces the package's file of the same name.  nil means only the
+package's samples."
+  :type '(choice (const :tag "None" nil) directory)
   :group 'themer)
 
-(defcustom themer-reader-form-sample-languages '(typescript python rust c go elisp)
+(defcustom themer-reader-form-sample-languages t
   "The languages whose samples the form shows when it opens.
-Each is a key of `themer-reader-form-samples'.  The form's Samples
+t means all of them; otherwise a list of language symbols, named for
+the sample's mode (`python', `emacs-lisp', ...).  The form's Samples
 checkboxes change the choice for the rest of the session."
-  :type '(repeat symbol)
+  :type '(choice (const :tag "All" t) (repeat symbol))
   :group 'themer)
 
 (defconst themer-reader-form--language-names
-  '((typescript . "TypeScript") (python . "Python") (rust . "Rust") (c . "C")
-    (go . "Go") (elisp . "Emacs Lisp"))
-  "Display names of the built-in sample languages.")
+  '((typescript . "TypeScript") (emacs-lisp . "Emacs Lisp"))
+  "Display names of languages that `capitalize' gets wrong.")
 
 (defvar themer-reader-form--selected :unset
   "The languages whose samples are shown, for this session.
@@ -703,12 +501,55 @@ RUNS is a list of (BEG END FACE).")
   (or (alist-get lang themer-reader-form--language-names)
       (capitalize (symbol-name lang))))
 
+(defun themer-reader-form--sample-file-modes (file)
+  "The language of sample FILE and its candidate modes: (LANGUAGE MODE...).
+The mode is FILE's in `auto-mode-alist', after `major-mode-remap-alist';
+LANGUAGE is its name less -ts-mode, -mode or -ts-mode-maybe.  The
+candidates are LANGUAGE-ts-mode, LANGUAGE-mode, then the mode itself:
+the first usable one fontifies FILE.  nil if FILE has no mode."
+  (when-let* ((mode (assoc-default file auto-mode-alist #'string-match))
+              (mode (if (consp mode) (car mode) mode))
+              ((symbolp mode)))
+    (let* ((mode (or (alist-get mode major-mode-remap-alist) mode))
+           (lang (replace-regexp-in-string "\\(-ts\\)?-mode\\(-maybe\\)?\\'" ""
+                                           (symbol-name mode))))
+      (cons (intern lang)
+            (delete-dups
+             (delq nil (list (intern-soft (concat lang "-ts-mode"))
+                             (intern-soft (concat lang "-mode"))
+                             (unless (string-suffix-p "-maybe" (symbol-name mode)) mode))))))))
+
+(defun themer-reader-form--samples ()
+  "The samples found: a list of (LANGUAGE (MODE...) . FILE), by name.
+LANGUAGE and the modes are from `themer-reader-form--sample-file-modes';
+a file with no mode is named for its extension, with no modes."
+  (let (files)
+    (dolist (dir (list (expand-file-name "samples/" themer-reader--library-directory)
+                       themer-reader-form-sample-directory))
+      (when (and dir (file-directory-p dir))
+        (dolist (f (directory-files dir t "\\`sample\\.[^.]+\\'"))
+          (setf (alist-get (file-name-nondirectory f) files nil nil #'equal) f))))
+    (sort (mapcar (lambda (e)
+                    (let ((lm (or (themer-reader-form--sample-file-modes (cdr e))
+                                  (list (intern (file-name-extension (cdr e)))))))
+                      (cons (car lm) (cons (cdr lm) (cdr e)))))
+                  files)
+          (lambda (a b) (string< (themer-reader-form--language-name (car a))
+                                 (themer-reader-form--language-name (car b)))))))
+
 (defun themer-reader-form--selected-languages ()
-  "The languages shown, in the order of `themer-reader-form-samples'."
+  "The languages shown, in the order of `themer-reader-form--samples'."
   (let ((sel (if (eq themer-reader-form--selected :unset)
                  themer-reader-form-sample-languages
                themer-reader-form--selected)))
-    (cl-loop for (lang) in themer-reader-form-samples when (memq lang sel) collect lang)))
+    (cl-loop for (lang) in (themer-reader-form--samples)
+             when (or (eq sel t) (memq lang sel)) collect lang)))
+
+(defun themer-reader-form--sample-file-text (file)
+  "The text of sample FILE, final newline dropped."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (string-remove-suffix "\n" (buffer-string))))
 
 (defun themer-reader-form--mode-usable-p (mode)
   "Non-nil if major MODE exists, and its tree-sitter grammar if it has one."
@@ -775,7 +616,8 @@ colours, are level-4 features."
   "The samples of LANGUAGES as a string, fontified with DERIVED's faces.
 LANGUAGES defaults to the selected ones.  The faces are text properties,
 so the theme need not be enabled."
-  (let* ((languages (or languages (themer-reader-form--selected-languages)))
+  (let* ((samples (themer-reader-form--samples))
+         (languages (or languages (themer-reader-form--selected-languages)))
          (faces (themer-reader-faces derived))
          (tiers (plist-get derived :tiers))
          (bg (plist-get tiers :bg)) (fg (plist-get tiers :fg))
@@ -783,14 +625,16 @@ so the theme need not be enabled."
          (blocks
           (cl-loop
            for lang in languages
-           for (modes . text) = (alist-get lang themer-reader-form-samples)
-           for name = (themer-reader-form--language-name lang)
-           for run = (themer-reader-form--sample-runs modes text)
-           collect (cons (propertize (format "── %s ──" name) 'face `(:foreground ,dim :background ,bg))
-                         (if (eq run :none)
-                             (propertize (format "(no major mode available for %s)" name)
-                                         'face `(:foreground ,dim :background ,bg))
-                           (themer-reader-form--sample-text (car run) (cdr run) faces fg bg)))))
+           for (modes . file) = (alist-get lang samples)
+           when file
+           collect (let* ((name (themer-reader-form--language-name lang))
+                          (run (themer-reader-form--sample-runs
+                                modes (themer-reader-form--sample-file-text file))))
+                     (cons (propertize (format "── %s ──" name) 'face `(:foreground ,dim :background ,bg))
+                           (if (eq run :none)
+                               (propertize (format "(no major mode available for %s)" name)
+                                           'face `(:foreground ,dim :background ,bg))
+                             (themer-reader-form--sample-text (car run) (cdr run) faces fg bg))))))
          (width (+ 2 (cl-loop for (head . body) in blocks
                               maximize (max (length head)
                                             (cl-loop for l in (split-string body "\n") maximize (length l)))))))
@@ -1301,7 +1145,7 @@ The fields show STATE, a form state, if given, else MODEL."
                  (mapcar (lambda (e)
                            `(item :tag ,(themer-reader-form--language-name (car e))
                                   :format "%t" :value ,(car e)))
-                         themer-reader-form-samples)))
+                         (themer-reader-form--samples))))
     (widget-insert "\n\n")
     (setq themer-reader-form--dynamic (point-marker))
     (widget-insert "\n"))
