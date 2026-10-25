@@ -23,6 +23,7 @@ behind the standard; the package implements it.
 | `research/patterns/*.yaml` | Machine-readable roles (`roles.yaml`) and pattern sets (`reader.yaml` is current) |
 | `research/00-framework.md` | Vocabulary, hypotheses, and the record of each design revision |
 | `research/harness/` | Python reference implementation and measurements (see its README) |
+| `server/` | Web server: the research pages plus the timed task (`/task`); reports go to S3 (see its README) |
 
 ## Source of truth and parity
 
@@ -59,6 +60,8 @@ commands in `research/harness/README.md`):
 - After a `roles.yaml` change: `role_tokens.py` → `role_stats.py` →
   `adjacency.py` → `recoverability.py`, then `score_palettes.py`,
   `parse_load.py`, `render.py`.
+- `render.py` regenerates `out/renders/tasks.html`, which `server/` serves. A
+  changed trial set changes the reports' `trials_version`.
 - Under zsh, an unquoted `$VAR` holding several `--with` flags isn't
   word-split; use an array (`W=(--with a --with b); uv run $W ...`).
 

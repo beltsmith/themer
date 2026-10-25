@@ -1,0 +1,20 @@
+[project]
+name = "themer-reader-site"
+version = "0.1.0"
+description = "Reader standard pages and the timed search task, with reports stored in S3"
+requires-python = ">=3.12"
+dependencies = [
+    "starlette>=0.40",
+    "uvicorn>=0.30",
+    "markdown-it-py>=3.0",
+    "boto3>=1.35",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "httpx2", "moto[s3]>=5"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

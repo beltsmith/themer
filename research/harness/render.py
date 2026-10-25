@@ -8,7 +8,8 @@ Writes out/renders/:
                      plus a "plain" column (default ink only) as the no-colour baseline.
   tasks.html         self-contained timed search tasks (find definitions / exits / literals)
                      across sets (plain / landmark C / reader C / label C; Latin square over 4 snippets per
-                     language); results download as JSON.
+                     language). Served by server/app.py, results POST to /api/reports (stored in S3);
+                     opened from disk, they download as JSON. Each report carries the trial set's hash.
   palettes.json      which palettes were sampled and why.
 
 Snippets are chosen automatically (the 32-line window per language with the most distinct
@@ -16,6 +17,7 @@ roles, requiring at least one definition, exit, string and comment), not hand-pi
 Palettes: the four in PALETTE_IDS (creator assignments, mode C). `--sample` restores the old stratified
 random sample (seeded; variant × capacity tercile) with the old A/B columns.
 """
+import hashlib
 import html
 import json
 import random
@@ -271,21 +273,44 @@ def write_tasks(snippets, palettes, pal_by_id, conds=None):
                                "prompt": prompt, "targets": sorted(targets), "n_targets": n_t,
                                "html": code_html(spans, th, p)})
     rng.shuffle(trials)
+    trials_json = json.dumps(trials)
+    version = hashlib.sha256(trials_json.encode()).hexdigest()[:12]
     body = """
 <p>For each trial: read the instruction, press <b>Start</b>, click every matching token, then press
 <b>Done</b>. Speed and accuracy both count; don't hunt for perfection. Clicking a token again un-marks it.
-At the end, press <b>Download results</b> and save the JSON into <code>research/out/</code>.</p>
+<span id=save-note>At the end, press <b>Submit results</b> to send them to the research server.</span></p>
 <div id=ui><p id=prompt></p><button id=start>Start</button> <button id=done disabled>Done</button>
 <span id=prog></span><div id=stage></div></div>
 <script>
-const T = %s;
+const T = %s, VERSION = %s;
+// Opened from disk (file://) there is no server: results download as JSON instead.
+const SERVED = location.protocol.startsWith('http');
 let k = 0, t0 = 0, picked = new Set(), results = [];
-const $ = s => document.querySelector(s);
+const $ = s => document.querySelector(s), started = new Date().toISOString();
+if (!SERVED) $('#save-note').innerHTML =
+  'At the end, press <b>Download results</b> and save the JSON into <code>research/out/</code>.';
+function download(){ const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(results,null,1)],{type:'application/json'}));
+  a.download = 'task_results.json'; a.click(); }
+async function submit(){ const st = $('#status'); $('#submit').disabled = true; st.textContent = 'Sending…';
+  const report = {trials_version: VERSION, started, finished: new Date().toISOString(), results,
+    client: {viewport: [innerWidth, innerHeight], dpr: devicePixelRatio, colour_depth: screen.colorDepth,
+             colour_gamut: matchMedia('(color-gamut: p3)').matches ? 'p3' : 'srgb',
+             tz: Intl.DateTimeFormat().resolvedOptions().timeZone},
+    note: $('#note').value.trim() || null};
+  try { const r = await fetch(new URL('/api/reports', location), {method: 'POST',
+          headers: {'Content-Type': 'application/json'}, body: JSON.stringify(report)});
+    if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+    st.textContent = `Thank you, results saved (${(await r.json()).id}).`;
+  } catch (e) { st.textContent = `Sending failed (${e.message}); please download the results instead.`;
+    $('#submit').disabled = false; } }
 function show(){
-  if (k >= T.length){ $('#ui').innerHTML = '<p>All done.</p><button id=dl>Download results</button>';
-    $('#dl').onclick = () => { const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([JSON.stringify(results,null,1)],{type:'application/json'}));
-      a.download = 'task_results.json'; a.click(); }; return; }
+  if (k >= T.length){ $('#ui').innerHTML = SERVED
+      ? '<p>All done.</p><p><label>Anything to add (optional; e.g. display, colour vision, how it felt):<br>'
+        + '<textarea id=note rows=3 cols=60 maxlength=2000></textarea></label></p>'
+        + '<button id=submit>Submit results</button> <button id=dl>Download results</button> <span id=status></span>'
+      : '<p>All done.</p><button id=dl>Download results</button>';
+    $('#dl').onclick = download; if (SERVED) $('#submit').onclick = submit; return; }
   $('#prompt').textContent = T[k].prompt; $('#stage').innerHTML = '';
   $('#prog').textContent = `trial ${k+1}/${T.length}`; $('#start').disabled = false; $('#done').disabled = true;
 }
@@ -301,7 +326,7 @@ $('#done').onclick = () => { const tr = T[k], ms = performance.now() - t0;
     n_targets: tr.n_targets, hits: hit, false_alarms: fa, ms: Math.round(ms)});
   k++; show(); };
 show();
-</script>""" % json.dumps(trials)
+</script>""" % (trials_json, json.dumps(version))
     (OUT / "tasks.html").write_text(PAGE.format(title=f"Search tasks ({len(trials)} trials)", body=body))
     return len(trials)
 
