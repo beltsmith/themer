@@ -22,8 +22,8 @@ Or with `use-package`:
   :demand t)
 ```
 
-`:files` has to include `examples` for the example themes (reader-gruvbox,
--monokai, -kanagawa, -zenburn) to be available, and `samples` for the theme
+`:files` has to include `examples` for the example themes (reader-blush,
+-gruvbox, -monokai, -kanagawa, -zenburn) to be available, and `samples` for the theme
 form's code samples. Load the package eagerly
 (`require` or `:demand t`): loading it is what puts your theme directory
 and the examples on `custom-theme-load-path`, so until then reader themes
@@ -120,6 +120,8 @@ the four conventions. Each slot has:
 Below the fields are the derived tiers (recessive, quiet, loud and strong
 per family, plus default, dim, faded, the parameter tint and popout, each
 with its hex and Lc), and the conformance level with each MUST and SHOULD.
+
+![The form editing reader-blush, with its Python and Rust samples](doc/blush.png)
 
 ### Samples
 
@@ -221,18 +223,18 @@ its header and footer lines. The file looks like this:
 ```elisp
 (require 'themer-reader)
 
-(themer-reader-deftheme reader-gruvbox
-  "Gruvbox dark, medium (base16), on the reader standard."
-  :palette ((bg "#282828")
-            (fg "#d5c4a1")
-            (red "#fb4934")
-            (yellow "#fabd2f")
-            (green "#b8bb26")
+(themer-reader-deftheme reader-blush
+  "Blush, on the reader standard."
+  :palette ((bg "#1c1d21")
+            (fg "#dddfe4")
+            (red "#f8667b")
+            (yellow "#ceb300")
+            (green "#80f3ca")
             ...)
   :bg bg
   :fg fg
   :syntax red
-  :callable green
+  :callable blue
   ...)
 ```
 
@@ -240,15 +242,19 @@ Themes appear in `load-theme` and `consult-theme`: loading `themer-reader`
 puts `themer-reader-theme-directory` (without creating it) and, with
 `themer-reader-include-examples`, the package's `examples/` on
 `custom-theme-load-path`, and Save adds the directory of a theme saved
-anywhere. `(load-theme 'reader-gruvbox)` asks you to confirm the theme as
+anywhere. `(load-theme 'reader-blush)` asks you to confirm the theme as
 usual; `custom-safe-themes` is not touched.
 
-`examples/` has four themes like this, built from the creator assignments
+`examples/reader-blush-theme.el` is the example to start from: a theme
+designed on the standard, with nine palette colours, the parameter tint,
+popout and UI accent all set, and conformance at `full+cvd`.
+
+The other four are ports, built from the creator assignments
 in `research/harness/assignments.yaml`: gruvbox, monokai, kanagawa and
 zenburn. Each palette holds the theme's full base16 set under the theme's
 own colour names (kanagawa's `sumiInk1`, `fujiWhite`, `oniViolet`…;
 zenburn's `red+1`, `yellow-1`…), used or not. `examples/renders/` shows
-each one on Go, TypeScript and Rust snippets from the research corpus.
+each of the four on Go, TypeScript and Rust snippets from the research corpus.
 
 ### Palettes
 
@@ -382,9 +388,10 @@ each MUST and SHOULD of PATTERNS.md §1–§4, and gives the level reached:
 | `none` | the loud families still fail at R2 |
 
 The level is reached under normal vision, because the standard makes the CVD
-rules SHOULDs. The faces follow that level. The example themes reach R2
-(gruvbox, zenburn), R3 (monokai) and R1 (kanagawa). None meets the CVD
-SHOULDs. These match the reference mapper.
+rules SHOULDs. The faces follow that level. reader-blush reaches
+`full+cvd`. The ported examples reach R2 (gruvbox, zenburn), R3 (monokai)
+and R1 (kanagawa), and none meets the CVD SHOULDs; these match the
+reference mapper.
 
 `M-x themer-reader-export` writes a standalone `deftheme` with the colours
 baked in and no dependency on themer. If the theme has a palette, the

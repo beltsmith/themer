@@ -17,7 +17,7 @@ behind the standard; the package implements it.
 | `themer-picker.el` | `themer-picker-adjust`: adjust the hex at point/region in OKLCH, in place |
 | `themer-reader-form.el` | Widget form (`themer-reader-new-theme` / `-edit-theme`), sample buffer |
 | `samples/` | `sample.EXT` code samples the theme form fontifies; discovered by name, modes from `auto-mode-alist` |
-| `examples/` | Four reader themes (gruvbox, monokai, kanagawa, zenburn) + renders |
+| `examples/` | Reader themes: blush (the main example, `full+cvd`) and four ports (gruvbox, monokai, kanagawa, zenburn) + renders |
 | `tests/themer-test.el` | ERT suite, including byte-compile-clean and checkdoc-clean tests |
 | `research/PATTERNS.md` | The normative standard (MUST/SHOULD). Source of truth for behaviour |
 | `research/patterns/*.yaml` | Machine-readable roles (`roles.yaml`) and pattern sets (`reader.yaml` is current) |

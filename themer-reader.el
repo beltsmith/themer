@@ -131,7 +131,7 @@ It is on `custom-theme-load-path', so the themes saved there appear in
 
 (defcustom themer-reader-include-examples t
   "Non-nil means the example themes (examples/) are on `custom-theme-load-path'.
-Then `load-theme' and `consult-theme' list reader-gruvbox and the others."
+Then `load-theme' and `consult-theme' list reader-blush and the others."
   :type 'boolean
   :set #'themer-reader--set-include-examples
   :group 'themer)
