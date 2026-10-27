@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'subr-x)
 
 (defvar treesit-font-lock-level)
@@ -48,9 +49,10 @@ package's samples."
 (defcustom themer-samples-languages t
   "The languages whose samples are shown at first.
 t means all of them; otherwise a list of language symbols, named for
-the sample's mode (`python', `emacs-lisp', ...).
-`themer-samples-set-languages' changes the choice for the session."
-  :type '(choice (const :tag "All" t) (repeat symbol))
+the sample's mode (`python', `emacs-lisp', ...).  Only the first
+`themer-samples-max' are shown.  `themer-samples-set-languages' changes
+the choice for the session."
+  :type '(choice (const :tag "The first found" t) (repeat symbol))
   :group 'themer)
 
 (defcustom themer-samples-semantic-tokens t
@@ -132,13 +134,20 @@ with no mode is named for its extension, with no modes."
           (lambda (a b) (string< (themer-samples-language-name (car a))
                                  (themer-samples-language-name (car b)))))))
 
+(defconst themer-samples-max 4
+  "The most samples shown at once: they fill a two-by-two grid.")
+
 (defun themer-samples-selected-languages ()
-  "The languages shown, in the order of `themer-samples-list'."
-  (let ((sel (if (eq themer-samples--selected :unset)
-                 themer-samples-languages
-               themer-samples--selected)))
-    (cl-loop for (lang) in (themer-samples-list)
-             when (or (eq sel t) (memq lang sel)) collect lang)))
+  "The languages shown, in the order of `themer-samples-list'.
+At most `themer-samples-max': the first chosen, or the first found."
+  (let* ((sel (if (eq themer-samples--selected :unset)
+                  themer-samples-languages
+                themer-samples--selected))
+         (langs (mapcar #'car (themer-samples-list)))
+         (chosen (seq-take (if (eq sel t) langs
+                             (cl-remove-if-not (lambda (l) (memq l langs)) sel))
+                           themer-samples-max)))
+    (cl-remove-if-not (lambda (l) (memq l chosen)) langs)))
 
 (defun themer-samples--buffer-name (title lang)
   "The name of the LANG sample buffer of an owner titled TITLE."
@@ -232,8 +241,8 @@ It is the owner's LANG buffer from now on."
       (with-current-buffer buf
         (rename-buffer (themer-samples--buffer-name title lang) t)))))
 
-(defconst themer-samples--width 120
-  "Columns for the sample windows when they sit beside the owner.")
+(defconst themer-samples--width 80
+  "Columns for each sample window when the grid sits beside the owner.")
 
 (defconst themer-samples--owner-min-width 100
   "Columns the owner keeps when the samples are split off to its right.")
@@ -245,37 +254,51 @@ It is the owner's LANG buffer from now on."
       (dolist (w (get-buffer-window-list b nil t))
         (ignore-errors (delete-window w))))))
 
+(defun themer-samples--place (buf direction window &rest alist)
+  "Display BUF split DIRECTION off WINDOW, with ALIST; return its window.
+Each split makes a new parent, so the grid's windows only share room
+with each other."
+  (let ((window-combination-limit t))
+    (display-buffer buf `((display-buffer-in-direction)
+                          (direction . ,direction) (window . ,window) ,@alist))))
+
 (defun themer-samples-show ()
-  "Show the selected samples beside this buffer, one window each.
-The samples split the buffer's window: to the right if it is wide
-enough for both, else below; the rest stack under the first.
-`display-buffer-alist' takes precedence.  Return the buffers."
+  "Show the selected samples beside this buffer, in a two-by-two grid.
+The grid splits the buffer's window: to the right if it is wide enough
+for both, else below.  The samples fill it left to right, then top to
+bottom.  `display-buffer-alist' takes precedence.  Return the buffers."
   (interactive)
-  (let* ((bufs (themer-samples--ensure))
-         (win (or (get-buffer-window (current-buffer)) (selected-window)))
-         (wide (>= (window-total-width win)
-                   (+ themer-samples--owner-min-width themer-samples--width 1)))
-         prev)
-    (themer-samples--hide (cl-set-difference (mapcar #'cdr themer-samples--buffers) bufs))
-    (dolist (b bufs)
-      (setq prev
-            (or (get-buffer-window b)
-                (display-buffer
-                 b (if prev
-                       `((display-buffer-in-direction) (direction . below) (window . ,prev))
-                     `((display-buffer-reuse-window display-buffer-in-direction)
-                       (direction . ,(if wide 'right 'below))
-                       (window . ,win)
-                       (window-width . ,(1+ themer-samples--width)))))
-                prev)))
-    (when-let* (((cdr bufs))
-                (w (get-buffer-window (cadr bufs))))
-      (balance-windows (window-parent w)))
+  (let ((bufs (themer-samples--ensure))
+        (win (or (get-buffer-window (current-buffer)) (selected-window)))
+        wide cells grid)
+    ;; Laid out afresh each time, so the grid stays whole as languages
+    ;; change.  Measured once the old grid is gone and its room is back.
+    (themer-samples--hide (mapcar #'cdr themer-samples--buffers))
+    (setq wide (>= (window-total-width win)
+                   (+ themer-samples--owner-min-width (* 2 (1+ themer-samples--width)))))
+    (when-let* ((b (nth 0 bufs)))
+      (push (themer-samples--place b (if wide 'right 'below) win
+                                   `(window-width . ,(* 2 (1+ themer-samples--width))))
+            cells))
+    (when-let* ((b (nth 1 bufs)) ((window-live-p (car cells))))
+      (push (themer-samples--place b 'right (car cells)) cells)
+      (setq grid (and (window-live-p (car cells)) (window-parent (car cells)))))
+    (cl-loop for b in (nthcdr 2 bufs)
+             for above in (reverse cells)
+             when (window-live-p above)
+             do (themer-samples--place b 'below above))
+    (when (window-valid-p grid)
+      (balance-windows grid))
     bufs))
 
 (defun themer-samples-set-languages (languages)
-  "Show the samples of LANGUAGES, and lay out their windows now."
-  (setq themer-samples--selected languages)
+  "Show the samples of LANGUAGES, and lay out their windows now.
+Past `themer-samples-max', the languages chosen longest ago give way."
+  (let* ((old (if (consp themer-samples--selected) themer-samples--selected
+                (themer-samples-selected-languages)))
+         (sel (append (cl-remove-if-not (lambda (l) (memq l languages)) old)
+                      (cl-remove-if (lambda (l) (memq l old)) languages))))
+    (setq themer-samples--selected (last sel themer-samples-max)))
   (themer-samples-show))
 
 (defun themer-samples-kill ()

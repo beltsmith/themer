@@ -122,11 +122,13 @@ is enabled. Every re-derive updates the remapping in place, keeping point
 and scroll. The buffers are read-only (`C-x C-q` to try edits) and are
 killed with the form, along with their directory.
 
-The form opens in the selected window, and the samples split off it: to
-the right when the window is wide enough for both (about 180 columns), else
-below. Each further language stacks under the first, and the windows are
-balanced. A rule in `display-buffer-alist` overrides the first split. If
-you close the windows, the form's **Show samples** button brings them back.
+The form opens in the selected window, and the samples split off it in a
+two-by-two grid: to the right when the window is wide enough for both
+(about 260 columns), else below. The samples fill the grid left to right,
+then top to bottom, and the grid is laid out afresh whenever the choice of
+languages changes. A rule in `display-buffer-alist` overrides the splits.
+If you close the windows, the form's **Show samples** button brings them
+back.
 
 There are samples for C, Emacs Lisp, Go, Python, Rust and TypeScript, in
 [samples/](samples/), each exercising the standard's roles: keywords,
@@ -134,9 +136,21 @@ exits, calls, types, function definitions, module-level bindings and
 constants, parameters, literals, strings with escapes, comments, a doc
 comment, a TODO, commented-out code, and macros, decorators and
 attributes. The form's **Samples** section has a checkbox per language;
-ticking one shows or hides its buffer at once, without re-deriving. The
-choice lasts for the session and starts from
-`themer-samples-languages` (all of them, by default).
+ticking one shows or hides its buffer at once, without re-deriving. At
+most four show at once (`themer-samples-max`): ticking a fifth unticks the
+one chosen longest ago. The choice lasts for the session and starts from
+`themer-samples-languages` (the first four, by default).
+
+`M-x reader-theme-screenshot` writes a picture of the form and its samples
+for a theme you pick, to a `.png`, `.svg` or `.pdf`: it opens the form in a
+frame of its own (`themer-render-frame-size`, 264×64 by default), waits for
+fontification and eglot, writes the frame and deletes it. From Lisp, pass
+the languages to show and the seconds to wait:
+
+```elisp
+(reader-theme-screenshot "examples/reader-blush-theme.el" "blush.png"
+                         '(c python rust typescript) 5)
+```
 
 Eglot semantic tokens come with the real buffers. For each sample whose
 mode has an installed server in `eglot-server-programs`, the form connects
@@ -560,6 +574,17 @@ still parsed, so tree-sitter sees the full context.
 
 To get a PNG: `rsvg-convert OUT.svg -o OUT.png`.
 
+### `themer-render-frame`, `themer-render-frame-with`
+
+Write a frame as Emacs drew it, to a `.png`, `.svg` or `.pdf`, for
+pictures to use elsewhere. Needs an Emacs built with Cairo.
+
+- `themer-render-frame` writes the selected frame.
+- `themer-render-frame-with FILE SETUP` makes a frame
+  `themer-render-frame-size` large, calls `SETUP` in it, waits for things to
+  settle, writes the frame, and deletes it, killing the buffer `SETUP`
+  returns. A tiling window manager may resize the frame first.
+
 ### `themer-picker-adjust`
 
 `M-x themer-picker-adjust` picks up the `#rrggbb` (or `#rgb`) at point, or
@@ -593,11 +618,12 @@ upper-case. The whole adjustment is one undo step. In a
 | `themer-render-line-height` | `1.45` | Multiple of the font size |
 | `themer-render-semtok-timeout` | `10` | Seconds to wait for semantic tokens |
 | `themer-render-diff-colour` | `nil` | `nil` uses the `shadow` face |
+| `themer-render-frame-size` | `(264 . 64)` | Columns and lines of the frame `themer-render-frame-with` makes |
 | `reader-theme-directory` | `themes/` in `user-emacs-directory` | Where new themes are saved, and searched by `reader-theme-edit`. Put on `custom-theme-load-path` |
 | `reader-theme-include-examples` | `t` | Put the package's `examples/` on `custom-theme-load-path` |
 | `reader-theme-enable-rules` | `t` | Loading a reader theme turns on `reader-theme-treesit-mode` |
 | `themer-samples-directory` | `nil` | Your own `sample.EXT` files; each is a sample, and replaces a built-in of the same name |
-| `themer-samples-languages` | `t` (all) | Languages whose samples the form shows at first |
+| `themer-samples-languages` | `t` (the first four) | Languages whose samples the form shows at first, at most four |
 | `themer-samples-semantic-tokens` | `t` | Connect eglot in the sample buffers |
 | `reader-theme-fade-commented-code` | `nil` | Draw code-like comments in the faded tier |
 | `reader-theme-italic-comments` | `nil` | Italic comments |

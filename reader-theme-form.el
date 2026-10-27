@@ -35,6 +35,7 @@
 (require 'reader-theme)
 (require 'themer-picker)
 (require 'themer-samples)
+(require 'themer-render)
 
 (defvar themer-preview-delay)
 (declare-function custom-theme--load-path "custom")
@@ -859,7 +860,8 @@ The fields show STATE, a form state, if given, else MODEL."
         (let ((ov (make-overlay (1- (point)) (point))))
           (push (cons key ov) reader-theme-form--overlays))
         (widget-insert "\n")))
-    (widget-insert "\n" (propertize "Samples" 'face 'bold) "  (shown in their own buffers)  ")
+    (widget-insert "\n" (propertize "Samples" 'face 'bold)
+                   (format "  (shown in their own buffers, %d at once)  " themer-samples-max))
     (reader-theme-form--button "Show samples" #'themer-samples-show)
     (widget-insert "\n  ")
     (setq reader-theme-form--samples-widget
@@ -867,7 +869,12 @@ The fields show STATE, a form state, if given, else MODEL."
                  :value (themer-samples-selected-languages)
                  :entry-format "%b %v   "
                  :notify (lambda (w &rest _)
-                           (themer-samples-set-languages (widget-value w)))
+                           (themer-samples-set-languages (widget-value w))
+                           ;; Untick the language that gave way, if one did.
+                           (let ((shown (themer-samples-selected-languages)))
+                             (unless (seq-set-equal-p shown (widget-value w))
+                               (save-excursion (widget-value-set w shown))
+                               (widget-setup))))
                  (mapcar (lambda (e)
                            `(item :tag ,(themer-samples-language-name (car e))
                                   :format "%t" :value ,(car e)))
@@ -942,6 +949,27 @@ one chosen by name from `custom-theme-load-path' and
              ((with-current-buffer buf (reader-theme-form--deftheme-bounds))))
        (with-current-buffer buf (reader-theme-form-parse (buffer-string) (expand-file-name file)))
      (reader-theme-form-read-file file))))
+
+;;;###autoload
+(defun reader-theme-screenshot (theme-file file &optional languages settle)
+  "Write a picture of the form on THEME-FILE, with its samples, to FILE.
+FILE is a .png, .svg or .pdf.  The form opens in a frame of its own,
+`themer-render-frame-size' large, which is deleted afterwards.
+LANGUAGES, at most `themer-samples-max', are the samples shown; nil
+means the current choice.  SETTLE is as for `themer-render-frame-with'."
+  (interactive
+   (list (or (reader-theme-form--read-theme-file "Picture of reader theme: ")
+             (user-error "No theme chosen"))
+         (read-file-name "Write picture to: " nil nil nil "reader-theme.png")))
+  (let ((themer-samples--selected (or languages themer-samples--selected)))
+    (themer-render-frame-with
+     file (lambda ()
+            ;; Derive now: the settle wait isn't idle, so the form's own
+            ;; refresh may never run.
+            (let ((form (reader-theme-edit theme-file)))
+              (reader-theme-form-refresh form)
+              form))
+     nil settle)))
 
 (defun reader-theme-form-save (&optional file)
   "Save the form's theme to FILE.

@@ -1036,6 +1036,63 @@ to their tree-sitter modes here."
         (when (buffer-live-p form) (kill-buffer form))
         (mapc (lambda (b) (when (buffer-live-p b) (kill-buffer b))) samples)))))
 
+(ert-deftest themer-samples-at-most-four ()
+  "At most `themer-samples-max' samples show; a new choice displaces the oldest."
+  (let ((themer-samples--selected :unset)
+        (themer-samples-languages t)
+        (themer-samples-directory nil))
+    (should (equal (themer-samples-selected-languages) '(c emacs-lisp go python)))
+    (cl-letf (((symbol-function 'themer-samples-show) #'ignore))
+      (themer-samples-set-languages '(c emacs-lisp go python rust))
+      (should (equal (themer-samples-selected-languages) '(emacs-lisp go python rust)))
+      (themer-samples-set-languages '(emacs-lisp go python rust typescript c))
+      (should (equal themer-samples--selected '(python rust typescript c))))))
+
+(ert-deftest themer-samples-grid ()
+  "The samples fill a two-by-two grid beside the owner, which keeps its width."
+  (let ((themer-samples--selected '(c go python rust))
+        (themer-samples-semantic-tokens nil)
+        (file (expand-file-name "examples/reader-gruvbox-theme.el" themer-test--root))
+        (size (cons (frame-width) (frame-height)))
+        form)
+    (save-window-excursion
+      (unwind-protect
+          (let ((window-min-height 2))
+            (delete-other-windows)
+            ;; Wide enough for the grid to sit beside the form.
+            (set-frame-size nil 280 72)
+            (setq form (reader-theme-edit file))
+            (pcase-let* ((`(,c ,go ,py ,rs)
+                          (mapcar (lambda (l) (get-buffer-window
+                                               (alist-get l (buffer-local-value
+                                                             'themer-samples--buffers form))))
+                                  '(c go python rust)))
+                         (owner (get-buffer-window form)))
+              (should (and c go py rs owner))
+              (should (= 5 (length (window-list))))
+              ;; C | Go above Python | Rust.
+              (should (= (window-top-line c) (window-top-line go)))
+              (should (= (window-left-column c) (window-left-column py)))
+              (should (= (window-left-column go) (window-left-column rs)))
+              (should (< (window-left-column c) (window-left-column go)))
+              (should (< (window-top-line c) (window-top-line py)))
+              (should (= (window-top-line owner) (window-top-line c)))
+              (should (< (window-left-column owner) (window-left-column c)))
+              ;; Toggling a language rebuilds the grid, still beside the
+              ;; form; the owner's room is kept.
+              (let ((size (list (window-total-width owner) (window-total-height owner))))
+                (with-current-buffer form (themer-samples-set-languages '(c go python)))
+                (should (= 4 (length (window-list))))
+                (should (< (window-left-column owner)
+                           (window-left-column (get-buffer-window
+                                                (alist-get 'c (buffer-local-value
+                                                               'themer-samples--buffers form))))))
+                (with-current-buffer form (themer-samples-set-languages '(c go python rust)))
+                (should (equal size (list (window-total-width owner)
+                                          (window-total-height owner)))))))
+        (set-frame-size nil (car size) (cdr size))
+        (when (buffer-live-p form) (kill-buffer form))))))
+
 ;;;; UI accent
 
 (defconst themer-test--accent-spec

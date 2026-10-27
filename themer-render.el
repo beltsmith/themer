@@ -372,6 +372,64 @@ Interactively, render the region if active, else the visible window."
     (user-error "Eglot isn't managing this buffer with a semantic-token server"))
   (themer-render--show (themer-render--svg (themer-render--compare-panels beg end))))
 
+;;;; Frames
+
+(declare-function x-export-frames "xfns.c")
+
+(defcustom themer-render-frame-size '(264 . 64)
+  "Size of the frame `themer-render-frame-with' makes: (COLUMNS . LINES)."
+  :type '(cons (integer :tag "Columns") (integer :tag "Lines"))
+  :group 'themer)
+
+;;;###autoload
+(defun themer-render-frame (file &optional frame)
+  "Write FRAME, or the selected frame, to FILE as an image, as drawn.
+The type is FILE's extension: png, svg or pdf.  Needs Emacs built with
+Cairo.  Return FILE."
+  (interactive (list (read-file-name "Write frame to: " nil nil nil "frame.png")))
+  (unless (fboundp 'x-export-frames)
+    (user-error "Writing a frame needs an Emacs built with Cairo"))
+  (let* ((file (expand-file-name file))
+         (type (intern (downcase (or (file-name-extension file) ""))))
+         (frame (or frame (selected-frame))))
+    (unless (memq type '(png svg pdf))
+      (user-error "Write the frame to a .png, .svg or .pdf file"))
+    ;; Clear the prompt from the echo area before the frame is drawn.
+    (message nil)
+    (redisplay t)
+    (let ((data (x-export-frames frame type)))
+      (let ((coding-system-for-write 'binary))
+        (with-temp-file file
+          (set-buffer-multibyte nil)
+          (insert data))))
+    (message "Wrote %s" file)
+    file))
+
+(defun themer-render-frame-with (file setup &optional size settle)
+  "Make a frame, call SETUP in it, and write the frame to FILE.
+SIZE is (COLUMNS . LINES), by default `themer-render-frame-size'.  The
+frame is written SETTLE seconds (default 3) after SETUP returns, so
+fontification, eglot and timers can finish.  SETUP may return a buffer,
+killed afterwards with the frame.  A window manager that tiles may
+change the size.  Return FILE."
+  (let* ((size (or size themer-render-frame-size))
+         (frame (make-frame `((name . "themer-render") (width . ,(car size))
+                              (height . ,(cdr size)))))
+         buf)
+    (unwind-protect
+        (with-selected-frame frame
+          (delete-other-windows)
+          (setq buf (funcall setup))
+          (let ((deadline (+ (float-time) (or settle 3))))
+            (while (< (float-time) deadline)
+              (sleep-for 0.1)
+              (redisplay t)))
+          (themer-render-frame file frame))
+      (when (bufferp buf)
+        (kill-buffer buf))
+      (when (frame-live-p frame)
+        (delete-frame frame)))))
+
 ;;;###autoload
 (defun themer-batch-render ()
   "Render a file from the command line; see the commentary for usage.
