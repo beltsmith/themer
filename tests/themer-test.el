@@ -801,35 +801,62 @@ function definition, macro a macro definition.")
 
 ;;;; Samples
 
-(defun themer-test--sample-faces (lang)
-  "The faces (flattened) of the fontified built-in sample of LANG."
-  (pcase-let* ((`(,modes . ,file) (alist-get lang (themer-reader-form--samples)))
-               (text (themer-reader-form--sample-file-text file)))
-    (let ((run (themer-reader-form--sample-runs modes text)))
-      (should-not (eq run :none))
-      (should (equal (car run) text))
-      (delete-dups (apply #'append (mapcar (lambda (r) (ensure-list (nth 2 r))) (cdr run)))))))
+(defmacro themer-test--with-form-context (&rest body)
+  "Run BODY in a temporary buffer standing in for a form; kill its samples after."
+  (declare (indent 0))
+  `(with-temp-buffer
+     (let ((themer-reader-form-semantic-tokens nil))
+       (unwind-protect (progn ,@body)
+         (themer-reader-form--kill-samples)))))
+
+(defun themer-test--buffer-faces (buf)
+  "The faces (flattened) in BUF, fontified."
+  (with-current-buffer buf
+    (font-lock-ensure)
+    (let (faces (p (point-min)))
+      (while (< p (point-max))
+        (dolist (f (ensure-list (get-text-property p 'face))) (push f faces))
+        (setq p (or (next-single-property-change p 'face) (point-max))))
+      (delete-dups faces))))
 
 (ert-deftest themer-reader-form-samples-fontify ()
-  "Every built-in sample has keyword, call and string spans; most have exits."
-  (let ((themer-reader-form-sample-directory nil))
+  "Every built-in sample buffer has keyword, call and string faces; most have exits.
+The buffers take the modes visiting gives, so C and Python are remapped
+to their tree-sitter modes here."
+  (let ((themer-reader-form-sample-directory nil)
+        (major-mode-remap-alist '((c-mode . c-ts-mode) (python-mode . python-ts-mode))))
     (should (equal (mapcar #'car (themer-reader-form--samples))
                    '(c emacs-lisp go python rust typescript)))
-    (dolist (lang (mapcar #'car (themer-reader-form--samples)))
-      (let ((faces (themer-test--sample-faces lang)))
-        (dolist (f '(font-lock-keyword-face font-lock-string-face))
-          (should (memq f faces)))
-        (should (or (memq 'font-lock-function-call-face faces)
-                    (memq 'font-lock-builtin-face faces)))
-        (when (memq lang '(rust go c python typescript))
-          (should (memq 'themer-reader-exit faces)))))))
+    (themer-test--with-form-context
+      (pcase-dolist (`(,lang ,_ . ,file) (themer-reader-form--samples))
+        (let* ((buf (themer-reader-form--visit-sample lang file))
+               (faces (themer-test--buffer-faces buf)))
+          (should (buffer-local-value 'themer-reader-form-sample-mode buf))
+          (should (buffer-local-value 'buffer-read-only buf))
+          (should-not (equal (buffer-file-name buf) file))
+          (dolist (f '(font-lock-keyword-face font-lock-string-face))
+            (should (memq f faces)))
+          (should (or (memq 'font-lock-function-call-face faces)
+                      (memq 'font-lock-builtin-face faces)))
+          (when (memq lang '(rust go c python typescript))
+            (should (memq 'themer-reader-exit faces))))))))
 
-(ert-deftest themer-reader-form-layer-tokens ()
-  "Semantic tokens go in front of the runs, splitting them, as eglot paints."
-  (should (equal (themer-reader-form--layer-tokens
-                  "fn f(a)" '((0 2 kw) (3 4 fun)) '((3 7 (sem-x sem-y)) (5 6 (sem-p))))
-                 '((0 2 kw) (3 4 (sem-y sem-x fun)) (4 5 (sem-y sem-x))
-                   (5 6 (sem-p sem-y sem-x)) (6 7 (sem-y sem-x))))))
+(ert-deftest themer-reader-form-sample-remap ()
+  "A sample buffer shows the derivation through `face-remapping-alist'."
+  (let ((d (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes)))))
+    (themer-test--with-form-context
+      (let* ((file (cddr (assq 'rust (themer-reader-form--samples))))
+             (buf (themer-reader-form--visit-sample 'rust file))
+             (faces (themer-reader-faces d)))
+        (themer-reader-form--remap buf d)
+        (with-current-buffer buf
+          (should (equal (alist-get 'font-lock-keyword-face face-remapping-alist)
+                         (list (alist-get 'font-lock-keyword-face faces))))
+          (should (equal (alist-get 'default face-remapping-alist)
+                         (list (alist-get 'default faces))))
+          ;; Empty in the theme: empty here, the face behind shows through.
+          (should (equal (alist-get 'eglot-semantic-keyword face-remapping-alist)
+                         '((:foreground unspecified)))))))))
 
 (ert-deftest themer-reader-eglot-faces ()
   "Eglot faces are empty where tree-sitter knows better, coloured where it can't."
@@ -837,49 +864,75 @@ function definition, macro a macro definition.")
   (let* ((d (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes))))
          (faces (themer-reader-faces d)))
     (dolist (f '(eglot-semantic-keyword eglot-semantic-comment eglot-semantic-string
-                 eglot-semantic-namespace eglot-semantic-documentation))
+                 eglot-semantic-documentation))
       (should (equal (list f nil) (list f (alist-get f faces)))))
     (should (plist-get (alist-get 'eglot-semantic-parameter faces) :foreground))
-    (should (plist-get (alist-get 'eglot-semantic-macro faces) :foreground))))
+    (should (plist-get (alist-get 'eglot-semantic-macro faces) :foreground))
+    (should (equal (alist-get 'eglot-semantic-namespace faces)
+                   (alist-get 'themer-reader-module faces)))))
+
+(ert-deftest themer-reader-rainbow-delimiters-faces ()
+  "Rainbow delimiters are punctuation at every depth."
+  (let ((faces (themer-reader-faces
+                (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes))))))
+    (dotimes (i 9)
+      (should (equal (alist-get (intern (format "rainbow-delimiters-depth-%d-face" (1+ i))) faces)
+                     (alist-get 'font-lock-bracket-face faces))))))
+
+(ert-deftest themer-reader-drop-namespace-tokens ()
+  "Namespace tokens stay on modules, come off types and attributes."
+  (let ((s (concat (propertize "std" 'face '(eglot-semantic-namespace themer-reader-module)) " "
+                   (propertize "fs" 'face '(eglot-semantic-namespace)) " "
+                   (propertize "u32" 'face '(eglot-semantic-namespace font-lock-type-face)) " "
+                   (propertize "derive" 'face '(eglot-semantic-namespace themer-reader-meta)))))
+    (themer-reader--drop-namespace-tokens 0 (length s) s)
+    (should (equal (mapcar (lambda (i) (get-text-property i 'face s)) '(0 4 7 11))
+                   '((eglot-semantic-namespace themer-reader-module)
+                     (eglot-semantic-namespace)
+                     font-lock-type-face themer-reader-meta)))))
 
 (ert-deftest themer-reader-form-semantic-tokens ()
-  "The Rust sample gets rust-analyzer's tokens; the servers go afterwards."
+  "The Rust sample buffer gets rust-analyzer's tokens; the server goes with the form."
   :tags '(:expensive)
   (skip-unless (and (require 'eglot nil t) (executable-find "rust-analyzer")
                     (treesit-language-available-p 'rust)))
-  (pcase-let* ((themer-reader-form-semantic-tokens t)
-               (themer-reader-form-sample-directory nil)
-               (`(,modes . ,file) (alist-get 'rust (themer-reader-form--samples)))
-               (text (themer-reader-form--sample-file-text file))
-               (deadline (+ (float-time) 60))
-               (tokens nil))
-    (skip-unless (not (get-file-buffer file)))
-    (unwind-protect
-        (progn
-          (while (and (not (setq tokens (themer-reader-form--semtok-tokens file modes text)))
-                      (eq (plist-get (gethash file themer-reader-form--semtok) :status) 'pending)
-                      (< (float-time) deadline))
-            (accept-process-output nil 0.2))
-          (should tokens)
-          (should (cl-some (lambda (tok) (memq 'eglot-semantic-macro (nth 2 tok))) tokens)))
-      (themer-reader-form--semtok-stop))
-    (should-not (get-file-buffer file))))
+  (let ((themer-reader-form-sample-directory nil)
+        (deadline (+ (float-time) 60))
+        buf server dir)
+    (with-temp-buffer
+      (let ((themer-reader-form-semantic-tokens t))
+        (unwind-protect
+            (progn
+              (setq buf (themer-reader-form--visit-sample
+                         'rust (cddr (assq 'rust (themer-reader-form--samples))))
+                    dir themer-reader-form--sample-dir)
+              (while (and (not (with-current-buffer buf
+                                 (font-lock-ensure)
+                                 (text-property-search-forward
+                                  'face 'eglot-semantic-macro
+                                  (lambda (v f) (memq v (ensure-list f))))))
+                          (< (float-time) deadline))
+                (accept-process-output nil 0.2)
+                (with-current-buffer buf (goto-char (point-min))))
+              (setq server (with-current-buffer buf (eglot-current-server)))
+              (should server)
+              (should (with-current-buffer buf
+                        (goto-char (point-min))
+                        (text-property-search-forward
+                         'face 'eglot-semantic-macro
+                         (lambda (v f) (memq v (ensure-list f)))))))
+          (themer-reader-form--kill-samples))))
+    (should-not (buffer-live-p buf))
+    (should-not (jsonrpc-running-p server))
+    (should-not (file-exists-p dir))))
 
 (ert-deftest themer-reader-form-sample-directory ()
   "The user's sample.EXT files are found: they replace or add languages."
   (let* ((dir (make-temp-file "themer-samples" t))
          (themer-reader-form-sample-directory dir)
-         (themer-reader-form-semantic-tokens nil)
          (themer-reader-form--selected :unset)
          (themer-reader-form-sample-languages t)
-         (major-mode-remap-alist nil)
-         (d (themer-reader-derive (plist-get (themer-reader-form-parse
-                                              (with-temp-buffer
-                                                (insert-file-contents
-                                                 (expand-file-name "examples/reader-gruvbox-theme.el"
-                                                                   themer-test--root))
-                                                (buffer-string)))
-                                             :spec))))
+         (major-mode-remap-alist nil))
     (unwind-protect
         (progn
           (dolist (f '(("sample.rs" . "fn mine() {}\n")
@@ -892,13 +945,12 @@ function definition, macro a macro definition.")
                            '(c emacs-lisp go python ruby rust typescript zzz)))
             (should (equal (cddr (assq 'rust samples)) (expand-file-name "sample.rs" dir)))
             (should (equal (cadr (assq 'ruby samples)) '(ruby-ts-mode ruby-mode)))
-            (should (null (cadr (assq 'zzz samples)))))
-          (let ((text (substring-no-properties (themer-reader-form-sample d))))
-            (should (string-search "fn mine() {}" text))
-            (should (string-search "── Ruby ──" text))
-            (should (string-search "package main" text))
-            (should (string-search "no major mode available for Zzz" text))
-            (should-not (string-search "ignored" text)))
+            (should (null (cadr (assq 'zzz samples))))
+            (themer-test--with-form-context
+              (let ((rust (themer-reader-form--visit-sample 'rust (cddr (assq 'rust samples))))
+                    (zzz (themer-reader-form--visit-sample 'zzz (cddr (assq 'zzz samples)))))
+                (should (equal (with-current-buffer rust (buffer-string)) "fn mine() {}\n"))
+                (should (string-match-p "(Zzz)" (buffer-name zzz))))))
           (let ((themer-reader-form--selected '(ruby)))
             (should (equal (themer-reader-form--selected-languages) '(ruby)))))
       (delete-directory dir t))))
@@ -919,64 +971,68 @@ function definition, macro a macro definition.")
     (should-not (themer-reader-form--sample-file-modes "sample.zzz"))))
 
 (ert-deftest themer-reader-form-sample-buffer ()
-  "The sample buffer opens with the form, follows its choices, and dies with it."
-  (let ((themer-reader-form--selected :unset)
+  "The sample buffers open with the form, follow its choices, and die with it."
+  (let ((themer-reader-form--selected '(python rust))
         (themer-reader-form-semantic-tokens nil)
         (file (expand-file-name "examples/reader-gruvbox-theme.el" themer-test--root))
-        form samples)
+        form samples dir)
     (save-window-excursion
       (unwind-protect
           (progn
             (delete-other-windows)
             (setq form (themer-reader-edit-theme file))
-            (setq samples (buffer-local-value 'themer-reader-form--sample-buffer form))
-            (should (buffer-live-p samples))
-            (should (equal (buffer-name samples) "*themer-reader-sample: reader-gruvbox*"))
-            (should (eq 'themer-reader-form-sample-mode (buffer-local-value 'major-mode samples)))
-            (should (buffer-local-value 'buffer-read-only samples))
-            (should (get-buffer-window samples))
+            (with-current-buffer form (themer-reader-form-refresh))
+            (setq samples (mapcar #'cdr (buffer-local-value 'themer-reader-form--sample-buffers form))
+                  dir (buffer-local-value 'themer-reader-form--sample-dir form))
+            (should (= 2 (length samples)))
+            (should (equal (sort (mapcar #'buffer-name samples) #'string<)
+                           '("*themer-reader-sample: reader-gruvbox (Python)*"
+                             "*themer-reader-sample: reader-gruvbox (Rust)*")))
+            (dolist (b samples)
+              (should (get-buffer-window b))
+              (should (eq form (buffer-local-value 'themer-reader-form--sample-owner b)))
+              (should (string-prefix-p dir (buffer-file-name b)))
+              (should (alist-get 'font-lock-keyword-face
+                                 (buffer-local-value 'face-remapping-alist b))))
             (should (get-buffer-window form))
-            (with-current-buffer form
-              (themer-reader-form-refresh)
-              (should-not (string-search "Sample\n"
-                                         (buffer-substring-no-properties
-                                          themer-reader-form--dynamic (point-max)))))
-            (let ((all (with-current-buffer samples (buffer-string))))
-              (dolist (n '("TypeScript" "Python" "Rust" "C" "Go" "Emacs Lisp"))
-                (should (string-search (format "── %s ──" n) all)))
-              (should (plist-get (get-text-property (string-search "import" all) 'face all)
-                                 :foreground)))
-            ;; Point and scroll survive a re-derive.
-            (with-current-buffer samples (goto-char 100))
-            (set-window-point (get-buffer-window samples) 100)
-            (with-current-buffer form
-              (themer-reader-form--set :value "#83a598")
-              (themer-reader-form-refresh))
-            (should (= 100 (window-point (get-buffer-window samples))))
-            ;; Toggling a language changes the contents, without deriving.
+            ;; A re-derive changes the remap in place.
+            (let ((b (car samples)))
+              (with-current-buffer form
+                (themer-reader-form--set :callable "#83a598")
+                (themer-reader-form-refresh))
+              (should (equal (plist-get (car (alist-get 'font-lock-function-call-face
+                                                        (buffer-local-value 'face-remapping-alist b)))
+                                        :foreground)
+                             (plist-get (alist-get 'font-lock-function-call-face
+                                                   (themer-reader-faces
+                                                    (buffer-local-value 'themer-reader-form--derived form)))
+                                        :foreground))))
+            ;; Toggling a language shows or hides its buffer, without deriving.
             (with-current-buffer form
               (let ((d themer-reader-form--derived))
-                (widget-apply-action (car (last (widget-get themer-reader-form--samples-widget :buttons))))
-                (should (eq d themer-reader-form--derived))
-                (should (equal themer-reader-form--selected '(emacs-lisp go python rust typescript)))))
-            (let ((text (substring-no-properties (with-current-buffer samples (buffer-string)))))
-              (should-not (string-search "── C ──" text))
-              (should (string-search "── Python ──" text)))
+                (themer-reader-form-set-sample-languages '(rust))
+                (should (eq d themer-reader-form--derived))))
+            (should-not (get-buffer-window (alist-get 'python (buffer-local-value
+                                                                'themer-reader-form--sample-buffers form))))
+            (should (get-buffer-window (alist-get 'rust (buffer-local-value
+                                                          'themer-reader-form--sample-buffers form))))
             ;; Closed window: Show samples brings it back.
-            (delete-window (get-buffer-window samples))
-            (should-not (get-buffer-window samples))
-            (with-current-buffer form (themer-reader-form-show-samples))
-            (should (get-buffer-window samples))
-            ;; A user rule in display-buffer-alist wins.
-            (delete-window (get-buffer-window samples))
-            (let ((display-buffer-alist '(("\\*themer-reader-sample" display-buffer-pop-up-window))))
-              (with-current-buffer form (themer-reader-form-show-samples)))
-            (should (get-buffer-window samples))
-            ;; The sample dies with the form.
+            (let ((rust (alist-get 'rust (buffer-local-value 'themer-reader-form--sample-buffers form))))
+              (delete-window (get-buffer-window rust))
+              (with-current-buffer form (themer-reader-form-show-samples))
+              (should (get-buffer-window rust))
+              ;; A user rule in display-buffer-alist wins.
+              (delete-window (get-buffer-window rust))
+              (let ((display-buffer-alist '(("\\*themer-reader-sample" display-buffer-pop-up-window))))
+                (with-current-buffer form (themer-reader-form-show-samples)))
+              (should (get-buffer-window rust)))
+            ;; The samples, and their directory, die with the form.
+            (setq samples (mapcar #'cdr (buffer-local-value 'themer-reader-form--sample-buffers form)))
             (kill-buffer form)
-            (should-not (buffer-live-p samples)))
+            (should-not (cl-some #'buffer-live-p samples))
+            (should-not (file-exists-p dir)))
         (when (buffer-live-p form) (kill-buffer form))
-        (when (buffer-live-p samples) (kill-buffer samples))))))
+        (mapc (lambda (b) (when (buffer-live-p b) (kill-buffer b))) samples)))))
 
 ;;;; UI accent
 
@@ -1113,6 +1169,22 @@ function definition, macro a macro definition.")
       (should-not (member examples custom-theme-load-path))
       (should-not (member "reader-gruvbox" (mapcar #'symbol-name (custom-available-themes))))
       (should (member dir custom-theme-load-path)))))
+
+(ert-deftest themer-reader-setup-theme-load-path ()
+  "The setup function puts both directories on the path, once."
+  (let ((dir (file-name-as-directory (expand-file-name "themer-test-no-such-dir/"
+                                                       temporary-file-directory)))
+        (examples (file-name-as-directory (expand-file-name "examples" themer-test--root))))
+    (themer-test--with-clean-load-path
+      (set-default 'themer-reader-theme-directory dir)
+      (set-default 'themer-reader-include-examples t)
+      (should (equal (themer-reader-setup-theme-load-path) (list dir examples)))
+      (themer-reader-setup-theme-load-path)
+      (should (equal custom-theme-load-path (list dir examples)))
+      (setq custom-theme-load-path nil)
+      (set-default 'themer-reader-include-examples nil)
+      (should (equal (themer-reader-setup-theme-load-path) (list dir)))
+      (should (equal custom-theme-load-path (list dir))))))
 
 (ert-deftest themer-reader-example-loads-by-name ()
   "`load-theme' finds an example by name, with the examples on the path."

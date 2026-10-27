@@ -16,9 +16,9 @@
 ;; swatch, a "Pick" button (a menu of the palette entries, a custom hex, or
 ;; a new entry) and a short status from the conformance result.  Below them
 ;; are the derived tiers and the conformance checks.  The code samples
-;; (TypeScript, Python, Rust, C, Go, Emacs Lisp; a checkbox each) are drawn
-;; with the derived faces in their own buffer beside the form,
-;; `*themer-reader-sample: NAME*'.  Edits re-derive after
+;; (TypeScript, Python, Rust, C, Go, Emacs Lisp; a checkbox each) are real
+;; buffers beside the form, `*themer-reader-sample: NAME (LANGUAGE)*',
+;; showing the derived faces.  Edits re-derive after
 ;; `themer-preview-delay' idle seconds, only when a colour changed.  "Apply"
 ;; enables the theme globally until it is toggled off or the form is killed.
 ;;
@@ -38,16 +38,12 @@
 (defvar themer-preview-delay)
 (defvar treesit-font-lock-level)
 (defvar eglot-sync-connect)
-(defvar eglot--semtok-state)
-(defvar eglot-semantic-tokens-mode)
 (declare-function eglot "eglot")
 (declare-function eglot--guess-contact "eglot")
 (declare-function eglot--lookup-mode "eglot")
 (declare-function eglot--managed-buffers "eglot")
 (declare-function eglot-current-server "eglot")
 (declare-function eglot-managed-p "eglot")
-(declare-function eglot-server-capable "eglot")
-(declare-function eglot-semantic-tokens-mode "eglot")
 (declare-function eglot-shutdown "eglot")
 (declare-function custom-theme--load-path "custom")
 
@@ -476,8 +472,20 @@ SEVERITY is `ok', `must' or `should'."
     (mapcar (lambda (x) (cons (car x) (reverse (cdr x)))) out)))
 
 ;;;; Samples
+;;
+;; Each selected language's sample is a real buffer: the form copies the
+;; sample file into a directory of its own and visits the copy, so the
+;; major mode and your hooks (rainbow-delimiters, eglot, ...) run as in
+;; any file, plus the reader rules.  The derived faces are shown through
+;; `face-remapping-alist', so the theme need not be enabled.  The buffers,
+;; the servers eglot runs for them and the directory go with the form.
 
-(defvar-local themer-reader-form--sample-buffer nil "The form's sample buffer.")
+(defvar-local themer-reader-form--sample-buffers nil
+  "The form's sample buffers: alist LANGUAGE -> buffer.")
+(defvar-local themer-reader-form--sample-dir nil
+  "The directory the form copies its samples to.")
+(defvar-local themer-reader-form--sample-owner nil
+  "In a sample buffer: the form buffer it shows samples for.")
 (defvar-local themer-reader-form--derived nil "The last derivation shown.")
 (defvar-local themer-reader-form--model nil "The model the form was opened on.")
 
@@ -498,6 +506,14 @@ checkboxes change the choice for the rest of the session."
   :type '(choice (const :tag "All" t) (repeat symbol))
   :group 'themer)
 
+(defcustom themer-reader-form-semantic-tokens t
+  "Non-nil: connect eglot in the sample buffers, for semantic tokens.
+Only for samples whose mode has an installed server in
+`eglot-server-programs', and unless your own hooks connected it.  The
+form shuts these servers down when it is killed."
+  :type 'boolean
+  :group 'themer)
+
 (defconst themer-reader-form--language-names
   '((typescript . "TypeScript") (emacs-lisp . "Emacs Lisp"))
   "Display names of languages that `capitalize' gets wrong.")
@@ -505,10 +521,6 @@ checkboxes change the choice for the rest of the session."
 (defvar themer-reader-form--selected :unset
   "The languages whose samples are shown, for this session.
 :unset until the form changes it: then `themer-reader-form-sample-languages'.")
-
-(defvar themer-reader-form--fontified (make-hash-table :test #'equal)
-  "Fontified samples: (MODES TEXT FADE) -> (TEXT . RUNS), or :none.
-RUNS is a list of (BEG END FACE).")
 
 (defun themer-reader-form--language-name (lang)
   "The display name of sample language LANG."
@@ -519,8 +531,8 @@ RUNS is a list of (BEG END FACE).")
   "The language of sample FILE and its candidate modes: (LANGUAGE MODE...).
 The mode is FILE's in `auto-mode-alist', after `major-mode-remap-alist';
 LANGUAGE is its name less -ts-mode, -mode or -ts-mode-maybe.  The
-candidates are LANGUAGE-ts-mode, LANGUAGE-mode, then the mode itself:
-the first usable one fontifies FILE.  nil if FILE has no mode."
+candidates are LANGUAGE-ts-mode, LANGUAGE-mode, then the mode itself.
+nil if FILE has no mode."
   (when-let* ((mode (assoc-default file auto-mode-alist #'string-match))
               (mode (if (consp mode) (car mode) mode))
               ((symbolp mode)))
@@ -559,171 +571,24 @@ a file with no mode is named for its extension, with no modes."
     (cl-loop for (lang) in (themer-reader-form--samples)
              when (or (eq sel t) (memq lang sel)) collect lang)))
 
-(defun themer-reader-form--sample-file-text (file)
-  "The text of sample FILE, final newline dropped."
-  (with-temp-buffer
-    (insert-file-contents file)
-    (string-remove-suffix "\n" (buffer-string))))
+(defun themer-reader-form--sample-buffer-name (name lang)
+  "The name of the LANG sample buffer for the theme called NAME."
+  (format "*themer-reader-sample: %s (%s)*" (or name "new")
+          (themer-reader-form--language-name lang)))
 
-(defun themer-reader-form--mode-usable-p (mode)
-  "Non-nil if major MODE exists, and its tree-sitter grammar if it has one."
-  (and (fboundp mode)
-       (let ((name (symbol-name mode)))
-         (or (not (string-suffix-p "-ts-mode" name))
-             (treesit-language-available-p (intern (string-remove-suffix "-ts-mode" name)))))))
+(define-minor-mode themer-reader-form-sample-mode
+  "On in a reader theme form's sample buffers.
+The buffer visits a copy of a sample and shows the form's colours
+through `face-remapping-alist'; the form kills it."
+  :lighter " Reader-Sample")
 
-(defun themer-reader-form--runs (string &optional prop)
-  "STRING's runs of text property PROP (default `face'): a list of (BEG END VALUE)."
-  (let ((prop (or prop 'face)) (pos 0) runs)
-    (while (< pos (length string))
-      (let ((next (next-single-property-change pos prop string (length string)))
-            (v (get-text-property pos prop string)))
-        (when v (push (list pos next v) runs))
-        (setq pos next)))
-    (nreverse runs)))
-
-(defun themer-reader-form--sample-runs (modes text)
-  "TEXT fontified by the first usable of MODES: (TEXT . RUNS), or :none.
-RUNS is a list of (BEG END FACE), BEG and END 0-based string indices.
-Tree-sitter buffers get `themer-reader-treesit-mode's rules, at
-`treesit-font-lock-level' 4: calls and the like, which the standard
-colours, are level-4 features."
-  (let ((key (list modes text themer-reader-fade-commented-code)))
-    (or (gethash key themer-reader-form--fontified)
-        (puthash
-         key
-         (if-let* ((mode (cl-find-if #'themer-reader-form--mode-usable-p modes)))
-             (with-temp-buffer
-               (insert text)
-               (let (runs)
-                 (ignore-errors
-                   ;; Around the install too: it recomputes the features.
-                   (let ((treesit-font-lock-level 4))
-                     (delay-mode-hooks (funcall mode))
-                     (themer-reader--install)
-                     (font-lock-mode 1)
-                     (font-lock-ensure))
-                   (setq runs (themer-reader-form--runs (buffer-string))))
-                 (cons text runs)))
-           :none)
-         themer-reader-form--fontified))))
-
-(defun themer-reader-form--face-attrs (face faces)
-  "Attribute plist for FACE (a face or list of faces) from alist FACES."
-  (let (attrs)
-    (dolist (f (if (and (consp face) (not (keywordp (car face)))) face (list face)))
-      (let ((a (if (symbolp f) (alist-get f faces) f)))
-        (cl-loop for (k v) on a by #'cddr
-                 unless (plist-member attrs k) do (setq attrs (plist-put attrs k v)))))
-    attrs))
-
-(defun themer-reader-form--sample-text (text runs faces fg bg)
-  "TEXT with RUNS applied as text properties from FACES, on FG and BG."
-  (let ((s (copy-sequence text)))
-    (put-text-property 0 (length s) 'face `(:foreground ,fg :background ,bg) s)
-    (pcase-dolist (`(,b ,e ,face) runs)
-      (let ((a (themer-reader-form--face-attrs face faces)))
-        (put-text-property b e 'face
-                           (append (cl-loop for (k v) on a by #'cddr
-                                            unless (memq k '(:foreground :background :height :box :inherit))
-                                            append (list k v))
-                                   `(:foreground ,(or (plist-get a :foreground) fg) :background ,bg))
-                           s)))
-    s))
-
-(defun themer-reader-form-sample (derived &optional languages)
-  "The samples of LANGUAGES as a string, fontified with DERIVED's faces.
-LANGUAGES defaults to the selected ones.  The faces are text properties,
-so the theme need not be enabled."
-  (let* ((samples (themer-reader-form--samples))
-         (languages (or languages (themer-reader-form--selected-languages)))
-         (faces (themer-reader-faces derived))
-         (tiers (plist-get derived :tiers))
-         (bg (plist-get tiers :bg)) (fg (plist-get tiers :fg))
-         (dim (or (plist-get tiers :dim) fg))
-         (blocks
-          (cl-loop
-           for lang in languages
-           for (modes . file) = (alist-get lang samples)
-           when file
-           collect (let* ((name (themer-reader-form--language-name lang))
-                          (text (themer-reader-form--sample-file-text file))
-                          (run (themer-reader-form--sample-runs modes text))
-                          (tokens (and (consp run) (themer-reader-form--semtok-tokens file modes text)))
-                          (run (if tokens
-                                   (cons text (themer-reader-form--layer-tokens text (cdr run) tokens))
-                                 run)))
-                     (cons (propertize (format "── %s ──" name) 'face `(:foreground ,dim :background ,bg))
-                           (if (eq run :none)
-                               (propertize (format "(no major mode available for %s)" name)
-                                           'face `(:foreground ,dim :background ,bg))
-                             (themer-reader-form--sample-text (car run) (cdr run) faces fg bg))))))
-         (width (+ 2 (cl-loop for (head . body) in blocks
-                              maximize (max (length head)
-                                            (cl-loop for l in (split-string body "\n") maximize (length l)))))))
-    (if (null blocks)
-        (propertize "No samples selected." 'face `(:foreground ,dim :background ,bg))
-      (mapconcat
-       (pcase-lambda (`(,head . ,body))
-         (mapconcat (lambda (line)
-                      (concat (propertize " " 'face `(:background ,bg)) line
-                              (propertize (make-string (max 0 (- width (length line) 1)) ?\s)
-                                          'face `(:background ,bg))))
-                    (cons head (split-string body "\n")) "\n"))
-       blocks "\n\n"))))
-
-;;;; Semantic tokens
-;;
-;; Eglot paints semantic tokens in front of the font-lock faces, so the
-;; samples get them too: the form visits a sample's file, connects eglot
-;; without blocking, lets eglot paint, and reads the face lists eglot put
-;; in the `eglot--semtok-faces' property.  A timer polls the pending
-;; files and redraws the forms when tokens arrive.
-
-(defcustom themer-reader-form-semantic-tokens t
-  "Non-nil: layer eglot semantic tokens onto the samples, as eglot does.
-Only for samples whose mode has an installed server in
-`eglot-server-programs'.  The form visits the sample file and connects
-eglot in the background, or uses a server already managing it; servers
-and buffers it started go when the last form is killed."
-  :type 'boolean
-  :group 'themer)
-
-(defcustom themer-reader-form-semantic-tokens-timeout 60
-  "Seconds to wait for a sample's semantic tokens before giving up."
-  :type 'number
-  :group 'themer)
-
-(defvar themer-reader-form--semtok (make-hash-table :test #'equal)
-  "Semantic tokens per sample FILE -> plist.
-:status is pending, done or none; :tokens a list of (BEG END FACES) over
-:text; :buffer the visiting buffer, :created if the form visited it;
-:started if the form started its server; :deadline when to give up.")
-
-(defvar themer-reader-form--semtok-timer nil "Timer polling pending semantic tokens.")
-
-(defun themer-reader-form--layer-tokens (text runs tokens)
-  "RUNS over TEXT with semantic TOKENS layered on, as eglot paints them.
-RUNS and TOKENS are lists of (BEG END FACE) and (BEG END FACES)."
-  (let ((s (copy-sequence text)))
-    (pcase-dolist (`(,b ,e ,face) runs)
-      (put-text-property b e 'face face s))
-    (pcase-dolist (`(,b ,e ,faces) tokens)
-      (when (<= e (length s))
-        (dolist (f faces) (add-face-text-property b e f nil s))))
-    (themer-reader-form--runs s)))
-
-(defun themer-reader-form--semtok-tokens (file modes text)
-  "Semantic tokens for sample FILE if they are in and match TEXT, else nil.
-Asks for them, in the background, when FILE has a server for MODES."
-  (when themer-reader-form-semantic-tokens
-    (let ((e (gethash file themer-reader-form--semtok)))
-      (unless e
-        (setq e (themer-reader-form--semtok-start file modes))
-        (puthash file e themer-reader-form--semtok))
-      (and (eq (plist-get e :status) 'done)
-           (equal (plist-get e :text) text)
-           (plist-get e :tokens)))))
+(defun themer-reader-form--remap (buf derived)
+  "Show DERIVED's faces in BUF, in place of the enabled theme's.
+Faces DERIVED leaves empty are empty here too, as in the theme."
+  (with-current-buffer buf
+    (pcase-dolist (`(,face . ,attrs) (themer-reader-faces derived))
+      (face-remap-set-base face (or attrs '(:foreground unspecified))))
+    (force-window-update buf)))
 
 (defun themer-reader-form--semtok-contact (mode)
   "Eglot's contact for MODE if its server is installed, else nil."
@@ -732,201 +597,133 @@ Asks for them, in the background, when FILE has a server for MODES."
         (not (stringp (car-safe guess)))
         (executable-find (car guess)))))
 
-(defun themer-reader-form--semtok-start (file modes)
-  "Start getting semantic tokens for sample FILE: its table entry.
-MODES are the sample's candidate modes."
-  (or (ignore-errors
-        (when (and (require 'eglot nil t)
-                   (cl-some #'themer-reader-form--semtok-contact
-                            (cl-remove-if-not #'fboundp modes)))
-          (let* ((existing (get-file-buffer file))
-                 (buf (or existing (find-file-noselect file t)))
-                 started)
-            (with-current-buffer buf
-              (unless (or (eglot-managed-p) (eglot-current-server))
-                (when-let* ((contact (ignore-errors (eglot--guess-contact)))
-                            (program (car-safe (nth 3 contact)))
-                            ((or (not (stringp program)) (executable-find program))))
-                  ;; Connects in the background: the server is registered,
-                  ;; and the buffer managed, once it has initialised.
-                  (let ((eglot-sync-connect nil))
-                    (apply #'eglot contact))
-                  (setq started t))))
-            (if (or started (with-current-buffer buf (eglot-managed-p)))
-                (progn
-                  (themer-reader-form--semtok-schedule)
-                  (list :status 'pending :buffer buf :created (not existing) :started started
-                        :deadline (+ (float-time) themer-reader-form-semantic-tokens-timeout)))
-              (unless existing (kill-buffer buf))
-              nil))))
-      (list :status 'none)))
+(defun themer-reader-form--connect (buf)
+  "Connect eglot in sample BUF in the background, if it has a server.
+Skipped when BUF is managed already, by the user's hooks."
+  (when (and themer-reader-form-semantic-tokens (require 'eglot nil t))
+    (with-current-buffer buf
+      (ignore-errors
+        (when-let* (((not (or (eglot-managed-p) (eglot-current-server))))
+                    ((themer-reader-form--semtok-contact major-mode))
+                    (contact (eglot--guess-contact))
+                    (program (car-safe (nth 3 contact)))
+                    ((or (not (stringp program)) (executable-find program))))
+          ;; Eglot manages the buffer, and paints its tokens, once the
+          ;; server has initialised.
+          (let ((eglot-sync-connect nil))
+            (apply #'eglot contact)))))))
 
-(defun themer-reader-form--semtok-schedule ()
-  "Start the polling timer if it isn't running."
-  (unless (timerp themer-reader-form--semtok-timer)
-    (setq themer-reader-form--semtok-timer
-          (run-with-timer 0.5 0.5 #'themer-reader-form--semtok-poll))))
+(defun themer-reader-form--visit-sample (lang file)
+  "A sample buffer for LANG visiting a copy of FILE, for the current form.
+It is the form's LANG buffer from now on."
+  (let ((form (current-buffer)))
+    (unless (and themer-reader-form--sample-dir (file-directory-p themer-reader-form--sample-dir))
+      (setq themer-reader-form--sample-dir (make-temp-file "themer-samples-" t)))
+    (let* ((copy (expand-file-name (file-name-nondirectory file) themer-reader-form--sample-dir))
+           (buf (progn
+                  (copy-file file copy t)
+                  ;; Around the install too: it recomputes the features.
+                  (let ((treesit-font-lock-level 4))
+                    (with-current-buffer (find-file-noselect copy t)
+                      (themer-reader--install)
+                      (current-buffer))))))
+      (with-current-buffer buf
+        (rename-buffer (themer-reader-form--sample-buffer-name
+                        (plist-get (buffer-local-value 'themer-reader-form--model form) :name)
+                        lang)
+                       t)
+        (setq buffer-read-only t)
+        (setq themer-reader-form--sample-owner form)
+        (themer-reader-form-sample-mode 1))
+      (when-let* ((d (buffer-local-value 'themer-reader-form--derived form)))
+        (themer-reader-form--remap buf d))
+      (themer-reader-form--connect buf)
+      (setf (alist-get lang themer-reader-form--sample-buffers) buf))))
 
-(defun themer-reader-form--semtok-harvest (buf)
-  "BUF's text, final newline dropped, and eglot's tokens in it, or nil.
-Tokens are (BEG END FACES), 0-based; nil until eglot has painted."
-  (with-current-buffer buf
-    (when (and (eglot-managed-p) (eglot-server-capable :semanticTokensProvider))
-      (unless eglot-semantic-tokens-mode (eglot-semantic-tokens-mode 1))
-      (save-restriction
-        (widen)
-        (font-lock-ensure)
-        (when (plist-get eglot--semtok-state :data)
-          (let ((s (buffer-string)))
-            (cons (string-remove-suffix "\n" (substring-no-properties s))
-                  (themer-reader-form--runs s 'eglot--semtok-faces))))))))
-
-(defun themer-reader-form--semtok-poll ()
-  "Collect the semantic tokens that have arrived; redraw the forms if any did."
-  (let (changed pending)
-    (maphash
-     (lambda (_file e)
-       (when (eq (plist-get e :status) 'pending)
-         (let* ((buf (plist-get e :buffer))
-                (got (condition-case err
-                         (and (buffer-live-p buf) (themer-reader-form--semtok-harvest buf))
-                       (error (message "themer: semantic tokens: %s" (error-message-string err))
-                              (plist-put e :status 'none)
-                              nil))))
-           (cond (got (plist-put e :status 'done)
-                      (plist-put e :text (car got))
-                      (plist-put e :tokens (cdr got))
-                      (setq changed t))
-                 ((or (not (buffer-live-p buf)) (> (float-time) (plist-get e :deadline)))
-                  (plist-put e :status 'none))
-                 ((eq (plist-get e :status) 'pending) (setq pending t))))))
-     themer-reader-form--semtok)
-    (unless pending
-      (cancel-timer themer-reader-form--semtok-timer)
-      (setq themer-reader-form--semtok-timer nil))
-    (when changed
-      (dolist (b (buffer-list))
-        (with-current-buffer b
-          (when (derived-mode-p 'themer-reader-form-mode)
-            (themer-reader-form--update-samples)))))))
-
-(defun themer-reader-form--semtok-stop ()
-  "Shut down the servers and kill the buffers the forms started."
-  (when (timerp themer-reader-form--semtok-timer)
-    (cancel-timer themer-reader-form--semtok-timer))
-  (setq themer-reader-form--semtok-timer nil)
-  (maphash
-   (lambda (_file e)
-     (let* ((buf (plist-get e :buffer))
-            (server (and (plist-get e :started) (buffer-live-p buf)
-                         (with-current-buffer buf (eglot-current-server)))))
-       (when (and server (cl-every (lambda (b) (eq b buf)) (eglot--managed-buffers server)))
-         (ignore-errors (eglot-shutdown server)))
-       (when (and (plist-get e :created) (buffer-live-p buf) (not (buffer-modified-p buf)))
-         (kill-buffer buf))))
-   themer-reader-form--semtok)
-  (clrhash themer-reader-form--semtok))
-
-;;;; The sample buffer
-
-(defvar-local themer-reader-form--sample-owner nil
-  "In a sample buffer: the form buffer it shows samples for.")
-
-(defvar-keymap themer-reader-form-sample-mode-map
-  :parent special-mode-map
-  "g" #'themer-reader-form-sample-refresh
-  "q" #'quit-window)
-
-(define-derived-mode themer-reader-form-sample-mode special-mode "Reader-Sample"
-  "Read-only buffer of code samples drawn with a reader theme form's colours.
-\\{themer-reader-form-sample-mode-map}"
-  (setq truncate-lines t)
-  (setq-local revert-buffer-function (lambda (&rest _) (themer-reader-form-sample-refresh))))
-
-(defun themer-reader-form--sample-buffer-name (name)
-  "The name of the sample buffer for the theme called NAME."
-  (format "*themer-reader-sample: %s*" (or name "new")))
+(defun themer-reader-form--ensure-samples ()
+  "The form's sample buffers for the selected languages, made as needed."
+  (let ((samples (themer-reader-form--samples)))
+    (cl-loop for lang in (themer-reader-form--selected-languages)
+             for file = (cddr (assq lang samples))
+             for buf = (alist-get lang themer-reader-form--sample-buffers)
+             when file
+             collect (if (buffer-live-p buf) buf
+                       (themer-reader-form--visit-sample lang file)))))
 
 (defun themer-reader-form--update-samples (&optional derived)
-  "Redraw the sample buffer from DERIVED (default: the last derivation).
-Windows showing it keep their point and scroll."
-  (let ((buf themer-reader-form--sample-buffer)
-        (derived (or derived themer-reader-form--derived)))
-    (when (and derived (buffer-live-p buf))
-      (let ((text (themer-reader-form-sample derived))
-            (tiers (plist-get derived :tiers)))
-        (with-current-buffer buf
-          (let ((inhibit-read-only t)
-                (pt (point))
-                (wins (mapcar (lambda (w) (list w (window-point w) (window-start w)))
-                              (get-buffer-window-list buf nil t))))
-            (erase-buffer)
-            (insert text)
-            (setq-local face-remapping-alist
-                        `((default :foreground ,(plist-get tiers :fg) :background ,(plist-get tiers :bg))))
-            (goto-char (min pt (point-max)))
-            (pcase-dolist (`(,w ,p ,s) wins)
-              (set-window-point w (min p (point-max)))
-              (set-window-start w (min s (point-max)) t))
-            (set-buffer-modified-p nil)))))))
-
-(defun themer-reader-form--ensure-sample-buffer ()
-  "The form's sample buffer, made (and filled) if it isn't live."
-  (unless (buffer-live-p themer-reader-form--sample-buffer)
-    (let ((form (current-buffer)))
-      (setq themer-reader-form--sample-buffer
-            (generate-new-buffer
-             (themer-reader-form--sample-buffer-name (plist-get themer-reader-form--model :name))))
-      (with-current-buffer themer-reader-form--sample-buffer
-        (themer-reader-form-sample-mode)
-        (setq themer-reader-form--sample-owner form)
-        (let ((inhibit-read-only t))
-          (insert (propertize "Deriving..." 'face 'shadow))))
-      (themer-reader-form--update-samples)))
-  themer-reader-form--sample-buffer)
+  "Show DERIVED (default: the last derivation) in the sample buffers."
+  (when-let* ((derived (or derived themer-reader-form--derived)))
+    (pcase-dolist (`(,_ . ,buf) themer-reader-form--sample-buffers)
+      (when (buffer-live-p buf)
+        (themer-reader-form--remap buf derived)))))
 
 (defconst themer-reader-form--sample-width 120
-  "Columns for the sample window when it sits beside the form.")
+  "Columns for the sample windows when they sit beside the form.")
 
 (defconst themer-reader-form--form-min-width 100
   "Columns the form keeps when the samples are split off to its right.")
 
+(defun themer-reader-form--hide-samples (bufs)
+  "Delete the windows showing BUFS."
+  (dolist (b bufs)
+    (when (buffer-live-p b)
+      (dolist (w (get-buffer-window-list b nil t))
+        (ignore-errors (delete-window w))))))
+
 (defun themer-reader-form-show-samples ()
-  "Show the sample buffer beside the form.
+  "Show the selected samples beside the form, one window each.
 The samples split the form's window: to the right if it is wide enough
-for both, else below.  `display-buffer-alist' takes precedence."
+for both, else below; the rest stack under the first.
+`display-buffer-alist' takes precedence."
   (interactive)
-  (let* ((buf (themer-reader-form--ensure-sample-buffer))
+  (let* ((bufs (themer-reader-form--ensure-samples))
          (win (or (get-buffer-window (current-buffer)) (selected-window)))
          (wide (>= (window-total-width win)
                    (+ themer-reader-form--form-min-width
-                      themer-reader-form--sample-width 1))))
-    (display-buffer
-     buf `((display-buffer-reuse-window display-buffer-in-direction)
-           (direction . ,(if wide 'right 'below))
-           (window . ,win)
-           (window-width . ,(1+ themer-reader-form--sample-width))))))
-
-(defun themer-reader-form-sample-refresh ()
-  "Redraw the samples from the form's last derivation."
-  (interactive)
-  (if (buffer-live-p themer-reader-form--sample-owner)
-      (with-current-buffer themer-reader-form--sample-owner
-        (themer-reader-form--update-samples))
-    (user-error "The form is gone")))
+                      themer-reader-form--sample-width 1)))
+         prev)
+    (themer-reader-form--hide-samples
+     (cl-set-difference (mapcar #'cdr themer-reader-form--sample-buffers) bufs))
+    (dolist (b bufs)
+      (setq prev
+            (or (get-buffer-window b)
+                (display-buffer
+                 b (if prev
+                       `((display-buffer-in-direction) (direction . below) (window . ,prev))
+                     `((display-buffer-reuse-window display-buffer-in-direction)
+                       (direction . ,(if wide 'right 'below))
+                       (window . ,win)
+                       (window-width . ,(1+ themer-reader-form--sample-width)))))
+                prev)))
+    (when-let* (((cdr bufs))
+                (w (get-buffer-window (cadr bufs))))
+      (balance-windows (window-parent w)))
+    bufs))
 
 (defun themer-reader-form-set-sample-languages (languages)
-  "Show the samples of LANGUAGES, and redraw the sample buffer now."
+  "Show the samples of LANGUAGES, and lay out their windows now."
   (setq themer-reader-form--selected languages)
-  (themer-reader-form--update-samples))
+  (themer-reader-form-show-samples))
 
 (defun themer-reader-form--kill-samples ()
-  "Close and kill this form's sample buffer."
-  (when-let* ((buf themer-reader-form--sample-buffer)
-              ((buffer-live-p buf)))
-    (dolist (w (get-buffer-window-list buf nil t))
-      (ignore-errors (quit-window t w)))
-    (when (buffer-live-p buf) (kill-buffer buf))))
+  "Kill this form's sample buffers, their servers and their directory."
+  (let* ((bufs (cl-remove-if-not #'buffer-live-p (mapcar #'cdr themer-reader-form--sample-buffers)))
+         (servers (and (fboundp 'eglot-current-server)
+                       (delete-dups (delq nil (mapcar (lambda (b) (with-current-buffer b
+                                                                    (eglot-current-server)))
+                                                      bufs))))))
+    (dolist (s servers)
+      (when (cl-every (lambda (b) (memq b bufs)) (eglot--managed-buffers s))
+        (ignore-errors (eglot-shutdown s))))
+    (themer-reader-form--hide-samples bufs)
+    (dolist (b bufs)
+      (when (buffer-live-p b)
+        (with-current-buffer b (set-buffer-modified-p nil))
+        (kill-buffer b)))
+    (setq themer-reader-form--sample-buffers nil)
+    (when (and themer-reader-form--sample-dir (file-directory-p themer-reader-form--sample-dir))
+      (delete-directory themer-reader-form--sample-dir t))
+    (setq themer-reader-form--sample-dir nil)))
 
 ;;;; The form buffer
 
@@ -1209,11 +1006,7 @@ With INTERRUPTIBLE, input aborts the derivation and reschedules it."
   (when (timerp themer-reader-form--timer)
     (cancel-timer themer-reader-form--timer))
   (themer-reader-form--apply nil)
-  (themer-reader-form--kill-samples)
-  (unless (cl-some (lambda (b) (and (not (eq b (current-buffer)))
-                                    (eq (buffer-local-value 'major-mode b) 'themer-reader-form-mode)))
-                   (buffer-list))
-    (themer-reader-form--semtok-stop)))
+  (themer-reader-form--kill-samples))
 
 ;;;; Building the form
 
@@ -1253,10 +1046,12 @@ With INTERRUPTIBLE, input aborts the derivation and reschedules it."
   "Draw the form for MODEL in the current buffer.
 The fields show STATE, a form state, if given, else MODEL."
   (let ((applied themer-reader-form--applied)
-        (samples themer-reader-form--sample-buffer))
+        (samples themer-reader-form--sample-buffers)
+        (dir themer-reader-form--sample-dir))
     (themer-reader-form-mode)
     (setq themer-reader-form--applied applied
-          themer-reader-form--sample-buffer samples))
+          themer-reader-form--sample-buffers samples
+          themer-reader-form--sample-dir dir))
   (let ((inhibit-read-only t)) (erase-buffer))
   (remove-overlays)
   (add-hook 'kill-buffer-hook #'themer-reader-form--cleanup nil t)
@@ -1316,7 +1111,7 @@ The fields show STATE, a form state, if given, else MODEL."
         (let ((ov (make-overlay (1- (point)) (point))))
           (push (cons key ov) themer-reader-form--overlays))
         (widget-insert "\n")))
-    (widget-insert "\n" (propertize "Samples" 'face 'bold) "  (shown in their own buffer)  ")
+    (widget-insert "\n" (propertize "Samples" 'face 'bold) "  (shown in their own buffers)  ")
     (themer-reader-form--button "Show samples" #'themer-reader-form-show-samples)
     (widget-insert "\n  ")
     (setq themer-reader-form--samples-widget
@@ -1423,9 +1218,10 @@ FILE defaults to the edited file (renamed with the theme), else
                   ((not (buffer-modified-p buf))))
         (with-current-buffer buf (revert-buffer t t t)))
       (rename-buffer (format "*reader-theme %s*" (plist-get new :name)) t)
-      (when (buffer-live-p themer-reader-form--sample-buffer)
-        (with-current-buffer themer-reader-form--sample-buffer
-          (rename-buffer (themer-reader-form--sample-buffer-name (plist-get new :name)) t)))
+      (pcase-dolist (`(,lang . ,buf) themer-reader-form--sample-buffers)
+        (when (buffer-live-p buf)
+          (with-current-buffer buf
+            (rename-buffer (themer-reader-form--sample-buffer-name (plist-get new :name) lang) t))))
       (message "Wrote %s" file)
       file)))
 

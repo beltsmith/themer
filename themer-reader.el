@@ -136,10 +136,19 @@ Then `load-theme' and `consult-theme' list reader-blush and the others."
   :set #'themer-reader--set-include-examples
   :group 'themer)
 
+;;;###autoload
+(defun themer-reader-setup-theme-load-path ()
+  "Put the reader theme directories on `custom-theme-load-path'.
+That is `themer-reader-theme-directory' and, with
+`themer-reader-include-examples', the package's examples/.  Call it
+from your init file before `load-theme' when themer is loaded lazily;
+the themes themselves load the rest.  Return the directories added."
+  (delq nil (list (themer-reader-add-theme-directory themer-reader-theme-directory)
+                  (and themer-reader-include-examples
+                       (themer-reader-add-theme-directory (themer-reader--examples-directory))))))
+
 ;; `defcustom' runs :set only the first time a value is bound.
-(themer-reader-add-theme-directory themer-reader-theme-directory)
-(when themer-reader-include-examples
-  (themer-reader-add-theme-directory (themer-reader--examples-directory)))
+(themer-reader-setup-theme-load-path)
 
 ;;;; The standard (patterns/reader.yaml, draft 3.2)
 
@@ -1069,17 +1078,19 @@ roles."
       ;; tree-sitter ones, so a coloured eglot face hides the reader's finer
       ;; distinctions (exits, TODO, escapes, definitions in bold).  Only what
       ;; tree-sitter can't know is coloured: parameter uses, enum members,
-      ;; macro uses, deprecation.  The rest are left empty, the tree-sitter
-      ;; face showing through; servers also mislabel (rust-analyzer calls
-      ;; `u32' and `derive' namespaces).
+      ;; macro uses, namespaces, deprecation.  The rest are left empty, the
+      ;; tree-sitter face showing through.  Rust-analyzer also calls `u32'
+      ;; and `derive' namespaces; `themer-reader--drop-namespace-tokens'
+      ;; takes those off.
       ,@(when (facep 'eglot-semantic-namespace)
           `((eglot-semantic-parameter ,@(if (funcall tg :binding) (funcall r 'parameter) plain))
             (eglot-semantic-enumMember ,@(funcall r 'constant.use))
             (eglot-semantic-macro :foreground ,(plist-get (funcall r 'macro.call) :foreground))
             (eglot-semantic-decorator ,@(funcall r 'attribute))
+            (eglot-semantic-namespace ,@(funcall r 'module))
             (eglot-semantic-deprecated :strike-through t)
             ,@(mapcar #'list
-                      '(eglot-semantic-namespace eglot-semantic-type eglot-semantic-class
+                      '(eglot-semantic-type eglot-semantic-class
                         eglot-semantic-enum eglot-semantic-interface eglot-semantic-struct
                         eglot-semantic-typeParameter eglot-semantic-variable
                         eglot-semantic-property eglot-semantic-event eglot-semantic-function
@@ -1192,6 +1203,10 @@ roles."
       (dired-flagged :foreground ,err :weight bold)
       (dired-marked :foreground ,warn :weight bold)
       (dired-ignored :foreground ,dim)
+      ;; Brackets are punctuation at every depth; only a broken pair stands out.
+      ,@(mapcar (lambda (n) `(,(intern (format "rainbow-delimiters-depth-%d-face" n))
+                              ,@(funcall r 'punctuation)))
+                (number-sequence 1 9))
       (rainbow-delimiters-unmatched-face :foreground ,err :weight bold)
       (rainbow-delimiters-mismatched-face :foreground ,err :weight bold)
       ;; Org: TODO is the popout, as in code comments; metadata is dim, as
@@ -1776,12 +1791,52 @@ OVERRIDE, START and END as usual."
                           (car (treesit-parser-list)))))
     (treesit-parser-language parser)))
 
+;;;; Semantic-token fix-up
+;;
+;; Rust-analyzer calls primitives (`u32', `str') and `derive' namespaces as
+;; well as modules.  Where tree-sitter has drawn a type or an attribute,
+;; the namespace face comes off again.  The fix-up is a font-lock keyword
+;; after eglot's, re-appended (by a buffer-local hook) whenever eglot's
+;; semantic tokens start.
+
+(defconst themer-reader--not-namespace-faces '(font-lock-type-face themer-reader-meta)
+  "Tree-sitter faces that overrule an `eglot-semantic-namespace' token.")
+
+(defun themer-reader--installed-p ()
+  "Non-nil if the reader rules are in this buffer."
+  (and (bound-and-true-p treesit-font-lock-settings)
+       (cl-some (lambda (s) (eq (nth 2 s) 'themer-reader)) treesit-font-lock-settings)))
+
+(defun themer-reader--drop-namespace-tokens (beg end &optional object)
+  "Take `eglot-semantic-namespace' off BEG..END of OBJECT where it is mislabelled.
+That is, where the face also has one of `themer-reader--not-namespace-faces'."
+  (let ((p beg))
+    (while (< p end)
+      (let ((next (next-single-property-change p 'face object end))
+            (face (get-text-property p 'face object)))
+        (when (and (consp face) (memq 'eglot-semantic-namespace face)
+                   (cl-some (lambda (f) (memq f face)) themer-reader--not-namespace-faces))
+          (let ((rest (remq 'eglot-semantic-namespace face)))
+            (put-text-property p next 'face (if (cdr rest) rest (car rest)) object)))
+        (setq p next)))))
+
+(defun themer-reader--semtok-fixup (limit)
+  "Font-lock matcher: drop mislabelled namespace tokens from point to LIMIT."
+  (themer-reader--drop-namespace-tokens (point) limit)
+  nil)
+
+(defun themer-reader--semtok-order ()
+  "Put the namespace fix-up last in this buffer's font-lock keywords."
+  (when (themer-reader--installed-p)
+    (font-lock-remove-keywords nil '((themer-reader--semtok-fixup)))
+    (font-lock-add-keywords nil '((themer-reader--semtok-fixup)) 'append)))
+
 (defun themer-reader--install ()
   "Add the reader rules to this tree-sitter buffer and refontify."
   (when-let* (((bound-and-true-p treesit-font-lock-settings))
               (lang (themer-reader--buffer-language))
               ((memq lang themer-reader--languages))
-              ((not (cl-some (lambda (s) (eq (nth 2 s) 'themer-reader)) treesit-font-lock-settings)))
+              ((not (themer-reader--installed-p)))
               (settings (themer-reader--settings lang)))
     (setq-local treesit-font-lock-settings (append treesit-font-lock-settings
                                                    (copy-tree settings)))
@@ -1789,17 +1844,20 @@ OVERRIDE, START and END as usual."
                 (cons (append (car treesit-font-lock-feature-list) '(themer-reader))
                       (cdr treesit-font-lock-feature-list)))
     (treesit-font-lock-recompute-features)
+    (themer-reader--semtok-order)
+    (add-hook 'eglot-semantic-tokens-mode-hook #'themer-reader--semtok-order nil t)
     (font-lock-flush)))
 
 (defun themer-reader--uninstall ()
   "Remove the reader rules from this buffer and refontify."
-  (when (and (bound-and-true-p treesit-font-lock-settings)
-             (cl-some (lambda (s) (eq (nth 2 s) 'themer-reader)) treesit-font-lock-settings))
+  (when (themer-reader--installed-p)
     (setq-local treesit-font-lock-settings
                 (cl-remove-if (lambda (s) (eq (nth 2 s) 'themer-reader)) treesit-font-lock-settings))
     (setq-local treesit-font-lock-feature-list
                 (mapcar (lambda (l) (remq 'themer-reader l)) treesit-font-lock-feature-list))
     (treesit-font-lock-recompute-features)
+    (font-lock-remove-keywords nil '((themer-reader--semtok-fixup)))
+    (remove-hook 'eglot-semantic-tokens-mode-hook #'themer-reader--semtok-order t)
     (font-lock-flush)))
 
 ;;;###autoload
