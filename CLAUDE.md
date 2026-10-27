@@ -1,25 +1,32 @@
 # CLAUDE.md
 
-themer is an Emacs package for developing colour themes (live preview, SVG
-rendering), plus the **reader** standard for colouring source code and the
-tooling to generate and edit themes on it. `research/` holds the research
-behind the standard; the package implements it.
+This repository is primarily **reader-theme**: the **reader** standard for
+colouring source code (`research/`) and the Emacs package that implements
+it, with tooling to generate and edit themes on it. It also holds
+**themer**, the generic theme-development library reader-theme is built on
+(live preview, SVG rendering, OKLCH picker, sample buffers, colour maths).
+Two packages, one repo.
+
+Dependencies run one way: `reader-theme*` requires `themer-*`, never the
+reverse. themer must load with no reader-theme symbols (tested). Where
+themer needs reader behaviour, add a hook that reader-theme fills
+(`themer-preview-forms`, `themer-samples-setup-function`).
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `themer.el` | Entry point; requires the rest |
+| `themer.el` | themer entry point; requires the themer files only |
 | `themer-preview.el` | `themer-preview-mode`: live reload + swatch painting (autothemer, and macros registered in `themer-preview-forms`) |
 | `themer-render.el` | `themer-render`, `themer-render-compare`, headless `themer-batch-render FILE OUT.svg [SETTLE] [LINES]` |
 | `themer-colour.el` | Colour maths: OKLab/OKLCH, CIELAB, APCA, Szafir text-size ΔE, gamut fit, CVD simulation |
-| `themer-reader.el` | The standard: `themer-reader-deftheme`, palettes, tier derivation, conformance, face mapping, UI accent, `themer-reader-treesit-mode` rules, export, theme load path |
-| `themer-picker.el` | `themer-picker-adjust`: adjust the hex at point/region in OKLCH, in place |
 | `themer-samples.el` | Sample buffers: real visited copies of `samples/`, faces via `face-remapping-alist`, eglot; owned by a buffer (the form) |
-| `themer-reader-form.el` | Widget form (`themer-reader-new-theme` / `-edit-theme`); shows its samples through themer-samples |
-| `samples/` | `sample.EXT` code samples; discovered by name, modes from `auto-mode-alist` |
+| `reader-theme.el` | reader-theme entry point. The standard: `reader-theme-deftheme`, palettes, tier derivation, conformance, face mapping, UI accent, `reader-theme-treesit-mode` rules, export, theme load path |
+| `themer-picker.el` | `themer-picker-adjust`: adjust the hex at point/region in OKLCH, in place |
+| `reader-theme-form.el` | Widget form (`reader-theme-new` / `-edit`); shows its samples through themer-samples |
+| `samples/` | `sample.EXT` code samples (themer package); discovered by name, modes from `auto-mode-alist` |
 | `examples/` | Reader themes: blush (the main example, `full+cvd`) and four ports (gruvbox, monokai, kanagawa, zenburn) + renders |
-| `tests/themer-test.el` | ERT suite, including byte-compile-clean and checkdoc-clean tests |
+| `tests/themer-test.el` | ERT suite for both packages, including byte-compile-clean, checkdoc-clean and themer-without-reader-theme tests |
 | `research/PATTERNS.md` | The normative standard (MUST/SHOULD). Source of truth for behaviour |
 | `research/patterns/*.yaml` | Machine-readable roles (`roles.yaml`) and pattern sets (`reader.yaml` is current) |
 | `research/00-framework.md` | Vocabulary, hypotheses, and the record of each design revision |
@@ -68,22 +75,25 @@ commands in `research/harness/README.md`):
 
 ## Elisp conventions
 
-- `lexical-binding: t`, `themer-` prefix (`themer-reader-` / `themer-colour-`
-  per file, `--` for internals), defcustoms in group `themer`, Emacs 29.1+.
+- `lexical-binding: t`, prefix by package and file (`themer-colour-`,
+  `themer-samples-`, `reader-theme-`, `reader-theme-form-`; `--` for
+  internals), defcustoms in group `themer` or `reader-theme`, Emacs 29.1+.
   Terse docstrings and comments, matching the existing files.
 - **Special variables from other libraries must be declared** (`(defvar
   treesit-font-lock-level)`) before `let`-binding them. Otherwise the
   binding is lexical and silently does nothing.
 - The standard colours level-4 tree-sitter features (calls etc.). Code that
   fontifies samples binds `treesit-font-lock-level` to 4 around the mode
-  setup **and** `themer-reader--install`, which recomputes features.
+  setup **and** `reader-theme--install`, which recomputes features.
 - Every tree-sitter query must compile against the installed grammars; the
   tests check this.
 - Reader themes are found by `load-theme` only because loading
-  `themer-reader` puts `themer-reader-theme-directory` and `examples/` on
+  `reader-theme` puts `reader-theme-directory` and `examples/` on
   `custom-theme-load-path`. Keep that working (it's tested).
-- The straight recipe needs `:files (:defaults "examples" "samples")`; documented in
-  the README. Update the README Installation section if packaging changes.
+- Two straight recipes on one clone: themer with `:files ("themer*.el"
+  "samples")`, reader-theme with `:local-repo "themer" :files
+  ("reader-theme*.el" "examples")`; documented in the README. Update the
+  README Installation section if packaging changes.
 
 ## Working in the user's Emacs
 

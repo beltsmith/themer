@@ -765,7 +765,7 @@ wheels = [
 ]
 
 [[package]]
-name = "themer-reader-site"
+name = "reader-theme-site"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

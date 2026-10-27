@@ -1,108 +1,74 @@
-# themer
+# reader-theme
 
-Tools for developing an Emacs colour theme while you look at it.
+Emacs colour themes on the **reader** standard for colouring source code
+([research/PATTERNS.md](research/PATTERNS.md)), the tools to make and edit
+them, and the research behind the standard.
+
+The repository also holds **themer**, the theme-development library
+reader-theme is built on: live preview, SVG rendering, an OKLCH colour
+picker, code-sample buffers and the colour maths. It doesn't need
+reader-theme, and works with any theme, autothemer's included.
 
 ## Installation
 
-With [straight.el](https://github.com/radian-software/straight.el):
+Both packages come from this repository. With
+[straight.el](https://github.com/radian-software/straight.el):
 
 ```elisp
 (straight-use-package
  '(themer :type git :host github :repo "beltsmith/themer"
-          :files (:defaults "examples" "samples")))
-(require 'themer)
+          :files ("themer*.el" "samples")))
+(straight-use-package
+ '(reader-theme :type git :host github :repo "beltsmith/themer"
+                :local-repo "themer"
+                :files ("reader-theme*.el" "examples")))
+(require 'reader-theme)
 ```
 
 Or with `use-package`:
 
 ```elisp
 (use-package themer
-  :straight (themer :type git :host github :repo "beltsmith/themer"
-                    :files (:defaults "examples" "samples"))
+  :straight (:type git :host github :repo "beltsmith/themer"
+             :files ("themer*.el" "samples")))
+
+(use-package reader-theme
+  :straight (:type git :host github :repo "beltsmith/themer"
+             :local-repo "themer"
+             :files ("reader-theme*.el" "examples"))
   :demand t)
 ```
 
-`:files` has to include `examples` for the example themes (reader-blush,
--gruvbox, -monokai, -kanagawa, -zenburn) to be available, and `samples` for the theme
-form's code samples. Loading `themer-reader` is what puts your theme
-directory and the examples on `custom-theme-load-path`, so until then
-reader themes don't show up in `load-theme` or `consult-theme`. Either
-load the package eagerly (`require` or `:demand t`), or keep it lazy and
-call `themer-reader-setup-theme-load-path` before `load-theme`:
+`:local-repo` makes the two share one clone. themer's `:files` has to
+include `samples` for the theme form's code samples, and reader-theme's
+`examples` for the example themes (reader-blush, -gruvbox, -monokai,
+-kanagawa, -zenburn). For themer alone, install only the first.
+
+Loading `reader-theme` is what puts your theme directory and the examples
+on `custom-theme-load-path`, so until then reader themes don't show up in
+`load-theme` or `consult-theme`. Either load the package eagerly
+(`require` or `:demand t`), or keep it lazy and call
+`reader-theme-setup-theme-load-path` before `load-theme`:
 
 ```elisp
-(use-package themer
-  :straight (themer :type git :host github :repo "beltsmith/themer"
-                    :files (:defaults "examples" "samples"))
+(use-package reader-theme
+  :straight (:type git :host github :repo "beltsmith/themer"
+             :local-repo "themer"
+             :files ("reader-theme*.el" "examples"))
   :init
-  (themer-reader-setup-theme-load-path)
+  (reader-theme-setup-theme-load-path)
   (load-theme 'reader-blush t))
 ```
 
-The function is autoloaded; it loads only `themer-reader`, which the theme
-needs anyway, and leaves the preview, render and form libraries unloaded.
-Without a generated autoloads file (a plain `:load-path` checkout), declare
-it first: `(autoload 'themer-reader-setup-theme-load-path "themer-reader")`.
-
-## `themer-preview-mode`
-
-Turn it on in a `<name>-theme.el` buffer. After each edit, saved or not, it
-re-evaluates the buffer and re-enables the theme (after
-`themer-preview-delay`, 0.4s idle by default), so changes to a palette hex
-or a role binding show up in every window straight away.
-
-For [autothemer](https://github.com/jasonm23/autothemer) themes, it also
-paints each palette and role name with the colour it resolves to, both
-where it's defined and wherever a face spec uses it, so you can read the
-role → colour mapping straight off the buffer.
-Other theme macros can register in `themer-preview-forms`: a macro and a
-function returning its form's palette. In such a form the mode paints each
-hex string and each palette name, where it's defined and where it's used.
-`themer-reader` registers `themer-reader-deftheme` this way.
-
-- Unbalanced parens mid-edit are skipped.
-- If evaluation fails, the previous face settings are restored.
-- Turning the mode off removes the swatches. It also disables the theme
-  if the theme wasn't already enabled when you turned the mode on.
-
-## `themer-render`, `themer-render-compare`
-
-Render the faces Emacs actually resolved in a buffer (font-lock,
-tree-sitter, eglot semantic tokens, all of it) to an SVG. The colours come
-from the live face pipeline, not a hand-tagged sample, so the image shows
-exactly what the theme does to real code, including the places where one
-layer overrides another.
-
-- `themer-render` renders the region, or the visible window if no region
-  is active.
-- `themer-render-compare` renders font-lock alone next to font-lock plus
-  eglot semantic tokens, and underlines every character whose look the
-  tokens changed. Use it to spot a semantic-token face clobbering a more
-  specific tree-sitter face.
-
-The image opens in `*themer-render*`; press `w` there to write the SVG.
-
-### Headless
-
-```sh
-emacs --batch -L path/to/themer -l themer -l setup.el \
-      -f themer-batch-render FILE OUT.svg [SETTLE-SECONDS] [LINES]
-```
-
-`setup.el` loads the theme and sets whatever the render depends on:
-`treesit-font-lock-level`, the major mode for `FILE`, and
-`eglot-server-programs`. If a server is configured for `FILE`'s mode, batch
-mode starts eglot itself, waits `SETTLE-SECONDS` (default 3) for the server
-to index, and renders the comparison. Otherwise it renders font-lock alone.
-Slow-indexing servers such as rust-analyzer need around 20–25 seconds.
-`LINES` (for example `301-332`) renders only that range. The whole file is
-still parsed, so tree-sitter sees the full context.
-
-To get a PNG: `rsvg-convert OUT.svg -o OUT.png`.
+The function is autoloaded; it loads only `reader-theme` (and
+`themer-colour`), which the theme needs anyway, and leaves the form and
+the themer tools unloaded. Without a generated autoloads file (a plain
+`:load-path` checkout), declare it first:
+`(autoload 'reader-theme-setup-theme-load-path "reader-theme")`.
 
 ## Reader themes
 
-`themer-reader.el` generates themes on the **reader** standard for colouring
+`reader-theme.el` generates themes on the **reader** standard for colouring
 source code ([research/PATTERNS.md](research/PATTERNS.md), draft 3.2):
 "label quietly, landmark loudly". Hue means the *kind* of token, lightness
 and chroma mean importance, and bold marks landmarks. Keywords take a
@@ -115,12 +81,12 @@ way the reference mapper does it (`research/harness/mapper.py`, mode C).
 
 ### Quick start
 
-`M-x themer-reader-new-theme` opens a form for a new theme, empty (seeded
+`M-x reader-theme-new` opens a form for a new theme, empty (seeded
 with your current background and foreground) or seeded from a reader theme
-you pick by name. `M-x themer-reader-edit-theme` opens the same form on an
+you pick by name. `M-x reader-theme-edit` opens the same form on an
 existing theme: the current buffer's theme file, or one picked by name from
 the reader themes on `custom-theme-load-path` and in
-`themer-reader-theme-directory`.
+`reader-theme-directory`.
 
 The form has a field for the name and the description, the **palette**
 (see [Palettes](#palettes)), and a field for each slot: `:bg`, `:fg`, the
@@ -143,11 +109,11 @@ with its hex and Lc), and the conformance level with each MUST and SHOULD.
 ### Samples
 
 The code samples are real buffers, one per language:
-`*themer-reader-sample: NAME (LANGUAGE)*`. The form copies each sample file
+`*reader-theme-sample: NAME (LANGUAGE)*`. The form copies each sample file
 into a temporary directory of its own and visits the copy, so the buffer
 gets the major mode your Emacs uses for the file and runs your hooks as any
 file would: rainbow-delimiters, eglot, line numbers, whatever you have on.
-`themer-reader-treesit-mode`'s rules are installed as well, at
+`reader-theme-treesit-mode`'s rules are installed as well, at
 `treesit-font-lock-level` 4. The derived faces are shown through the
 buffer's `face-remapping-alist`, so the theme needn't be enabled. A face
 the theme leaves empty is empty here too, and a face the theme doesn't set
@@ -230,14 +196,14 @@ and the form re-derives as the colour changes.
 Save writes `:palette` and the slots' references as they are, so a theme
 file read and saved unchanged is byte-identical. It writes
 `NAME-theme.el` next to the file you edited, or to
-`themer-reader-theme-directory` for a new theme. When you edit a file, its
+`reader-theme-directory` for a new theme. When you edit a file, its
 header comment and key order are kept; a renamed theme gets the new name in
 its header and footer lines. The file looks like this:
 
 ```elisp
-(require 'themer-reader)
+(require 'reader-theme)
 
-(themer-reader-deftheme reader-blush
+(reader-theme-deftheme reader-blush
   "Blush, on the reader standard."
   :palette ((bg "#1c1d21")
             (fg "#dddfe4")
@@ -252,9 +218,9 @@ its header and footer lines. The file looks like this:
   ...)
 ```
 
-Themes appear in `load-theme` and `consult-theme`: loading `themer-reader`
-puts `themer-reader-theme-directory` (without creating it) and, with
-`themer-reader-include-examples`, the package's `examples/` on
+Themes appear in `load-theme` and `consult-theme`: loading `reader-theme`
+puts `reader-theme-directory` (without creating it) and, with
+`reader-theme-include-examples`, the package's `examples/` on
 `custom-theme-load-path`, and Save adds the directory of a theme saved
 anywhere. `(load-theme 'reader-blush)` asks you to confirm the theme as
 usual; `custom-safe-themes` is not touched.
@@ -278,12 +244,12 @@ list of `(NAME "#rrggbb")` entries, with any symbol as a name (except `t`,
 string, so themes without a palette still work:
 
 ```elisp
-(themer-reader-deftheme my-theme "Doc."
+(reader-theme-deftheme my-theme "Doc."
   :palette ((ink "#1d1f21") (paper "#c5c8c6") (red "#cc6666"))
   :bg ink :fg paper :syntax red :callable "#81a2be" :value "#b5bd68")
 ```
 
-Names are resolved before anything is derived (`themer-reader-resolve`),
+Names are resolved before anything is derived (`reader-theme-resolve`),
 and an unknown name is an error that names the slot. Derivations are
 cached on the resolved colours, so a palette theme and its hex-only twin
 share one entry. Editing an entry's hex and re-evaluating (or
@@ -338,7 +304,7 @@ UI faces (region, `hl-line`, mode line, completion, diff and diagnostics)
 come from OKLab mixes of `:bg` and `:fg` and the fixed colours.
 Diagnostics are wavy underlines in the error and warning colours.
 End-of-line diagnostics (`flymake-*-echo-at-eol`) are smaller, in dim or
-diagnostic ink, and italic only with `themer-reader-italic-comments`.
+diagnostic ink, and italic only with `reader-theme-italic-comments`.
 
 The standard's conventions carry into other packages:
 
@@ -387,7 +353,7 @@ The examples each set one, with the reason in a comment.
 
 ### Conformance
 
-`M-x themer-reader-check` shows the report for the theme in the current
+`M-x reader-theme-check` shows the report for the theme in the current
 buffer, or for the enabled reader theme. It lists the derived tiers and
 each MUST and SHOULD of PATTERNS.md §1–§4, and gives the level reached:
 
@@ -407,8 +373,8 @@ rules SHOULDs. The faces follow that level. reader-blush reaches
 and R1 (kanagawa), and none meets the CVD SHOULDs; these match the
 reference mapper.
 
-`M-x themer-reader-export` writes a standalone `deftheme` with the colours
-baked in and no dependency on themer. If the theme has a palette, the
+`M-x reader-theme-export` writes a standalone `deftheme` with the colours
+baked in and no dependency on reader-theme or themer. If the theme has a palette, the
 entries the faces use are bound in a `let` and the faces name them
 (`` `(default ((t :foreground ,fg :background ,bg))) ``), so the export
 stays readable. With a prefix argument it adds a note
@@ -450,29 +416,29 @@ the fewest MUST failures, then the fewest failures under CVD simulation,
 then the loud SHOULDs (Lc ≥ 45, distinct from its own quiet form), then
 the least distinct pair of cues. The TODO marker (also the UI accent) and
 the parameter tint get hues no family uses. The file it writes is an
-ordinary `themer-reader-deftheme`, and `themer-reader-check` derives the
+ordinary `reader-theme-deftheme`, and `reader-theme-check` derives the
 same tiers from it. The search and the score are documented in the script.
 
 ### Tree-sitter rules
 
 Emacs's tree-sitter modes don't separate exits from other keywords, or type
-definitions from type uses. `themer-reader-treesit-mode` is a global minor
+definitions from type uses. `reader-theme-treesit-mode` is a global minor
 mode that adds `:override` font-lock rules to the tree-sitter modes for
 python, javascript, typescript, tsx, rust, go, c, c++, java, lua and bash,
 when the grammar is installed. The rules cover:
 
-- exits (`themer-reader-exit`), including Rust's `?`;
-- type definition names (`themer-reader-type-definition`);
-- decorators, attributes and annotations (`themer-reader-meta`), and macro
+- exits (`reader-theme-exit`), including Rust's `?`;
+- type definition names (`reader-theme-type-definition`);
+- decorators, attributes and annotations (`reader-theme-meta`), and macro
   calls and definitions;
-- parameter declarations (`themer-reader-parameter`);
+- parameter declarations (`reader-theme-parameter`);
 - module-level variable bindings, bold default ink
-  (`themer-reader-module-variable`), and constant definitions, strong in
-  the value family (`themer-reader-constant-definition`). Locals keep the
+  (`reader-theme-module-variable`), and constant definitions, strong in
+  the value family (`reader-theme-constant-definition`). Locals keep the
   plain variable face;
-- TODO, FIXME and XXX in comments (`themer-reader-todo`);
-- commented-out code, drawn faded (`themer-reader-commented-code`). This
-  one is only on when `themer-reader-fade-commented-code` is set. Detection
+- TODO, FIXME and XXX in comments (`reader-theme-todo`);
+- commented-out code, drawn faded (`reader-theme-commented-code`). This
+  one is only on when `reader-theme-fade-commented-code` is set. Detection
   is the harness's heuristic (`role_tokens.py`), about 88% precise on
   corpus samples.
 
@@ -499,13 +465,13 @@ as a function definition. A `#define` with no value (include guards, feature
 flags) stays a macro definition.
 
 Loading a reader theme turns the mode on, unless
-`themer-reader-enable-rules` is nil. A rule group whose query doesn't
+`reader-theme-enable-rules` is nil. A rule group whose query doesn't
 compile against the installed grammar is skipped with a message.
 
 ### Limitations
 
 - Module-level bindings and constant definitions need
-  `themer-reader-treesit-mode` and a tree-sitter mode. Without it,
+  `reader-theme-treesit-mode` and a tree-sitter mode. Without it,
   `font-lock-variable-name-face` is plain default ink everywhere.
 - C++ `static constexpr` class members and Java `final` instance fields
   are fields, so they aren't drawn as constant definitions.
@@ -517,7 +483,7 @@ compile against the installed grammar is skipped with a message.
   macro uses, decorators, namespaces and deprecation. The rest (keywords,
   comments, strings, ...) are left empty so exits, TODO markers, escapes
   and bold definitions show through. Rust-analyzer also calls primitives
-  (`u32`) and `derive` namespaces; `themer-reader-treesit-mode` drops the
+  (`u32`) and `derive` namespaces; `reader-theme-treesit-mode` drops the
   namespace face wherever tree-sitter drew a type or an attribute.
 - On muted palettes the quiet tints sit close to default ink, as the
   standard intends, and can be hard to see. Kanagawa's call tint is one
@@ -526,7 +492,75 @@ compile against the installed grammar is skipped with a message.
   re-enabling an unchanged theme, or going back to an earlier colour in
   the form, is instant.
 
-## `themer-picker-adjust`
+## themer
+
+The library under reader-theme, usable on its own. `(require 'themer)`
+loads all of it; each file can also be required alone.
+
+### `themer-samples-show`
+
+Code samples in real buffers, one per language, showing a set of faces
+through `face-remapping-alist` without enabling a theme. The reader theme
+form uses them; see [Samples](#samples) for how they behave and how to add
+your own.
+
+### `themer-preview-mode`
+
+Turn it on in a `<name>-theme.el` buffer. After each edit, saved or not, it
+re-evaluates the buffer and re-enables the theme (after
+`themer-preview-delay`, 0.4s idle by default), so changes to a palette hex
+or a role binding show up in every window straight away.
+
+For [autothemer](https://github.com/jasonm23/autothemer) themes, it also
+paints each palette and role name with the colour it resolves to, both
+where it's defined and wherever a face spec uses it, so you can read the
+role → colour mapping straight off the buffer.
+Other theme macros can register in `themer-preview-forms`: a macro and a
+function returning its form's palette. In such a form the mode paints each
+hex string and each palette name, where it's defined and where it's used.
+reader-theme registers `reader-theme-deftheme` this way.
+
+- Unbalanced parens mid-edit are skipped.
+- If evaluation fails, the previous face settings are restored.
+- Turning the mode off removes the swatches. It also disables the theme
+  if the theme wasn't already enabled when you turned the mode on.
+
+### `themer-render`, `themer-render-compare`
+
+Render the faces Emacs actually resolved in a buffer (font-lock,
+tree-sitter, eglot semantic tokens, all of it) to an SVG. The colours come
+from the live face pipeline, not a hand-tagged sample, so the image shows
+exactly what the theme does to real code, including the places where one
+layer overrides another.
+
+- `themer-render` renders the region, or the visible window if no region
+  is active.
+- `themer-render-compare` renders font-lock alone next to font-lock plus
+  eglot semantic tokens, and underlines every character whose look the
+  tokens changed. Use it to spot a semantic-token face clobbering a more
+  specific tree-sitter face.
+
+The image opens in `*themer-render*`; press `w` there to write the SVG.
+
+#### Headless
+
+```sh
+emacs --batch -L path/to/themer -l themer -l setup.el \
+      -f themer-batch-render FILE OUT.svg [SETTLE-SECONDS] [LINES]
+```
+
+`setup.el` loads the theme and sets whatever the render depends on:
+`treesit-font-lock-level`, the major mode for `FILE`, and
+`eglot-server-programs`. If a server is configured for `FILE`'s mode, batch
+mode starts eglot itself, waits `SETTLE-SECONDS` (default 3) for the server
+to index, and renders the comparison. Otherwise it renders font-lock alone.
+Slow-indexing servers such as rust-analyzer need around 20–25 seconds.
+`LINES` (for example `301-332`) renders only that range. The whole file is
+still parsed, so tree-sitter sees the full context.
+
+To get a PNG: `rsvg-convert OUT.svg -o OUT.png`.
+
+### `themer-picker-adjust`
 
 `M-x themer-picker-adjust` picks up the `#rrggbb` (or `#rgb`) at point, or
 the one in the region, in any buffer, and adjusts it in place. The text and
@@ -559,14 +593,14 @@ upper-case. The whole adjustment is one undo step. In a
 | `themer-render-line-height` | `1.45` | Multiple of the font size |
 | `themer-render-semtok-timeout` | `10` | Seconds to wait for semantic tokens |
 | `themer-render-diff-colour` | `nil` | `nil` uses the `shadow` face |
-| `themer-reader-theme-directory` | `themes/` in `user-emacs-directory` | Where new themes are saved, and searched by `themer-reader-edit-theme`. Put on `custom-theme-load-path` |
-| `themer-reader-include-examples` | `t` | Put the package's `examples/` on `custom-theme-load-path` |
-| `themer-reader-enable-rules` | `t` | Loading a reader theme turns on `themer-reader-treesit-mode` |
+| `reader-theme-directory` | `themes/` in `user-emacs-directory` | Where new themes are saved, and searched by `reader-theme-edit`. Put on `custom-theme-load-path` |
+| `reader-theme-include-examples` | `t` | Put the package's `examples/` on `custom-theme-load-path` |
+| `reader-theme-enable-rules` | `t` | Loading a reader theme turns on `reader-theme-treesit-mode` |
 | `themer-samples-directory` | `nil` | Your own `sample.EXT` files; each is a sample, and replaces a built-in of the same name |
 | `themer-samples-languages` | `t` (all) | Languages whose samples the form shows at first |
 | `themer-samples-semantic-tokens` | `t` | Connect eglot in the sample buffers |
-| `themer-reader-fade-commented-code` | `nil` | Draw code-like comments in the faded tier |
-| `themer-reader-italic-comments` | `nil` | Italic comments |
+| `reader-theme-fade-commented-code` | `nil` | Draw code-like comments in the faded tier |
+| `reader-theme-italic-comments` | `nil` | Italic comments |
 | `themer-picker-steps` | `(0.01 0.005 2.0)` | `themer-picker-adjust` steps: OKLCH lightness, chroma, hue in degrees |
 
 ## Requirements

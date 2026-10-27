@@ -1,6 +1,6 @@
 ;;; reader-monokai-theme.el --- Monokai (base16), on the reader standard. -*- lexical-binding: t; -*-
 
-;; A reader-standard theme (research/PATTERNS.md); see `themer-reader-deftheme'.
+;; A reader-standard theme (research/PATTERNS.md); see `reader-theme-deftheme'.
 ;; Edit a palette colour and re-evaluate (or use `themer-preview-mode'):
 ;; every tier is derived again.
 
@@ -11,9 +11,9 @@
 
 ;;; Code:
 
-(require 'themer-reader)
+(require 'reader-theme)
 
-(themer-reader-deftheme reader-monokai
+(reader-theme-deftheme reader-monokai
   "Monokai (base16), on the reader standard."
   :palette ((bg "#272822")
             (bg1 "#383830")

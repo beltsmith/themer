@@ -25,12 +25,12 @@
 
 (add-to-list 'load-path themer-test--root)
 ;; Load the sources, so a long-running session tests the current code.
-(dolist (f '("themer-colour" "themer-picker" "themer-samples" "themer-reader" "themer-preview"
-             "themer-reader-form"))
+(dolist (f '("themer-colour" "themer-picker" "themer-samples" "reader-theme" "themer-preview"
+             "reader-theme-form"))
   (load (expand-file-name (concat f ".el") themer-test--root) nil t))
 (themer-colour-clear-caches)
-(clrhash themer-reader--cache)
-(setq themer-reader--settings-cache nil)
+(clrhash reader-theme--cache)
+(setq reader-theme--settings-cache nil)
 
 (defun themer-test--near (got want tol)
   "Non-nil if number GOT is within TOL of WANT."
@@ -177,11 +177,11 @@ use.  The binding tint is mapper.apply_options's search run on that build.")
 
 (defmacro themer-test--defpalette (name)
   "Define a derivation test for palette NAME of `themer-test--palettes'."
-  `(ert-deftest ,(intern (format "themer-reader-derive-%s" name)) ()
+  `(ert-deftest ,(intern (format "reader-theme-derive-%s" name)) ()
      ,(format "Conformance and tiers for %s match the reference mapper." name)
      (let* ((ref (cdr (assq ',name themer-test--palettes)))
             (spec (car ref)) (ref (cdr ref))
-            (d (themer-reader-derive spec))
+            (d (reader-theme-derive spec))
             (conf (plist-get d :conformance))
             (tiers (plist-get d :tiers)))
        (should (eq (plist-get conf :level-normal) (plist-get ref :level-normal)))
@@ -203,9 +203,9 @@ use.  The binding tint is mapper.apply_options's search run on that build.")
 (themer-test--defpalette kanagawa)
 (themer-test--defpalette zenburn)
 
-(ert-deftest themer-reader-roles ()
+(ert-deftest reader-theme-roles ()
   "Role styles follow reader.yaml, with shedding applied."
-  (let* ((d (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes))))
+  (let* ((d (reader-theme-derive (cadr (assq 'gruvbox themer-test--palettes))))
          (roles (plist-get d :roles))
          (tiers (plist-get d :tiers))
          (fg (lambda (r) (plist-get (alist-get r roles) :foreground))))
@@ -222,27 +222,27 @@ use.  The binding tint is mapper.apply_options's search run on that build.")
     (should (equal (funcall fg 'macro.call) (alist-get 'syntax (plist-get tiers :loud))))
     (should (plist-get (alist-get 'mod.deprecated roles) :strike))))
 
-(ert-deftest themer-reader-define-and-export ()
+(ert-deftest reader-theme-define-and-export ()
   "A theme gets the derived faces; the export has no themer dependency."
-  (let ((themer-reader-enable-rules nil)
+  (let ((reader-theme-enable-rules nil)
         (spec (cadr (assq 'zenburn themer-test--palettes)))
         (file (make-temp-file "themer-export-" nil "-theme.el")))
     (unwind-protect
         (progn
           (custom-declare-theme 'themer-test-scratch nil)
-          (let* ((d (themer-reader-define 'themer-test-scratch spec))
+          (let* ((d (reader-theme-define 'themer-test-scratch spec))
                  (setting (cl-find-if (lambda (s) (eq (nth 1 s) 'font-lock-keyword-face))
                                       (get 'themer-test-scratch 'theme-settings))))
             (should setting)
             (should (equal (plist-get (cdr (car (nth 3 setting))) :foreground)
                            (plist-get (plist-get d :tiers) :recessive))))
-          (cl-letf (((symbol-function 'themer-reader--current)
+          (cl-letf (((symbol-function 'reader-theme--current)
                      (lambda () (cons 'themer-test-scratch spec))))
-            (themer-reader-export file t))
+            (reader-theme-export file t))
           (with-temp-buffer
             (insert-file-contents file)
             (should-not (string-search "(require 'themer" (buffer-string)))
-            (should (string-search "themer-reader-treesit-mode" (buffer-string)))
+            (should (string-search "reader-theme-treesit-mode" (buffer-string)))
             (goto-char (point-min))
             (should (condition-case nil (progn (while (read (current-buffer))) t)
                       (end-of-file t)))))
@@ -250,33 +250,33 @@ use.  The binding tint is mapper.apply_options's search run on that build.")
       (put 'themer-test-scratch 'theme-settings nil)
       (setq custom-known-themes (delq 'themer-test-scratch custom-known-themes)))))
 
-(ert-deftest themer-reader-spec-errors ()
+(ert-deftest reader-theme-spec-errors ()
   "Missing or malformed required keys are errors."
-  (should-error (themer-reader-derive '(:bg "#000000" :fg "#ffffff")))
-  (should-error (themer-reader-derive '(:bg "#000000" :fg "#ffffff" :syntax "red"
+  (should-error (reader-theme-derive '(:bg "#000000" :fg "#ffffff")))
+  (should-error (reader-theme-derive '(:bg "#000000" :fg "#ffffff" :syntax "red"
                                         :callable "#00ff00" :value "#0000ff"))))
 
 ;;;; Tree-sitter rules
 
-(ert-deftest themer-reader-queries-compile ()
+(ert-deftest reader-theme-queries-compile ()
   "Every rule group compiles for each installed grammar."
   (let ((tested 0))
-    (dolist (lang themer-reader--languages)
+    (dolist (lang reader-theme--languages)
       (when (treesit-language-available-p lang)
-        (pcase-dolist (`(,group . ,query) (themer-reader--queries lang))
+        (pcase-dolist (`(,group . ,query) (reader-theme--queries lang))
           (cl-incf tested)
           (should (equal (list lang group nil)
-                         (list lang group (themer-reader--query-ok lang query)))))))
+                         (list lang group (reader-theme--query-ok lang query)))))))
     (should (> tested 0))))
 
-(ert-deftest themer-reader-rust-try-is-exit ()
+(ert-deftest reader-theme-rust-try-is-exit ()
   "Rust `?' gets the exit face with the rules mode on."
   (skip-unless (and (treesit-language-available-p 'rust) (require 'rust-ts-mode nil t)))
-  (let ((themer-reader-fade-commented-code t)
-        (was themer-reader-treesit-mode))
+  (let ((reader-theme-fade-commented-code t)
+        (was reader-theme-treesit-mode))
     (unwind-protect
         (progn
-          (themer-reader-treesit-mode 1)
+          (reader-theme-treesit-mode 1)
           (with-temp-buffer
             (insert "use std::collections::HashMap;\nuse a::{b, c};\nmod m;\n"
                     "fn f() -> R {\n    // TODO: tidy\n    // let x = compute(a, b);\n"
@@ -286,17 +286,17 @@ use.  The binding tint is mapper.apply_options's search run on that build.")
             (font-lock-ensure)
             (cl-flet ((face-at (s) (goto-char (point-min)) (search-forward s)
                                (get-text-property (match-beginning 0) 'face)))
-              (should (eq (face-at "?;") 'themer-reader-exit))
-              (should (eq (face-at "TODO") 'themer-reader-todo))
-              (should (eq (face-at "let x") 'themer-reader-commented-code))
-              (should (eq (face-at "P {") 'themer-reader-type-definition))
-              (should (eq (face-at "std::") 'themer-reader-module))
-              (should (eq (face-at "collections::") 'themer-reader-module))
-              (should (eq (face-at "a::{") 'themer-reader-module))
-              (should (eq (face-at "m;") 'themer-reader-module))
+              (should (eq (face-at "?;") 'reader-theme-exit))
+              (should (eq (face-at "TODO") 'reader-theme-todo))
+              (should (eq (face-at "let x") 'reader-theme-commented-code))
+              (should (eq (face-at "P {") 'reader-theme-type-definition))
+              (should (eq (face-at "std::") 'reader-theme-module))
+              (should (eq (face-at "collections::") 'reader-theme-module))
+              (should (eq (face-at "a::{") 'reader-theme-module))
+              (should (eq (face-at "m;") 'reader-theme-module))
               (should (eq (face-at "HashMap") 'font-lock-type-face))
-              (should-not (eq (face-at "i32::") 'themer-reader-module)))))
-      (themer-reader-treesit-mode (if was 1 -1)))))
+              (should-not (eq (face-at "i32::") 'reader-theme-module)))))
+      (reader-theme-treesit-mode (if was 1 -1)))))
 
 (defconst themer-test--bindings
   '((python python-ts-mode
@@ -337,7 +337,7 @@ use.  The binding tint is mapper.apply_options's search run on that build.")
 module variable, c a constant definition, l a local (neither), fn a
 function definition, macro a macro definition.")
 
-(ert-deftest themer-reader-module-bindings ()
+(ert-deftest reader-theme-module-bindings ()
   "Module-level bindings and constant definitions get their faces; locals don't."
   (let ((tested 0))
     (pcase-dolist (`(,lang ,mode ,src ,probes) themer-test--bindings)
@@ -346,7 +346,7 @@ function definition, macro a macro definition.")
         (with-temp-buffer
           (insert src)
           (delay-mode-hooks (funcall mode))
-          (themer-reader--install)
+          (reader-theme--install)
           (font-lock-ensure)
           (pcase-dolist (`(,probe . ,kind) probes)
             (goto-char (point-min))
@@ -354,21 +354,21 @@ function definition, macro a macro definition.")
             (let* ((face (get-text-property (match-beginning 0) 'face))
                    (faces (ensure-list face))
                    (ok (pcase kind
-                         ('m (memq 'themer-reader-module-variable faces))
-                         ('c (memq 'themer-reader-constant-definition faces))
+                         ('m (memq 'reader-theme-module-variable faces))
+                         ('c (memq 'reader-theme-constant-definition faces))
                          ('fn (memq 'font-lock-function-name-face faces))
-                         ('macro (memq 'themer-reader-macro-definition faces))
-                         ('l (not (or (memq 'themer-reader-module-variable faces)
-                                      (memq 'themer-reader-constant-definition faces)))))))
+                         ('macro (memq 'reader-theme-macro-definition faces))
+                         ('l (not (or (memq 'reader-theme-module-variable faces)
+                                      (memq 'reader-theme-constant-definition faces)))))))
               (should (equal (list lang probe kind t) (list lang probe kind (and ok t)))))))))
     (should (> tested 0))))
 
-(ert-deftest themer-reader-ansi-colours ()
+(ert-deftest reader-theme-ansi-colours ()
   "Terminal colours look like their names, are readable, and brighten."
   (pcase-dolist (`(,name ,spec . ,_) themer-test--palettes)
-    (let* ((tiers (plist-get (themer-reader-derive spec) :tiers))
+    (let* ((tiers (plist-get (reader-theme-derive spec) :tiers))
            (bg (plist-get tiers :bg))
-           (ansi (themer-reader--ansi tiers)))
+           (ansi (reader-theme--ansi tiers)))
       (should (equal (mapcar #'car ansi) '(red green yellow blue magenta cyan black white)))
       (pcase-dolist (`(,colour ,normal . ,bright) ansi)
         (unless (memq colour '(black white))
@@ -380,32 +380,32 @@ function definition, macro a macro definition.")
           (should (>= (themer-colour-alc normal bg) 35))
           (should (> (themer-colour-alc bright bg) (themer-colour-alc normal bg))))))))
 
-(ert-deftest themer-reader-ui-faces ()
+(ert-deftest reader-theme-ui-faces ()
   "Magit diffs, org and outline levels follow the theme's conventions."
-  (let* ((d (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes))))
-         (faces (themer-reader-faces d))
+  (let* ((d (reader-theme-derive (cadr (assq 'gruvbox themer-test--palettes))))
+         (faces (reader-theme-faces d))
          (get (lambda (f a) (plist-get (alist-get f faces) a))))
     (should (equal (funcall get 'magit-diff-added-highlight :background)
                    (funcall get 'diff-added :background)))
     (should (equal (funcall get 'magit-diff-removed-highlight :background)
                    (funcall get 'diff-removed :background)))
-    (should (equal (alist-get 'org-todo faces) (alist-get 'themer-reader-todo faces)))
+    (should (equal (alist-get 'org-todo faces) (alist-get 'reader-theme-todo faces)))
     (should (equal (funcall get 'org-done :foreground) (plist-get (plist-get d :tiers) :added)))
     (should (member (funcall get 'outline-2 :foreground)
                     (mapcar #'cdr (plist-get (plist-get d :tiers) :loud))))
     (should (equal (funcall get 'ansi-color-red :foreground)
-                   (cadr (assq 'red (themer-reader--ansi (plist-get d :tiers))))))
+                   (cadr (assq 'red (reader-theme--ansi (plist-get d :tiers))))))
     (should-not (funcall get 'marginalia-documentation :slant))
-    (let ((themer-reader-italic-comments t))
-      (should (eq (plist-get (alist-get 'marginalia-documentation (themer-reader-faces d)) :slant)
+    (let ((reader-theme-italic-comments t))
+      (should (eq (plist-get (alist-get 'marginalia-documentation (reader-theme-faces d)) :slant)
                   'italic)))))
 
-(ert-deftest themer-reader-binding-faces ()
+(ert-deftest reader-theme-binding-faces ()
   "Module variables are bold default ink; constant definitions strong value ink."
-  (let* ((d (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes))))
-         (faces (themer-reader-faces d))
-         (mv (alist-get 'themer-reader-module-variable faces))
-         (cd (alist-get 'themer-reader-constant-definition faces)))
+  (let* ((d (reader-theme-derive (cadr (assq 'gruvbox themer-test--palettes))))
+         (faces (reader-theme-faces d))
+         (mv (alist-get 'reader-theme-module-variable faces))
+         (cd (alist-get 'reader-theme-constant-definition faces)))
     (should (equal (plist-get mv :foreground) (plist-get (plist-get d :tiers) :fg)))
     (should (eq (plist-get mv :weight) 'bold))
     (should (equal (plist-get cd :foreground) (alist-get 'value (plist-get (plist-get d :tiers) :loud))))
@@ -435,16 +435,16 @@ function definition, macro a macro definition.")
     ";;; mode ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;" "# shellcheck disable=SC2086"
     "// 127.65535 (tail 0xFFFF into 3 slots) -> 127.0.255.255;"))
 
-(ert-deftest themer-reader-commented-code ()
+(ert-deftest reader-theme-commented-code ()
   "The 31 cases of the harness's comment.code tests."
   (should (= 31 (+ (length themer-test--code-comments) (length themer-test--prose-comments))))
   (dolist (c themer-test--code-comments)
-    (should (equal (list c t) (list c (and (themer-reader-commented-code-p c) t)))))
+    (should (equal (list c t) (list c (and (reader-theme-commented-code-p c) t)))))
   (dolist (c themer-test--prose-comments)
-    (should (equal (list c nil) (list c (themer-reader-commented-code-p c)))))
+    (should (equal (list c nil) (list c (reader-theme-commented-code-p c)))))
   ;; Multi-line: 60% of lines must look like code.
-  (should (themer-reader-commented-code-p "// x = f(a);\n// y = g(b);\n// see above"))
-  (should-not (themer-reader-commented-code-p
+  (should (reader-theme-commented-code-p "// x = f(a);\n// y = g(b);\n// see above"))
+  (should-not (reader-theme-commented-code-p
                "// x = f(a);\n// this is some prose here\n// more prose about things")))
 
 ;;;; Preview
@@ -454,7 +454,7 @@ function definition, macro a macro definition.")
   (with-temp-buffer
     (emacs-lisp-mode)
     (insert ";; \"#123456\" in a comment\n"
-            "(themer-reader-deftheme my-reader \"Doc.\"\n  :bg \"#282828\" :fg \"#d5c4a1\"\n"
+            "(reader-theme-deftheme my-reader \"Doc.\"\n  :bg \"#282828\" :fg \"#d5c4a1\"\n"
             "  :syntax \"#fb4934\" :callable \"#b8bb26\" :value \"#d3869b\")\n")
     (should (eq (themer-preview--theme) 'my-reader))
     (themer-preview--paint-hexes (car (themer-preview--form)) (cdr (themer-preview--form)))
@@ -467,25 +467,25 @@ function definition, macro a macro definition.")
   "The example theme files."
   (directory-files (expand-file-name "examples" themer-test--root) t "-theme\\.el\\'"))
 
-(ert-deftest themer-reader-form-round-trip ()
+(ert-deftest reader-theme-form-round-trip ()
   "Parsing an example into the form model and back changes nothing."
   (should (themer-test--examples))
   (dolist (f (themer-test--examples))
     (let ((text (with-temp-buffer (insert-file-contents f) (buffer-string)))
-          (m (themer-reader-form-read-file f)))
+          (m (reader-theme-form-read-file f)))
       (should (string-suffix-p (format "%s-theme.el" (plist-get m :name)) f))
-      (should (equal (list f text) (list f (themer-reader-form-source m)))))))
+      (should (equal (list f text) (list f (reader-theme-form-source m)))))))
 
-(ert-deftest themer-reader-form-edit-and-retitle ()
+(ert-deftest reader-theme-form-edit-and-retitle ()
   "Edits keep the header comment, renamed with the theme, and key order."
   (let* ((f (expand-file-name "examples/reader-gruvbox-theme.el" themer-test--root))
-         (m (themer-reader-form-read-file f))
-         (spec (themer-reader-form--merge-spec
+         (m (reader-theme-form-read-file f))
+         (spec (reader-theme-form--merge-spec
                 (plist-get m :spec)
                 (append (list :removed "#cc241d") (plist-put (copy-sequence (plist-get m :spec)) :meta nil))))
          (m2 (append (list :name 'my-gruvbox :doc "Mine." :spec spec) m))
-         (src (themer-reader-form-source m2))
-         (back (themer-reader-form-parse src)))
+         (src (reader-theme-form-source m2))
+         (back (reader-theme-form-parse src)))
     (should (string-prefix-p ";;; my-gruvbox-theme.el --- Mine. -*- lexical-binding: t; -*-" src))
     (should (string-search ";;; my-gruvbox-theme.el ends here" src))
     (should (string-search ";; A reader-standard theme" src))
@@ -494,63 +494,63 @@ function definition, macro a macro definition.")
     (should-not (plist-get spec :meta))
     (should (equal (last spec 2) '(:removed "#cc241d")))))
 
-(ert-deftest themer-reader-form-save-loads ()
+(ert-deftest reader-theme-form-save-loads ()
   "Saving writes a theme file that loads and defines the theme."
   (let* ((dir (make-temp-file "themer-form-" t))
-         (themer-reader-enable-rules nil)
+         (reader-theme-enable-rules nil)
          (spec (cadr (assq 'zenburn themer-test--palettes)))
          (m (list :name 'themer-test-saved :doc "Saved by a test." :spec spec)))
     (unwind-protect
-        (let* ((back (themer-reader-form-write m (expand-file-name "themer-test-saved-theme.el" dir)))
+        (let* ((back (reader-theme-form-write m (expand-file-name "themer-test-saved-theme.el" dir)))
                (file (plist-get back :file)))
           (should (file-exists-p file))
           (should (equal (plist-get back :spec) spec))
           (load file nil t)
           (should (custom-theme-p 'themer-test-saved))
-          (should (equal (get 'themer-test-saved 'themer-reader-spec) spec))
+          (should (equal (get 'themer-test-saved 'reader-theme-spec) spec))
           (should (get 'themer-test-saved 'theme-settings))
-          (should (equal (themer-reader-form-source back)
+          (should (equal (reader-theme-form-source back)
                          (with-temp-buffer (insert-file-contents file) (buffer-string)))))
       (put 'themer-test-saved 'theme-settings nil)
       (setq custom-known-themes (delq 'themer-test-saved custom-known-themes))
       (setq features (delq 'themer-test-saved-theme features))
       (delete-directory dir t))))
 
-(ert-deftest themer-reader-form-statuses ()
+(ert-deftest reader-theme-form-statuses ()
   "Per-field statuses come from the conformance result."
-  (let* ((st (themer-reader-form-statuses
-              (themer-reader-derive (cadr (assq 'monokai themer-test--palettes)))))
+  (let* ((st (reader-theme-form-statuses
+              (reader-theme-derive (cadr (assq 'monokai themer-test--palettes)))))
          (text (lambda (k) (mapconcat #'cdr (alist-get k st) "; "))))
     (should (string-match-p "quiet tint" (funcall text :value)))
     (should (string-match-p "\\`Lc " (funcall text :fg)))
     (should (string-match-p "shed at" (funcall text :meta)))))
 
-(ert-deftest themer-reader-form-buffer ()
+(ert-deftest reader-theme-form-buffer ()
   "The form re-derives when a colour changes and redraws the tiers."
   (let ((buf (generate-new-buffer " *themer-test-form*")))
     (unwind-protect
         (with-current-buffer buf
-          (themer-reader-form--render
-           (themer-reader-form--seed-model
+          (reader-theme-form--render
+           (reader-theme-form--seed-model
             (expand-file-name "examples/reader-gruvbox-theme.el" themer-test--root)))
-          (should (eq (plist-get (themer-reader-form-model) :name) 'reader-gruvbox-copy))
-          (themer-reader-form-refresh)
-          (let ((d1 themer-reader-form--derived))
+          (should (eq (plist-get (reader-theme-form-model) :name) 'reader-gruvbox-copy))
+          (reader-theme-form-refresh)
+          (let ((d1 reader-theme-form--derived))
             (should (equal (plist-get (plist-get d1 :conformance) :level) "R2"))
-            (themer-reader-form--set :value "#83a598")
-            (themer-reader-form-refresh)
-            (should-not (eq d1 themer-reader-form--derived))
-            (should (equal (plist-get (plist-get themer-reader-form--derived :spec) :value) "#83a598"))
-            (should (string-search (alist-get 'value (plist-get (plist-get themer-reader-form--derived :tiers) :loud))
-                                   (buffer-substring-no-properties themer-reader-form--dynamic (point-max))))
+            (reader-theme-form--set :value "#83a598")
+            (reader-theme-form-refresh)
+            (should-not (eq d1 reader-theme-form--derived))
+            (should (equal (plist-get (plist-get reader-theme-form--derived :spec) :value) "#83a598"))
+            (should (string-search (alist-get 'value (plist-get (plist-get reader-theme-form--derived :tiers) :loud))
+                                   (buffer-substring-no-properties reader-theme-form--dynamic (point-max))))
             ;; Unchanged colours don't re-derive.
-            (let ((d2 themer-reader-form--derived))
-              (themer-reader-form-refresh)
-              (should (eq d2 themer-reader-form--derived)))
-            (themer-reader-form--set :fg "zzz")
-            (themer-reader-form-refresh)
+            (let ((d2 reader-theme-form--derived))
+              (reader-theme-form-refresh)
+              (should (eq d2 reader-theme-form--derived)))
+            (reader-theme-form--set :fg "zzz")
+            (reader-theme-form-refresh)
             (should (string-search "Fix fg" (buffer-substring-no-properties
-                                             themer-reader-form--dynamic (point-max))))))
+                                             reader-theme-form--dynamic (point-max))))))
       (kill-buffer buf))))
 
 ;;;; Palettes
@@ -561,41 +561,41 @@ function definition, macro a macro definition.")
     :bg ink :fg paper :syntax red :callable green :value purple :error "#cc241d")
   "A small spec mixing palette names and a raw hex.")
 
-(ert-deftest themer-reader-palette-resolve ()
+(ert-deftest reader-theme-palette-resolve ()
   "Names resolve to their colours, hex strings stay, bad names are errors."
-  (should (equal (themer-reader-resolve themer-test--pal-spec)
+  (should (equal (reader-theme-resolve themer-test--pal-spec)
                  '(:bg "#282828" :fg "#d5c4a1" :syntax "#fb4934" :callable "#b8bb26"
                    :value "#d3869b" :error "#cc241d")))
-  (should (equal (themer-reader-palette-users themer-test--pal-spec 'red) '(:syntax)))
-  (should-not (themer-reader-palette-users themer-test--pal-spec 'spare))
+  (should (equal (reader-theme-palette-users themer-test--pal-spec 'red) '(:syntax)))
+  (should-not (reader-theme-palette-users themer-test--pal-spec 'spare))
   ;; Hex-only specs are unchanged.
   (let ((spec (cadr (assq 'gruvbox themer-test--palettes))))
-    (should (equal (themer-reader-resolve spec) spec)))
-  (let ((err (should-error (themer-reader-derive (plist-put (copy-sequence themer-test--pal-spec)
+    (should (equal (reader-theme-resolve spec) spec)))
+  (let ((err (should-error (reader-theme-derive (plist-put (copy-sequence themer-test--pal-spec)
                                                             :syntax 'crimson)))))
     (should (string-match-p ":syntax refers to crimson, which is not in the palette"
                             (error-message-string err))))
   (should (string-match-p "has no :palette"
                           (error-message-string
-                           (should-error (themer-reader-resolve '(:bg ink :fg "#ffffff"))))))
-  (should-error (themer-reader-resolve '(:palette ((a "red")) :bg a)))
-  (should-error (themer-reader-resolve '(:palette ((a "#000000") (a "#111111")) :bg a)))
-  (should-error (themer-reader-resolve '(:palette (("a" "#000000")) :bg "#000000"))))
+                           (should-error (reader-theme-resolve '(:bg ink :fg "#ffffff"))))))
+  (should-error (reader-theme-resolve '(:palette ((a "red")) :bg a)))
+  (should-error (reader-theme-resolve '(:palette ((a "#000000") (a "#111111")) :bg a)))
+  (should-error (reader-theme-resolve '(:palette (("a" "#000000")) :bg "#000000"))))
 
-(ert-deftest themer-reader-palette-derive-cache ()
+(ert-deftest reader-theme-palette-derive-cache ()
   "A palette spec derives as its resolved colours do, from the same cache entry."
   (let* ((spec (cadr (assq 'gruvbox themer-test--palettes)))
          (named (append '(:palette ((bg "#282828") (fg "#d5c4a1") (red "#fb4934")))
                         (plist-put (plist-put (plist-put (copy-sequence spec) :bg 'bg) :fg 'fg)
                                    :syntax 'red))))
-    (should (eq (themer-reader-derive named) (themer-reader-derive spec)))
-    (should (equal (plist-get (themer-reader-derive named) :spec) spec))))
+    (should (eq (reader-theme-derive named) (reader-theme-derive spec)))
+    (should (equal (plist-get (reader-theme-derive named) :spec) spec))))
 
-(ert-deftest themer-reader-palette-examples-unchanged ()
+(ert-deftest reader-theme-palette-examples-unchanged ()
   "The migrated examples resolve to the colours they had, and derive the same faces."
   (pcase-dolist (`(,name ,file) '((gruvbox "reader-gruvbox") (monokai "reader-monokai")
                                   (kanagawa "reader-kanagawa") (zenburn "reader-zenburn")))
-    (let* ((m (themer-reader-form-read-file
+    (let* ((m (reader-theme-form-read-file
                (expand-file-name (format "examples/%s-theme.el" file) themer-test--root)))
            (spec (plist-get m :spec))
            (old (cadr (assq name themer-test--palettes))))
@@ -604,33 +604,33 @@ function definition, macro a macro definition.")
       ;; The accent is the one slot the old specs lack.
       (should (plist-get spec :accent))
       (let ((spec (cl-loop for (k v) on spec by #'cddr unless (eq k :accent) append (list k v))))
-        (should (equal (list name (themer-reader-resolve spec)) (list name old)))
-        (should (equal (themer-reader-faces (themer-reader-derive spec))
-                       (themer-reader-faces (themer-reader-derive old))))))))
+        (should (equal (list name (reader-theme-resolve spec)) (list name old)))
+        (should (equal (reader-theme-faces (reader-theme-derive spec))
+                       (reader-theme-faces (reader-theme-derive old))))))))
 
-(ert-deftest themer-reader-palette-canonical-source ()
+(ert-deftest reader-theme-palette-canonical-source ()
   "The writer reproduces the examples byte for byte, palette included."
   (dolist (f (themer-test--examples))
     (let ((text (with-temp-buffer (insert-file-contents f) (buffer-string)))
-          (m (themer-reader-form-read-file f)))
-      (should (equal (list f text) (list f (themer-reader-form-source (plist-put m :form nil)))))
+          (m (reader-theme-form-read-file f)))
+      (should (equal (list f text) (list f (reader-theme-form-source (plist-put m :form nil)))))
       ;; Each slot back as written, the palette in order.
-      (should (equal (plist-get (themer-reader-form-parse text) :spec) (plist-get m :spec))))))
+      (should (equal (plist-get (reader-theme-form-parse text) :spec) (plist-get m :spec))))))
 
-(ert-deftest themer-reader-palette-deftheme-and-export ()
+(ert-deftest reader-theme-palette-deftheme-and-export ()
   "The macro takes palette names; the export names the palette in a `let'."
-  (let* ((themer-reader-enable-rules nil)
+  (let* ((reader-theme-enable-rules nil)
          (dir (make-temp-file "themer-pal-" t))
          (src (expand-file-name "themer-test-pal-theme.el" dir))
          (out (expand-file-name "themer-test-palx-theme.el" dir)))
     (unwind-protect
         (progn
-          (themer-reader-form-write (list :name 'themer-test-pal :doc "Palette test."
+          (reader-theme-form-write (list :name 'themer-test-pal :doc "Palette test."
                                           :spec themer-test--pal-spec)
                                     src)
           (load src nil t)
-          (should (equal (get 'themer-test-pal 'themer-reader-spec) themer-test--pal-spec))
-          (themer-reader-export out nil 'themer-test-pal themer-test--pal-spec)
+          (should (equal (get 'themer-test-pal 'reader-theme-spec) themer-test--pal-spec))
+          (reader-theme-export out nil 'themer-test-pal themer-test--pal-spec)
           (let* ((forms (with-temp-buffer
                           (insert-file-contents out)
                           (goto-char (point-min))
@@ -648,7 +648,7 @@ function definition, macro a macro definition.")
             (cl-letf (((symbol-function 'custom-theme-set-faces)
                        (lambda (_theme &rest specs) (setq got specs))))
               (eval let-form t))
-            (should (equal got (themer-reader--face-specs (themer-reader-derive themer-test--pal-spec))))))
+            (should (equal got (reader-theme--face-specs (reader-theme-derive themer-test--pal-spec))))))
       (dolist (th '(themer-test-pal))
         (put th 'theme-settings nil)
         (setq custom-known-themes (delq th custom-known-themes)))
@@ -659,7 +659,7 @@ function definition, macro a macro definition.")
   "The preview paints palette entries and the slots that name them."
   (with-temp-buffer
     (emacs-lisp-mode)
-    (insert "(themer-reader-deftheme my-reader \"Doc mentions red.\"\n"
+    (insert "(reader-theme-deftheme my-reader \"Doc mentions red.\"\n"
             "  :palette ((bg \"#282828\")\n            (red \"#fb4934\"))\n"
             "  :bg bg :fg \"#d5c4a1\" :syntax red :callable \"#b8bb26\" :value red)\n")
     (let ((pal (cdr (themer-preview--form))))
@@ -676,128 +676,128 @@ function definition, macro a macro definition.")
 
 (defun themer-test--state ()
   "A form state from `themer-test--pal-spec'."
-  (themer-reader-form-model-state (list :name 'x :doc "" :spec themer-test--pal-spec)))
+  (reader-theme-form-model-state (list :name 'x :doc "" :spec themer-test--pal-spec)))
 
-(ert-deftest themer-reader-form-palette-state ()
+(ert-deftest reader-theme-form-palette-state ()
   "Form states: values, resolution, rename, delete, add."
   (let* ((st (themer-test--state))
-         (vals (themer-reader-form-state-values st)))
+         (vals (reader-theme-form-state-values st)))
     (should (eq (plist-get vals :syntax) 'red))
     (should (equal (plist-get vals :error) "#cc241d"))
-    (should (equal (plist-get (themer-reader-form-state-resolved st) :syntax) "#fb4934"))
-    (should (equal (themer-reader-form-palette-users st "red") '(:syntax)))
+    (should (equal (plist-get (reader-theme-form-state-resolved st) :syntax) "#fb4934"))
+    (should (equal (reader-theme-form-palette-users st "red") '(:syntax)))
     ;; Rename updates every slot naming the entry.
-    (let ((r (themer-reader-form-palette-rename st "purple" "violet")))
+    (let ((r (reader-theme-form-palette-rename st "purple" "violet")))
       (should (equal (assoc "violet" (plist-get r :palette)) '("violet" "#d3869b")))
       (should-not (assoc "purple" (plist-get r :palette)))
       (should (equal (alist-get :value (plist-get r :slots)) "violet"))
-      (should (equal (plist-get (themer-reader-form-state-resolved r) :value) "#d3869b")))
-    (should-error (themer-reader-form-palette-rename st "purple" "red") :type 'user-error)
-    (should-error (themer-reader-form-palette-rename st "purple" "1x") :type 'user-error)
+      (should (equal (plist-get (reader-theme-form-state-resolved r) :value) "#d3869b")))
+    (should-error (reader-theme-form-palette-rename st "purple" "red") :type 'user-error)
+    (should-error (reader-theme-form-palette-rename st "purple" "1x") :type 'user-error)
     ;; Delete refuses while used, unless the slots take the hex.
-    (should-error (themer-reader-form-palette-delete st "red") :type 'user-error)
-    (let ((d (themer-reader-form-palette-delete st "red" t)))
+    (should-error (reader-theme-form-palette-delete st "red") :type 'user-error)
+    (let ((d (reader-theme-form-palette-delete st "red" t)))
       (should-not (assoc "red" (plist-get d :palette)))
       (should (equal (alist-get :syntax (plist-get d :slots)) "#fb4934")))
-    (let ((d (themer-reader-form-palette-delete st "spare")))
+    (let ((d (reader-theme-form-palette-delete st "spare")))
       (should (= 5 (length (plist-get d :palette)))))
     ;; Add, and the model written from a state.
-    (let* ((a (themer-reader-form-set-slot (themer-reader-form-palette-add st "teal" "#83A598")
+    (let* ((a (reader-theme-form-set-slot (reader-theme-form-palette-add st "teal" "#83A598")
                                            :binding "teal"))
-           (m (themer-reader-form-state-model a (list :spec themer-test--pal-spec))))
+           (m (reader-theme-form-state-model a (list :spec themer-test--pal-spec))))
       (should (equal (car (last (plist-get (plist-get m :spec) :palette))) '(teal "#83a598")))
       (should (eq (plist-get (plist-get m :spec) :binding) 'teal)))
-    (should-error (themer-reader-form-palette-add st "red" "#000000") :type 'user-error)
-    (should (equal (themer-reader-form-suggest-name st "#ff0000") "red2"))
+    (should-error (reader-theme-form-palette-add st "red" "#000000") :type 'user-error)
+    (should (equal (reader-theme-form-suggest-name st "#ff0000") "red2"))
     ;; A slot naming no entry, and an entry with a bad hex.
-    (should (eq (plist-get (themer-reader-form-state-values
-                            (themer-reader-form-set-slot st :type "nosuch"))
+    (should (eq (plist-get (reader-theme-form-state-values
+                            (reader-theme-form-set-slot st :type "nosuch"))
                            :type)
                 :bad))
-    (let ((b (themer-reader-form--state-put st :palette (cons '("ink" "zz") (cdr (plist-get st :palette))))))
-      (should (eq (plist-get (themer-reader-form-state-resolved b) :bg) :bad))
-      (should-error (themer-reader-form-state-model b (list :spec nil)) :type 'user-error))))
+    (let ((b (reader-theme-form--state-put st :palette (cons '("ink" "zz") (cdr (plist-get st :palette))))))
+      (should (eq (plist-get (reader-theme-form-state-resolved b) :bg) :bad))
+      (should-error (reader-theme-form-state-model b (list :spec nil)) :type 'user-error))))
 
-(ert-deftest themer-reader-form-pick-candidates ()
+(ert-deftest reader-theme-form-pick-candidates ()
   "The Pick menu lists the palette entries in order, then custom and add."
   (let ((pal '((ink . "#282828") (red . "#fb4934"))))
-    (should (equal (themer-reader-form-pick-candidates pal)
-                   `(("ink" . ink) ("red" . red) (,themer-reader-form--custom . custom)
-                     (,themer-reader-form--add . add))))
-    (should (string-search "#fb4934" (funcall (themer-reader-form--pick-annotation pal) "red")))
+    (should (equal (reader-theme-form-pick-candidates pal)
+                   `(("ink" . ink) ("red" . red) (,reader-theme-form--custom . custom)
+                     (,reader-theme-form--add . add))))
+    (should (string-search "#fb4934" (funcall (reader-theme-form--pick-annotation pal) "red")))
     (cl-letf (((symbol-function 'completing-read) (lambda (&rest _) "red")))
-      (should (eq (themer-reader-form-read-pick "x: " pal) 'red)))
+      (should (eq (reader-theme-form-read-pick "x: " pal) 'red)))
     (cl-letf (((symbol-function 'completing-read) (lambda (&rest _) "#ABCDEF")))
-      (should (equal (themer-reader-form-read-pick "x: " pal) "#abcdef")))
-    (cl-letf (((symbol-function 'completing-read) (lambda (&rest _) themer-reader-form--add)))
-      (should (eq (themer-reader-form-read-pick "x: " pal) 'add)))
+      (should (equal (reader-theme-form-read-pick "x: " pal) "#abcdef")))
+    (cl-letf (((symbol-function 'completing-read) (lambda (&rest _) reader-theme-form--add)))
+      (should (eq (reader-theme-form-read-pick "x: " pal) 'add)))
     (cl-letf (((symbol-function 'completing-read) (lambda (&rest _) "nosuch")))
-      (should-error (themer-reader-form-read-pick "x: " pal) :type 'user-error))))
+      (should-error (reader-theme-form-read-pick "x: " pal) :type 'user-error))))
 
-(ert-deftest themer-reader-form-base16-palette ()
+(ert-deftest reader-theme-form-base16-palette ()
   "Base16 import fills the palette and points the slots at its entries."
   (let* ((slots (cl-loop for i below 16 collect (cons (format "base%02X" i)
                                                        (format "#%02x%02x%02x" (* i 16) (* i 8) (* i 4)))))
-         (st (themer-reader-form-set-slot (themer-test--state) :binding "spare"))
-         (new (themer-reader-form-base16-state st slots '((:bg . "base00") (:fg . "base05") (:type . nil)))))
+         (st (reader-theme-form-set-slot (themer-test--state) :binding "spare"))
+         (new (reader-theme-form-base16-state st slots '((:bg . "base00") (:fg . "base05") (:type . nil)))))
     (should (equal (mapcar #'car (plist-get new :palette))
                    ;; Entries the other slots still name are kept.
                    (append (mapcar #'car slots) '("red" "green" "purple" "spare"))))
     (should (equal (alist-get :bg (plist-get new :slots)) "base00"))
     (should (equal (alist-get :type (plist-get new :slots)) ""))
-    (should (equal (plist-get (themer-reader-form-state-resolved new) :fg) "#502814"))))
+    (should (equal (plist-get (reader-theme-form-state-resolved new) :fg) "#502814"))))
 
-(ert-deftest themer-reader-form-new-theme-palette ()
+(ert-deftest reader-theme-form-new-theme-palette ()
   "A new theme with no seed starts with bg and fg palette entries."
   (cl-letf (((symbol-function 'face-background) (lambda (&rest _) "#101010"))
             ((symbol-function 'face-foreground) (lambda (&rest _) "#eeeeee")))
-    (should (equal (plist-get (themer-reader-form--seed-model nil) :spec)
+    (should (equal (plist-get (reader-theme-form--seed-model nil) :spec)
                    '(:palette ((bg "#101010") (fg "#eeeeee")) :bg bg :fg fg)))))
 
-(ert-deftest themer-reader-form-palette-buffer ()
+(ert-deftest reader-theme-form-palette-buffer ()
   "In the form, palette edits reach every slot naming the entry."
   (let ((buf (generate-new-buffer " *themer-test-form*"))
         (file (expand-file-name "examples/reader-gruvbox-theme.el" themer-test--root)))
     (unwind-protect
         (with-current-buffer buf
-          (themer-reader-form--render (themer-reader-form-read-file file))
-          (should (= 16 (length themer-reader-form--palette-rows)))
-          (should (equal (themer-reader-form-source (themer-reader-form-model))
+          (reader-theme-form--render (reader-theme-form-read-file file))
+          (should (= 16 (length reader-theme-form--palette-rows)))
+          (should (equal (reader-theme-form-source (reader-theme-form-model))
                          (with-temp-buffer (insert-file-contents file) (buffer-string))))
-          (themer-reader-form-refresh)
-          (let* ((row (cl-find "red" themer-reader-form--palette-rows
-                               :key #'themer-reader-form--row-name :test #'equal))
-                 (aqua (cl-find "aqua" themer-reader-form--palette-rows
-                                :key #'themer-reader-form--row-name :test #'equal)))
+          (reader-theme-form-refresh)
+          (let* ((row (cl-find "red" reader-theme-form--palette-rows
+                               :key #'reader-theme-form--row-name :test #'equal))
+                 (aqua (cl-find "aqua" reader-theme-form--palette-rows
+                                :key #'reader-theme-form--row-name :test #'equal)))
             (should (string-search "syntax, error" (overlay-get (plist-get row :overlay) 'after-string)))
-            (should (string-search "(unused)" (overlay-get (plist-get (car (last themer-reader-form--palette-rows))
+            (should (string-search "(unused)" (overlay-get (plist-get (car (last reader-theme-form--palette-rows))
                                                                       :overlay)
                                                            'after-string)))
             ;; A new hex for red re-derives syntax and error.
             (widget-value-set (plist-get row :hex) "#ee3322")
-            (themer-reader-form-refresh)
-            (let ((spec (plist-get themer-reader-form--derived :spec)))
+            (reader-theme-form-refresh)
+            (let ((spec (plist-get reader-theme-form--derived :spec)))
               (should (equal (plist-get spec :syntax) "#ee3322"))
               (should (equal (plist-get spec :error) "#ee3322")))
-            (should (eq (plist-get (plist-get (themer-reader-form-model) :spec) :syntax) 'red))
+            (should (eq (plist-get (plist-get (reader-theme-form-model) :spec) :syntax) 'red))
             ;; Typing a new name in the field renames the entry in the slots.
             (goto-char (widget-field-start (plist-get aqua :name)))
             (insert "x")
-            (should (equal (themer-reader-form--value :meta) "xaqua"))
-            (should (eq (plist-get (plist-get (themer-reader-form-model) :spec) :meta) 'xaqua))
+            (should (equal (reader-theme-form--value :meta) "xaqua"))
+            (should (eq (plist-get (plist-get (reader-theme-form-model) :spec) :meta) 'xaqua))
             ;; A slot can name an entry by typing it.
-            (themer-reader-form--set :callable "yellow")
-            (themer-reader-form-refresh)
-            (should (equal (plist-get (plist-get themer-reader-form--derived :spec) :callable) "#fabd2f"))
+            (reader-theme-form--set :callable "yellow")
+            (reader-theme-form-refresh)
+            (should (equal (plist-get (plist-get reader-theme-form--derived :spec) :callable) "#fabd2f"))
             ;; Deleting rows redraws the form; unknown names don't derive.
-            (themer-reader-form--rerender (themer-reader-form-palette-delete
-                                           (themer-reader-form--state) "yellow" t))
-            (should (= 15 (length themer-reader-form--palette-rows)))
-            (should (equal (themer-reader-form--value :callable) "#fabd2f"))
-            (themer-reader-form--set :value "nosuch")
-            (themer-reader-form-refresh)
+            (reader-theme-form--rerender (reader-theme-form-palette-delete
+                                           (reader-theme-form--state) "yellow" t))
+            (should (= 15 (length reader-theme-form--palette-rows)))
+            (should (equal (reader-theme-form--value :callable) "#fabd2f"))
+            (reader-theme-form--set :value "nosuch")
+            (reader-theme-form-refresh)
             (should (string-search "Fix value" (buffer-substring-no-properties
-                                                themer-reader-form--dynamic (point-max))))))
+                                                reader-theme-form--dynamic (point-max))))))
       (kill-buffer buf))))
 
 ;;;; Samples
@@ -806,7 +806,7 @@ function definition, macro a macro definition.")
   "Run BODY in a temporary buffer standing in for a form; kill its samples after."
   (declare (indent 0))
   `(with-temp-buffer
-     (setq themer-samples-setup-function #'themer-reader--install)
+     (setq themer-samples-setup-function #'reader-theme--install)
      (let ((themer-samples-semantic-tokens nil))
        (unwind-protect (progn ,@body)
          (themer-samples-kill)))))
@@ -821,7 +821,7 @@ function definition, macro a macro definition.")
         (setq p (or (next-single-property-change p 'face) (point-max))))
       (delete-dups faces))))
 
-(ert-deftest themer-reader-form-samples-fontify ()
+(ert-deftest reader-theme-form-samples-fontify ()
   "Every built-in sample buffer has keyword, call and string faces; most have exits.
 The buffers take the modes visiting gives, so C and Python are remapped
 to their tree-sitter modes here."
@@ -841,16 +841,16 @@ to their tree-sitter modes here."
           (should (or (memq 'font-lock-function-call-face faces)
                       (memq 'font-lock-builtin-face faces)))
           (when (memq lang '(rust go c python typescript))
-            (should (memq 'themer-reader-exit faces))))))))
+            (should (memq 'reader-theme-exit faces))))))))
 
-(ert-deftest themer-reader-form-sample-remap ()
+(ert-deftest reader-theme-form-sample-remap ()
   "A sample buffer shows the derivation through `face-remapping-alist'."
-  (let ((d (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes)))))
+  (let ((d (reader-theme-derive (cadr (assq 'gruvbox themer-test--palettes)))))
     (themer-test--with-form-context
       (let* ((file (cddr (assq 'rust (themer-samples-list))))
              (buf (themer-samples-visit 'rust file))
-             (faces (themer-reader-faces d)))
-        (themer-samples--remap buf (themer-reader-faces d))
+             (faces (reader-theme-faces d)))
+        (themer-samples--remap buf (reader-theme-faces d))
         (with-current-buffer buf
           (should (equal (alist-get 'font-lock-keyword-face face-remapping-alist)
                          (list (alist-get 'font-lock-keyword-face faces))))
@@ -860,38 +860,38 @@ to their tree-sitter modes here."
           (should (equal (alist-get 'eglot-semantic-keyword face-remapping-alist)
                          '((:foreground unspecified)))))))))
 
-(ert-deftest themer-reader-eglot-faces ()
+(ert-deftest reader-theme-eglot-faces ()
   "Eglot faces are empty where tree-sitter knows better, coloured where it can't."
   (skip-unless (require 'eglot nil t))
-  (let* ((d (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes))))
-         (faces (themer-reader-faces d)))
+  (let* ((d (reader-theme-derive (cadr (assq 'gruvbox themer-test--palettes))))
+         (faces (reader-theme-faces d)))
     (dolist (f '(eglot-semantic-keyword eglot-semantic-comment eglot-semantic-string
                  eglot-semantic-documentation))
       (should (equal (list f nil) (list f (alist-get f faces)))))
     (should (plist-get (alist-get 'eglot-semantic-parameter faces) :foreground))
     (should (plist-get (alist-get 'eglot-semantic-macro faces) :foreground))
     (should (equal (alist-get 'eglot-semantic-namespace faces)
-                   (alist-get 'themer-reader-module faces)))))
+                   (alist-get 'reader-theme-module faces)))))
 
-(ert-deftest themer-reader-rainbow-delimiters-faces ()
+(ert-deftest reader-theme-rainbow-delimiters-faces ()
   "Rainbow delimiters are punctuation at every depth."
-  (let ((faces (themer-reader-faces
-                (themer-reader-derive (cadr (assq 'gruvbox themer-test--palettes))))))
+  (let ((faces (reader-theme-faces
+                (reader-theme-derive (cadr (assq 'gruvbox themer-test--palettes))))))
     (dotimes (i 9)
       (should (equal (alist-get (intern (format "rainbow-delimiters-depth-%d-face" (1+ i))) faces)
                      (alist-get 'font-lock-bracket-face faces))))))
 
-(ert-deftest themer-reader-drop-namespace-tokens ()
+(ert-deftest reader-theme-drop-namespace-tokens ()
   "Namespace tokens stay on modules, come off types and attributes."
-  (let ((s (concat (propertize "std" 'face '(eglot-semantic-namespace themer-reader-module)) " "
+  (let ((s (concat (propertize "std" 'face '(eglot-semantic-namespace reader-theme-module)) " "
                    (propertize "fs" 'face '(eglot-semantic-namespace)) " "
                    (propertize "u32" 'face '(eglot-semantic-namespace font-lock-type-face)) " "
-                   (propertize "derive" 'face '(eglot-semantic-namespace themer-reader-meta)))))
-    (themer-reader--drop-namespace-tokens 0 (length s) s)
+                   (propertize "derive" 'face '(eglot-semantic-namespace reader-theme-meta)))))
+    (reader-theme--drop-namespace-tokens 0 (length s) s)
     (should (equal (mapcar (lambda (i) (get-text-property i 'face s)) '(0 4 7 11))
-                   '((eglot-semantic-namespace themer-reader-module)
+                   '((eglot-semantic-namespace reader-theme-module)
                      (eglot-semantic-namespace)
-                     font-lock-type-face themer-reader-meta)))))
+                     font-lock-type-face reader-theme-meta)))))
 
 (ert-deftest themer-samples-semantic-tokens ()
   "The Rust sample buffer gets rust-analyzer's tokens; the server goes with the form."
@@ -957,7 +957,7 @@ to their tree-sitter modes here."
             (should (equal (themer-samples-selected-languages) '(ruby)))))
       (delete-directory dir t))))
 
-(ert-deftest themer-reader-form-sample-file-modes ()
+(ert-deftest reader-theme-form-sample-file-modes ()
   "Sample modes come from `auto-mode-alist': tree-sitter first, then classic."
   (let ((auto-mode-alist '(("\\.ts\\'" . typescript-ts-mode-maybe) ("\\.py\\'" . python-mode)
                            ("\\.el\\'" . emacs-lisp-mode) ("\\.sh\\'" . sh-mode)))
@@ -972,7 +972,7 @@ to their tree-sitter modes here."
                    '(bash bash-ts-mode)))
     (should-not (themer-samples--file-modes "sample.zzz"))))
 
-(ert-deftest themer-reader-form-sample-buffer ()
+(ert-deftest reader-theme-form-sample-buffer ()
   "The sample buffers open with the form, follow its choices, and die with it."
   (let ((themer-samples--selected '(python rust))
         (themer-samples-semantic-tokens nil)
@@ -982,14 +982,14 @@ to their tree-sitter modes here."
       (unwind-protect
           (progn
             (delete-other-windows)
-            (setq form (themer-reader-edit-theme file))
-            (with-current-buffer form (themer-reader-form-refresh))
+            (setq form (reader-theme-edit file))
+            (with-current-buffer form (reader-theme-form-refresh))
             (setq samples (mapcar #'cdr (buffer-local-value 'themer-samples--buffers form))
                   dir (buffer-local-value 'themer-samples--dir form))
             (should (= 2 (length samples)))
             (should (equal (sort (mapcar #'buffer-name samples) #'string<)
-                           '("*themer-reader-sample: reader-gruvbox (Python)*"
-                             "*themer-reader-sample: reader-gruvbox (Rust)*")))
+                           '("*reader-theme-sample: reader-gruvbox (Python)*"
+                             "*reader-theme-sample: reader-gruvbox (Rust)*")))
             (dolist (b samples)
               (should (get-buffer-window b))
               (should (eq form (buffer-local-value 'themer-samples--owner b)))
@@ -1000,20 +1000,20 @@ to their tree-sitter modes here."
             ;; A re-derive changes the remap in place.
             (let ((b (car samples)))
               (with-current-buffer form
-                (themer-reader-form--set :callable "#83a598")
-                (themer-reader-form-refresh))
+                (reader-theme-form--set :callable "#83a598")
+                (reader-theme-form-refresh))
               (should (equal (plist-get (car (alist-get 'font-lock-function-call-face
                                                         (buffer-local-value 'face-remapping-alist b)))
                                         :foreground)
                              (plist-get (alist-get 'font-lock-function-call-face
-                                                   (themer-reader-faces
-                                                    (buffer-local-value 'themer-reader-form--derived form)))
+                                                   (reader-theme-faces
+                                                    (buffer-local-value 'reader-theme-form--derived form)))
                                         :foreground))))
             ;; Toggling a language shows or hides its buffer, without deriving.
             (with-current-buffer form
-              (let ((d themer-reader-form--derived))
+              (let ((d reader-theme-form--derived))
                 (themer-samples-set-languages '(rust))
-                (should (eq d themer-reader-form--derived))))
+                (should (eq d reader-theme-form--derived))))
             (should-not (get-buffer-window (alist-get 'python (buffer-local-value
                                                                 'themer-samples--buffers form))))
             (should (get-buffer-window (alist-get 'rust (buffer-local-value
@@ -1025,7 +1025,7 @@ to their tree-sitter modes here."
               (should (get-buffer-window rust))
               ;; A user rule in display-buffer-alist wins.
               (delete-window (get-buffer-window rust))
-              (let ((display-buffer-alist '(("\\*themer-reader-sample" display-buffer-pop-up-window))))
+              (let ((display-buffer-alist '(("\\*reader-theme-sample" display-buffer-pop-up-window))))
                 (with-current-buffer form (themer-samples-show)))
               (should (get-buffer-window rust)))
             ;; The samples, and their directory, die with the form.
@@ -1046,30 +1046,30 @@ to their tree-sitter modes here."
 
 (defun themer-test--face-attr (derived face attr)
   "ATTR of FACE in the faces of DERIVED."
-  (plist-get (alist-get face (themer-reader-faces derived)) attr))
+  (plist-get (alist-get face (reader-theme-faces derived)) attr))
 
-(ert-deftest themer-reader-accent-default ()
+(ert-deftest reader-theme-accent-default ()
   "The accent is :accent, else :popout, else the callable loud colour."
   (let* ((spec themer-test--accent-spec)
-         (acc (lambda (s) (plist-get (plist-get (themer-reader-derive s) :tiers) :accent)))
+         (acc (lambda (s) (plist-get (plist-get (reader-theme-derive s) :tiers) :accent)))
          (no-popout (cl-loop for (k v) on spec by #'cddr unless (eq k :popout) append (list k v))))
     (should (equal (funcall acc spec) "#fe8019"))
     (should (equal (funcall acc (append spec '(:accent pink))) "#ff00ff"))
     (should (equal (funcall acc (append spec '(:accent "#00ffff"))) "#00ffff"))
     (should (equal (funcall acc no-popout)
-                   (alist-get 'callable (plist-get (plist-get (themer-reader-derive no-popout) :tiers)
+                   (alist-get 'callable (plist-get (plist-get (reader-theme-derive no-popout) :tiers)
                                                    :loud))))
-    (should-error (themer-reader-derive (append spec '(:accent nosuch))))
-    (should-error (themer-reader-derive (append spec '(:accent "red"))))
+    (should-error (reader-theme-derive (append spec '(:accent nosuch))))
+    (should-error (reader-theme-derive (append spec '(:accent "red"))))
     ;; A palette name and its hex are the same theme.
-    (should (eq (themer-reader-derive (append spec '(:accent pink)))
-                (themer-reader-derive (themer-reader-resolve (append spec '(:accent pink))))))))
+    (should (eq (reader-theme-derive (append spec '(:accent pink)))
+                (reader-theme-derive (reader-theme-resolve (append spec '(:accent pink))))))))
 
-(ert-deftest themer-reader-accent-faces ()
+(ert-deftest reader-theme-accent-faces ()
   "The accent colours the chrome faces and no syntax face."
   (let* ((spec (append themer-test--accent-spec '(:accent pink)))
-         (d (themer-reader-derive spec))
-         (faces (themer-reader-faces d))
+         (d (reader-theme-derive spec))
+         (faces (reader-theme-faces d))
          (acc "#ff00ff"))
     (should (equal (themer-test--face-attr d 'cursor :background) acc))
     (should (equal (themer-test--face-attr d 'isearch :background) acc))
@@ -1090,15 +1090,15 @@ to their tree-sitter modes here."
     (should (equal (themer-test--face-attr d 'org-document-title :height) 1.3))
     ;; Never on syntax.
     (pcase-dolist (`(,face . ,attrs) faces)
-      (when (string-match-p "\\`\\(?:font-lock-\\|themer-reader-\\|eglot-semantic-\\)"
+      (when (string-match-p "\\`\\(?:font-lock-\\|reader-theme-\\|eglot-semantic-\\)"
                             (symbol-name face))
         (should-not (member acc (list face (plist-get attrs :foreground)
                                       (plist-get attrs :background))))))))
 
-(ert-deftest themer-reader-accent-conformance ()
+(ert-deftest reader-theme-accent-conformance ()
   "The accent has a legibility line, and the form gives it a status."
-  (let* ((ok (themer-reader-derive (append themer-test--accent-spec '(:accent "#fabd2f"))))
-         (bad (themer-reader-derive (append themer-test--accent-spec '(:accent "#504945"))))
+  (let* ((ok (reader-theme-derive (append themer-test--accent-spec '(:accent "#fabd2f"))))
+         (bad (reader-theme-derive (append themer-test--accent-spec '(:accent "#504945"))))
          (check (lambda (d id)
                   (seq-find (lambda (c) (eq (plist-get c :id) id))
                             (plist-get (plist-get d :conformance) :checks)))))
@@ -1108,32 +1108,32 @@ to their tree-sitter modes here."
       (should-not (plist-get (funcall check bad id) :ok)))
     (should (string-search "Lc" (plist-get (funcall check ok 'accent-lc) :detail)))
     (should (equal (plist-get (plist-get ok :tiers) :accent) "#fabd2f"))
-    (let ((st (themer-reader-form-statuses bad)))
+    (let ((st (reader-theme-form-statuses bad)))
       (should (string-match-p "below 60" (mapconcat #'cdr (alist-get :accent st) "; "))))
-    (let ((st (themer-reader-form-statuses ok)))
+    (let ((st (reader-theme-form-statuses ok)))
       (should (string-match-p "\\`Lc " (mapconcat #'cdr (alist-get :accent st) "; "))))))
 
-(ert-deftest themer-reader-accent-form-and-export ()
+(ert-deftest reader-theme-accent-form-and-export ()
   "The accent round-trips through the form model, the writer and the export."
-  (let* ((themer-reader-enable-rules nil)
+  (let* ((reader-theme-enable-rules nil)
          (spec (append themer-test--accent-spec '(:accent pink)))
          (m (list :name 'themer-test-accent :doc "Accent." :spec spec))
-         (back (themer-reader-form-parse (themer-reader-form-source m)))
+         (back (reader-theme-form-parse (reader-theme-form-source m)))
          (file (make-temp-file "themer-accent-" nil "-theme.el")))
     (should (equal (plist-get back :spec) spec))
-    (should (eq (plist-get (themer-reader-form-state-values (themer-reader-form-model-state back)) :accent)
+    (should (eq (plist-get (reader-theme-form-state-values (reader-theme-form-model-state back)) :accent)
                 'pink))
-    (should (equal (plist-get (themer-reader-form-state-resolved (themer-reader-form-model-state back))
+    (should (equal (plist-get (reader-theme-form-state-resolved (reader-theme-form-model-state back))
                               :accent)
                    "#ff00ff"))
-    (should (memq :accent (themer-reader-form--keys)))
+    (should (memq :accent (reader-theme-form--keys)))
     ;; The field survives a form edit, in the spec's key order.
-    (let* ((state (themer-reader-form-set-slot (themer-reader-form-model-state back) :accent "#00ffff"))
-           (m2 (themer-reader-form-state-model state back)))
+    (let* ((state (reader-theme-form-set-slot (reader-theme-form-model-state back) :accent "#00ffff"))
+           (m2 (reader-theme-form-state-model state back)))
       (should (equal (plist-get (plist-get m2 :spec) :accent) "#00ffff")))
     (unwind-protect
         (progn
-          (themer-reader-export file nil 'themer-test-accent spec)
+          (reader-theme-export file nil 'themer-test-accent spec)
           (with-temp-buffer
             (insert-file-contents file)
             (should (string-search ",pink" (buffer-string)))
@@ -1145,81 +1145,81 @@ to their tree-sitter modes here."
 (defmacro themer-test--with-clean-load-path (&rest body)
   "Run BODY with `custom-theme-load-path' and the path options restored after."
   (declare (indent 0))
-  `(let ((old-dir (default-toplevel-value 'themer-reader-theme-directory))
-         (old-inc (default-toplevel-value 'themer-reader-include-examples))
+  `(let ((old-dir (default-toplevel-value 'reader-theme-directory))
+         (old-inc (default-toplevel-value 'reader-theme-include-examples))
          (custom-theme-load-path nil))
      (unwind-protect (progn ,@body)
-       (set-default 'themer-reader-theme-directory old-dir)
-       (set-default 'themer-reader-include-examples old-inc))))
+       (set-default 'reader-theme-directory old-dir)
+       (set-default 'reader-theme-include-examples old-inc))))
 
-(ert-deftest themer-reader-theme-load-path ()
+(ert-deftest reader-theme-load-path ()
   "The theme and examples directories are on `custom-theme-load-path'."
   (let ((dir (file-name-as-directory (expand-file-name "themer-test-no-such-dir/"
                                                        temporary-file-directory)))
         (examples (file-name-as-directory (expand-file-name "examples" themer-test--root))))
     (themer-test--with-clean-load-path
       ;; The setter adds the directory, without creating it, and only once.
-      (funcall (get 'themer-reader-theme-directory 'custom-set) 'themer-reader-theme-directory dir)
-      (funcall (get 'themer-reader-theme-directory 'custom-set) 'themer-reader-theme-directory dir)
+      (funcall (get 'reader-theme-directory 'custom-set) 'reader-theme-directory dir)
+      (funcall (get 'reader-theme-directory 'custom-set) 'reader-theme-directory dir)
       (should (= 1 (cl-count dir custom-theme-load-path :test #'equal)))
       (should-not (file-exists-p dir))
       ;; The examples directory comes from the library's location.
-      (funcall (get 'themer-reader-include-examples 'custom-set) 'themer-reader-include-examples t)
+      (funcall (get 'reader-theme-include-examples 'custom-set) 'reader-theme-include-examples t)
       (should (member examples custom-theme-load-path))
       (should (member "reader-gruvbox" (mapcar #'symbol-name (custom-available-themes))))
-      (funcall (get 'themer-reader-include-examples 'custom-set) 'themer-reader-include-examples nil)
+      (funcall (get 'reader-theme-include-examples 'custom-set) 'reader-theme-include-examples nil)
       (should-not (member examples custom-theme-load-path))
       (should-not (member "reader-gruvbox" (mapcar #'symbol-name (custom-available-themes))))
       (should (member dir custom-theme-load-path)))))
 
-(ert-deftest themer-reader-setup-theme-load-path ()
+(ert-deftest reader-theme-setup-theme-load-path ()
   "The setup function puts both directories on the path, once."
   (let ((dir (file-name-as-directory (expand-file-name "themer-test-no-such-dir/"
                                                        temporary-file-directory)))
         (examples (file-name-as-directory (expand-file-name "examples" themer-test--root))))
     (themer-test--with-clean-load-path
-      (set-default 'themer-reader-theme-directory dir)
-      (set-default 'themer-reader-include-examples t)
-      (should (equal (themer-reader-setup-theme-load-path) (list dir examples)))
-      (themer-reader-setup-theme-load-path)
+      (set-default 'reader-theme-directory dir)
+      (set-default 'reader-theme-include-examples t)
+      (should (equal (reader-theme-setup-theme-load-path) (list dir examples)))
+      (reader-theme-setup-theme-load-path)
       (should (equal custom-theme-load-path (list dir examples)))
       (setq custom-theme-load-path nil)
-      (set-default 'themer-reader-include-examples nil)
-      (should (equal (themer-reader-setup-theme-load-path) (list dir)))
+      (set-default 'reader-theme-include-examples nil)
+      (should (equal (reader-theme-setup-theme-load-path) (list dir)))
       (should (equal custom-theme-load-path (list dir))))))
 
-(ert-deftest themer-reader-example-loads-by-name ()
+(ert-deftest reader-theme-example-loads-by-name ()
   "`load-theme' finds an example by name, with the examples on the path."
-  (let ((themer-reader-enable-rules nil)
+  (let ((reader-theme-enable-rules nil)
         (known custom-known-themes)
         (enabled custom-enabled-themes))
     (themer-test--with-clean-load-path
-      (funcall (get 'themer-reader-include-examples 'custom-set) 'themer-reader-include-examples t)
+      (funcall (get 'reader-theme-include-examples 'custom-set) 'reader-theme-include-examples t)
       (unwind-protect
           (progn
             (should (load-theme 'reader-gruvbox t))
             (should (memq 'reader-gruvbox custom-enabled-themes))
-            (should (get 'reader-gruvbox 'themer-reader-spec)))
+            (should (get 'reader-gruvbox 'reader-theme-spec)))
         (disable-theme 'reader-gruvbox)
         (put 'reader-gruvbox 'theme-settings nil)
         (setq custom-known-themes known
               custom-enabled-themes enabled)
         (setq features (delq 'reader-gruvbox-theme features))))))
 
-(ert-deftest themer-reader-form-save-adds-directory ()
+(ert-deftest reader-theme-form-save-adds-directory ()
   "A theme saved to any directory becomes loadable in the session."
   (let* ((dir (file-name-as-directory (make-temp-file "themer-save-" t)))
          (buf (generate-new-buffer " *themer-test-save*")))
     (unwind-protect
         (themer-test--with-clean-load-path
           (with-current-buffer buf
-            (themer-reader-form--render
-             (themer-reader-form--seed-model
+            (reader-theme-form--render
+             (reader-theme-form--seed-model
               (expand-file-name "examples/reader-gruvbox-theme.el" themer-test--root)))
-            (let ((file (themer-reader-form-save (expand-file-name "themer-test-elsewhere-theme.el" dir))))
+            (let ((file (reader-theme-form-save (expand-file-name "themer-test-elsewhere-theme.el" dir))))
               (should (file-exists-p file))
               (should (member dir custom-theme-load-path))
-              (themer-reader-form-save file)
+              (reader-theme-form-save file)
               (should (= 1 (cl-count dir custom-theme-load-path :test #'equal))))))
       (kill-buffer buf)
       (delete-directory dir t))))
@@ -1293,9 +1293,24 @@ to their tree-sitter modes here."
 
 ;;;; Package hygiene
 
+(ert-deftest themer-without-reader-theme ()
+  "The themer library loads, and byte-compiles, without reader-theme."
+  (let ((out (with-temp-buffer
+               (list (call-process
+                      (expand-file-name invocation-name invocation-directory) nil t nil
+                      "--batch" "-Q" "-L" themer-test--root "-l" "themer"
+                      "--eval" (prin1-to-string
+                                '(let (n)
+                                   (mapatoms (lambda (s) (when (string-prefix-p "reader-theme"
+                                                                                (symbol-name s))
+                                                           (push s n))))
+                                   (princ (format "%S %S" (featurep 'themer) n)))))
+                     (buffer-string)))))
+    (should (equal out '(0 "t nil")))))
+
 (defconst themer-test--files
-  '("themer.el" "themer-colour.el" "themer-reader.el" "themer-preview.el" "themer-reader-form.el"
-    "themer-picker.el" "themer-samples.el")
+  '("themer.el" "themer-colour.el" "themer-preview.el" "themer-picker.el" "themer-samples.el"
+    "reader-theme.el" "reader-theme-form.el")
   "Files held to the no-warnings and checkdoc rules.")
 
 (ert-deftest themer-byte-compile-clean ()
@@ -1326,13 +1341,13 @@ to their tree-sitter modes here."
               (when-let* ((buf (get-file-buffer file))) (kill-buffer buf))))))
       (should (equal (list f nil) (list f warnings))))))
 
-(ert-deftest themer-reader-form-read-theme-file-empty ()
+(ert-deftest reader-theme-form-read-theme-file-empty ()
   "An empty answer means no seed, not the current directory."
   (cl-letf (((symbol-function 'completing-read) (lambda (&rest _) "")))
-    (should (null (themer-reader-form--read-theme-file "Seed: "))))
+    (should (null (reader-theme-form--read-theme-file "Seed: "))))
   (cl-letf (((symbol-function 'completing-read)
              (lambda (&rest _) default-directory)))
-    (should-error (themer-reader-form--read-theme-file "Seed: ") :type 'user-error)))
+    (should-error (reader-theme-form--read-theme-file "Seed: ") :type 'user-error)))
 
 (provide 'themer-test)
 

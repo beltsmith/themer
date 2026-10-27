@@ -1,5 +1,5 @@
 [project]
-name = "themer-reader-site"
+name = "reader-theme-site"
 version = "0.1.0"
 description = "Reader standard pages and the timed search task, with reports stored in S3"
 requires-python = ">=3.12"

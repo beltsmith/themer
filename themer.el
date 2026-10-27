@@ -7,7 +7,9 @@
 
 ;;; Commentary:
 ;;
-;; Tools for developing a colour theme while looking at it:
+;; A library for developing a colour theme while looking at it.  The
+;; reader-theme package (reader-theme.el, in the same repository) is built
+;; on it.
 ;;
 ;; `themer-preview-mode'  (themer-preview.el)
 ;;   In an autothemer `<name>-theme.el' buffer, re-evaluate and re-enable
@@ -19,20 +21,6 @@
 ;;   `themer-render-compare' renders font-lock alone next to font-lock
 ;;   plus eglot semantic tokens, and underlines what the tokens changed.
 ;;   `themer-batch-render' does the same headlessly from the command line.
-;;
-;; `themer-reader-deftheme'  (themer-reader.el)
-;;   Themes on the reader colouring standard (research/PATTERNS.md): give
-;;   a background, a foreground and one accent per kind family, and every
-;;   salience tier is derived, checked for conformance and mapped onto
-;;   faces.  `themer-reader-check' shows the conformance report,
-;;   `themer-reader-export' writes a standalone theme, and
-;;   `themer-reader-treesit-mode' adds tree-sitter rules for exits, type
-;;   definitions, decorators, module-level bindings, constant definitions
-;;   and TODO markers.
-;;
-;; `themer-reader-new-theme', `themer-reader-edit-theme'  (themer-reader-form.el)
-;;   A form for creating and editing reader themes, with live swatches,
-;;   derived tiers, a fontified sample and the conformance checks.
 ;;
 ;; `themer-samples-show'  (themer-samples.el)
 ;;   Real buffers of code, one per language, showing a set of faces
@@ -56,8 +44,6 @@
 (require 'themer-preview)
 (require 'themer-render)
 (require 'themer-colour)
-(require 'themer-reader)
-(require 'themer-reader-form)
 (require 'themer-picker)
 (require 'themer-samples)
 

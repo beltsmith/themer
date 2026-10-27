@@ -97,7 +97,7 @@ def test_source():
     assert [n for n, _ in pal] == ['bg', 'fg', 'red', 'purple', 'red-binding'], pal
     assert names['popout'] == 'purple'                               # a repeated colour reuses its entry
     src = G.el_source('t', 'Doc.', 'desc', 'full', ['meta'], slots)
-    body = src[src.index('(themer-reader-deftheme'):src.index(';;; t-theme.el ends here')]
+    body = src[src.index('(reader-theme-deftheme'):src.index(';;; t-theme.el ends here')]
     assert body.count('(') == body.count(')'), body
     assert ':popout purple' in src and 'Dropped optional families: meta' in src
 

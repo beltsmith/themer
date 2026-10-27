@@ -342,7 +342,7 @@ Waits up to `themer-render-semtok-timeout' seconds for the tokens."
   (themer-render--snapshot beg end))
 
 (defun themer-render--compare-panels (beg end)
-  "Panels for font-lock alone and font-lock plus semantic tokens."
+  "Panels of BEG..END: font-lock alone, and font-lock plus semantic tokens."
   (let ((was eglot-semantic-tokens-mode)
         plain semantic)
     (unwind-protect
