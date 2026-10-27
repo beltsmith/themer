@@ -1,6 +1,6 @@
 ;;; reader-zenburn-theme.el --- Zenburn (base16), on the reader standard. -*- lexical-binding: t; -*-
 
-;; A reader-standard theme (research/PATTERNS.md); see `themer-reader-deftheme'.
+;; A reader-standard theme (research/PATTERNS.md); see `reader-theme-deftheme'.
 ;; Edit a palette colour and re-evaluate (or use `themer-preview-mode'):
 ;; every tier is derived again.
 
@@ -11,9 +11,9 @@
 
 ;;; Code:
 
-(require 'themer-reader)
+(require 'reader-theme)
 
-(themer-reader-deftheme reader-zenburn
+(reader-theme-deftheme reader-zenburn
   "Zenburn (base16), on the reader standard."
   :palette ((bg "#383838")
             (bg1 "#404040")

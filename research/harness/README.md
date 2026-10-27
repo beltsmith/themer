@@ -140,7 +140,7 @@ uv run $D python harness/test_generate.py [--fast]                # generator te
 - `generate.py` writes the most readable reader theme for a background, a foreground and a hue name
   (or a hex) per family. A trailing `?` marks type/meta optional. The spec is `Key value` lines or
   `key=value` arguments. Every candidate is scored by `map_reader` mode C, so the
-  `themer-reader-deftheme` it writes derives the same way in Elisp. The docstring gives the search and
+  `reader-theme-deftheme` it writes derives the same way in Elisp. The docstring gives the search and
   the score.
 
 - `colour.py` is the metric library: OKLCH, ΔE_OK and ΔE00, the Szafir line model `de_text`, D1–D4,

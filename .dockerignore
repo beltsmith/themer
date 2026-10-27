@@ -1,0 +1,8 @@
+# Only server/ and research/ go into the image; never the fetched corpus.
+*
+!server/pyproject.toml
+!server/uv.lock
+!server/app.py
+!research
+research/data
+**/__pycache__

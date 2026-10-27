@@ -1,7 +1,9 @@
-;;; themer-reader.el --- Themes that follow the reader colouring standard -*- lexical-binding: t; -*-
+;;; reader-theme.el --- Themes that follow the reader colouring standard -*- lexical-binding: t; -*-
 
 ;; Author: beltsmith <me@alexgirdler.com>
-;; Package-Requires: ((emacs "29.1"))
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "29.1") (themer "0.1.0"))
+;; Keywords: faces
 
 ;;; Commentary:
 ;;
@@ -21,24 +23,27 @@
 ;;   (:palette ((bg "#282828") (fg "#d5c4a1") (red "#fb4934") ...)
 ;;    :bg bg :fg fg :syntax red ...)
 ;;
-;; `themer-reader-resolve' replaces the names with their colours before
+;; `reader-theme-resolve' replaces the names with their colours before
 ;; anything is derived.
 ;;
-;; `themer-reader-derive' turns that into every salience tier (faded, dim,
+;; `reader-theme-derive' turns that into every salience tier (faded, dim,
 ;; recessive, default, quiet, loud, strong, popout) the way the reference
 ;; mapper does (research/harness/mapper.py, mode C), checks the standard's
 ;; MUSTs and SHOULDs, sheds families for reduced conformance, and maps the
 ;; roles onto Emacs faces.
 ;;
-;;   `themer-reader-deftheme'     define a theme from a spec, in NAME-theme.el
-;;   `themer-reader-new-theme'    create a theme in a form (themer-reader-form.el)
-;;   `themer-reader-edit-theme'   edit a theme file in the same form
-;;   `themer-reader-check'        show the conformance report
-;;   `themer-reader-export'       write a standalone theme with baked colours
-;;   `themer-reader-treesit-mode' extra tree-sitter rules for exits, type
-;;                                definitions, decorators, module-level
-;;                                bindings, constant definitions, TODO
-;;                                markers and (optionally) commented-out code
+;;   `reader-theme-deftheme'     define a theme from a spec, in NAME-theme.el
+;;   `reader-theme-new'          create a theme in a form (reader-theme-form.el)
+;;   `reader-theme-edit'         edit a theme file in the same form
+;;   `reader-theme-check'        show the conformance report
+;;   `reader-theme-export'       write a standalone theme with baked colours
+;;   `reader-theme-treesit-mode' extra tree-sitter rules for exits, type
+;;                               definitions, decorators, module-level
+;;                               bindings, constant definitions, TODO
+;;                               markers and (optionally) commented-out code
+;;
+;; The tools it builds on (preview, render, the OKLCH picker, the code
+;; samples and the colour maths) are the themer library.
 
 ;;; Code:
 
@@ -47,113 +52,125 @@
 (require 'treesit)
 (require 'themer-colour)
 
-(defvar themer-preview-mode)
-(declare-function themer-preview-mode "themer-preview")
 (declare-function treesit-primary-parser "treesit")
 
 ;;;; Options
 
-(defcustom themer-reader-enable-rules t
-  "Non-nil means loading a reader theme turns on `themer-reader-treesit-mode'."
-  :type 'boolean
-  :group 'themer)
+(defgroup reader-theme nil
+  "Themes that follow the reader colouring standard."
+  :group 'faces
+  :prefix "reader-theme-")
 
-(defcustom themer-reader-fade-commented-code nil
+(defcustom reader-theme-enable-rules t
+  "Non-nil means loading a reader theme turns on `reader-theme-treesit-mode'."
+  :type 'boolean
+  :group 'reader-theme)
+
+(defcustom reader-theme-fade-commented-code nil
   "Non-nil means comments that look like code are drawn in the faded tier.
-The detection is heuristic (see `themer-reader-commented-code-p')."
+The detection is heuristic (see `reader-theme-commented-code-p')."
   :type 'boolean
-  :group 'themer)
+  :group 'reader-theme)
 
-(defcustom themer-reader-italic-comments nil
+(defcustom reader-theme-italic-comments nil
   "Non-nil means comments are italic (the standard allows italic for prose)."
   :type 'boolean
-  :group 'themer)
+  :group 'reader-theme)
 
 ;;;; Where themes are found
 ;;
 ;; `load-theme' and `consult-theme' only see directories on
 ;; `custom-theme-load-path'.  Loading this library adds
-;; `themer-reader-theme-directory' (and, with
-;; `themer-reader-include-examples', the package's examples/) to it;
+;; `reader-theme-directory' (and, with
+;; `reader-theme-include-examples', the package's examples/) to it;
 ;; nothing is created on disk.
 
-(defvar themer-reader--library-directory
-  (when-let* ((file (or load-file-name buffer-file-name (locate-library "themer-reader"))))
+(defvar reader-theme--library-directory
+  (when-let* ((file (or load-file-name buffer-file-name (locate-library "reader-theme"))))
     (file-name-directory file))
   "The directory this library was loaded from, or nil.")
 
-(defun themer-reader--same-dir-p (a b)
+(defun reader-theme--same-dir-p (a b)
   "Non-nil if directory names A and B are the same, existing or not."
   (equal (file-name-as-directory (expand-file-name a))
          (file-name-as-directory (expand-file-name b))))
 
-(defun themer-reader-add-theme-directory (dir)
+(defun reader-theme-add-directory (dir)
   "Put DIR on `custom-theme-load-path' if it isn't there already.
 Return the directory name as stored, or nil if DIR is nil.  The
 directory need not exist."
   (when dir
     (let ((dir (file-name-as-directory (expand-file-name dir))))
       (unless (cl-some (lambda (d) (and (stringp d)
-                                        (themer-reader--same-dir-p d dir)))
+                                        (reader-theme--same-dir-p d dir)))
                        custom-theme-load-path)
         (add-to-list 'custom-theme-load-path dir t))
       dir)))
 
-(defun themer-reader--examples-directory ()
+(defun reader-theme--examples-directory ()
   "The package's examples/ directory, or nil if it isn't there."
-  (when themer-reader--library-directory
-    (let ((dir (expand-file-name "examples/" themer-reader--library-directory)))
+  (when reader-theme--library-directory
+    (let ((dir (expand-file-name "examples/" reader-theme--library-directory)))
       (and (file-directory-p dir) dir))))
 
-(defun themer-reader--set-theme-directory (sym value)
+(defun reader-theme--set-directory (sym value)
   "Set SYM to VALUE, and put VALUE on `custom-theme-load-path'."
   (set-default sym value)
-  (themer-reader-add-theme-directory value))
+  (reader-theme-add-directory value))
 
-(defun themer-reader--set-include-examples (sym value)
+(defun reader-theme--set-include-examples (sym value)
   "Set SYM to VALUE; when non-nil, put the examples directory on the path."
   (set-default sym value)
   (if value
-      (themer-reader-add-theme-directory (themer-reader--examples-directory))
-    (when-let* ((dir (themer-reader--examples-directory)))
+      (reader-theme-add-directory (reader-theme--examples-directory))
+    (when-let* ((dir (reader-theme--examples-directory)))
       (setq custom-theme-load-path
-            (cl-remove-if (lambda (d) (and (stringp d) (themer-reader--same-dir-p d dir)))
+            (cl-remove-if (lambda (d) (and (stringp d) (reader-theme--same-dir-p d dir)))
                           custom-theme-load-path)))))
 
-(defcustom themer-reader-theme-directory
+(defcustom reader-theme-directory
   (locate-user-emacs-file "themes/")
   "Directory new reader themes are saved to, and searched for editing.
 It is on `custom-theme-load-path', so the themes saved there appear in
 `load-theme'."
   :type 'directory
-  :set #'themer-reader--set-theme-directory
-  :group 'themer)
+  :set #'reader-theme--set-directory
+  :group 'reader-theme)
 
-(defcustom themer-reader-include-examples t
+(defcustom reader-theme-include-examples t
   "Non-nil means the example themes (examples/) are on `custom-theme-load-path'.
-Then `load-theme' and `consult-theme' list reader-gruvbox and the others."
+Then `load-theme' and `consult-theme' list reader-blush and the others."
   :type 'boolean
-  :set #'themer-reader--set-include-examples
-  :group 'themer)
+  :set #'reader-theme--set-include-examples
+  :group 'reader-theme)
+
+;;;###autoload
+(defun reader-theme-setup-theme-load-path ()
+  "Put the reader theme directories on `custom-theme-load-path'.
+That is `reader-theme-directory' and, with
+`reader-theme-include-examples', the package's examples/.  Call it
+from your init file before `load-theme' when themer is loaded lazily;
+the themes themselves load the rest.  Return the directories added."
+  (delq nil (list (reader-theme-add-directory reader-theme-directory)
+                  (and reader-theme-include-examples
+                       (reader-theme-add-directory (reader-theme--examples-directory))))))
 
 ;; `defcustom' runs :set only the first time a value is bound.
-(themer-reader-add-theme-directory themer-reader-theme-directory)
-(when themer-reader-include-examples
-  (themer-reader-add-theme-directory (themer-reader--examples-directory)))
+(reader-theme-setup-theme-load-path)
 
 ;;;; The standard (patterns/reader.yaml, draft 3.2)
 
-(defconst themer-reader-families '(syntax callable type value meta)
+(defconst reader-theme-families '(syntax callable type value meta)
   "The five kind families.")
 
-(defconst themer-reader--drop-order '(meta type callable syntax value)
+(defconst reader-theme--drop-order '(meta type callable syntax value)
   "Families in ascending `keep' rank: the order reduced conformance sheds them.")
 
-(defconst themer-reader--levels
+(defconst reader-theme--levels
   '((R0 . nil) (R1 . (meta)) (R2 . (meta type)))
   "Levels built in turn, with the families each sheds.")
 
-(defconst themer-reader--styles
+(defconst reader-theme--styles
   '((keyword.decl syntax recessive) (keyword.flow syntax recessive)
     (keyword.other syntax recessive) (keyword.exit syntax strong)
     (variable.builtin syntax recessive) (operator nil default)
@@ -173,13 +190,13 @@ Then `load-theme' and `consult-theme' list reader-gruvbox and the others."
     (mod.deprecated nil nil) (mod.unnecessary nil faded))
   "Role -> (FAMILY TIER), as in reader.yaml `styles'.")
 
-(defconst themer-reader--fallbacks
+(defconst reader-theme--fallbacks
   '((meta syntax loud) (type callable nil) (binding nil default))
   "Family -> (FALLBACK-FAMILY TIER-FOR-READING-LAYER-ROLES).")
 
-(defconst themer-reader--loud-tiers '(loud strong popout))
+(defconst reader-theme--loud-tiers '(loud strong popout))
 
-(defconst themer-reader--tiers
+(defconst reader-theme--tiers
   '(:faded (:lc (30 15) :chroma 0.03)
            :dim (:lc (45 20) :below 10 :chroma 0.04)
            :recessive (:below (6 18) :chroma (0.04 0.12))
@@ -188,26 +205,26 @@ Then `load-theme' and `consult-theme' list reader-gruvbox and the others."
            :loud (:lc (45 35) :chroma 0.08))
   "Tier parameters from reader.yaml `tiers'.")
 
-(defconst themer-reader--max-fid 0.05
+(defconst reader-theme--max-fid 0.05
   "Fidelity cap: how far (ΔE_OK) an accent may move to reach its Lc target.")
 
 ;;;; Spec
 
-(defconst themer-reader-slots
+(defconst reader-theme-slots
   '(:bg :fg :syntax :callable :type :value :meta :binding :popout :accent
     :error :warning :added :removed)
   "The colour slots of a spec, in canonical order.")
 
-(defun themer-reader-palette-name-p (x)
+(defun reader-theme-palette-name-p (x)
   "Non-nil if X can name a palette entry: a symbol other than nil, t or a keyword."
   (and (symbolp x) x (not (eq x t)) (not (keywordp x))))
 
-(defun themer-reader-palette (spec)
+(defun reader-theme-palette (spec)
   "The palette of SPEC as an alist (NAME . HEX), in order.
 Signal an error if the :palette list is malformed."
   (let (out)
     (dolist (e (plist-get spec :palette))
-      (unless (and (consp e) (themer-reader-palette-name-p (car e))
+      (unless (and (consp e) (reader-theme-palette-name-p (car e))
                    (themer-colour-hex-p (cadr e)) (null (cddr e)))
         (error "Reader spec: palette entries are (NAME \"#rrggbb\"), got %S" e))
       (when (assq (car e) out)
@@ -215,14 +232,14 @@ Signal an error if the :palette list is malformed."
       (push (cons (car e) (cadr e)) out))
     (nreverse out)))
 
-(defun themer-reader-resolve (spec)
+(defun reader-theme-resolve (spec)
   "SPEC with each palette name replaced by its colour, and :palette dropped.
 Slots holding a hex string are kept as they are.  Signal an error for a
 name the palette doesn't define."
-  (let ((pal (themer-reader-palette spec)) out)
+  (let ((pal (reader-theme-palette spec)) out)
     (cl-loop for (k v) on spec by #'cddr
              unless (eq k :palette)
-             do (setq out (nconc out (list k (if (themer-reader-palette-name-p v)
+             do (setq out (nconc out (list k (if (reader-theme-palette-name-p v)
                                                  (or (cdr (assq v pal))
                                                      (error (if (plist-get spec :palette)
                                                                 "Reader spec: %s refers to %s, which is not in the palette"
@@ -231,30 +248,30 @@ name the palette doesn't define."
                                                v)))))
     out))
 
-(defun themer-reader-palette-users (spec name)
+(defun reader-theme-palette-users (spec name)
   "The slots of SPEC that refer to palette entry NAME, in spec order."
   (cl-loop for (k v) on spec by #'cddr
-           when (and (memq k themer-reader-slots) (eq v name)) collect k))
+           when (and (memq k reader-theme-slots) (eq v name)) collect k))
 
-(defun themer-reader--spec-get (spec key)
+(defun reader-theme--spec-get (spec key)
   "Normalised hex for KEY in resolved SPEC, or nil."
   (when-let* ((v (plist-get spec key)))
     (themer-colour-norm v)))
 
-(defun themer-reader--fixed (spec key bg)
+(defun reader-theme--fixed (spec key bg)
   "Hex for fixed-convention KEY of SPEC, with a default derived for BG."
-  (or (themer-reader--spec-get spec key)
+  (or (reader-theme--spec-get spec key)
       (let ((l (if (themer-colour-dark-p bg) 0.68 0.52)))
         (pcase key
           (:error (themer-colour-from-oklch l 0.17 27))
-          (:removed (themer-reader--fixed spec :error bg))
+          (:removed (reader-theme--fixed spec :error bg))
           (:warning (themer-colour-from-oklch (+ l 0.1) 0.15 80))
           (:added (themer-colour-from-oklch l 0.15 145))))))
 
-(defun themer-reader--check-spec (spec)
+(defun reader-theme--check-spec (spec)
   "Signal an error unless SPEC has the required keys.
-Palette names are resolved first (`themer-reader-resolve')."
-  (let ((spec (themer-reader-resolve spec)))
+Palette names are resolved first (`reader-theme-resolve')."
+  (let ((spec (reader-theme-resolve spec)))
     (dolist (k '(:bg :fg :syntax :callable :value))
       (unless (themer-colour-hex-p (plist-get spec k))
         (error "Reader spec: %s must be a palette name or \"#rrggbb\" string, got %S"
@@ -267,7 +284,7 @@ Palette names are resolved first (`themer-reader-resolve')."
 
 ;;;; Styles after shedding
 
-(defun themer-reader--effective-styles (kept)
+(defun reader-theme--effective-styles (kept)
   "Role -> plist (:family :tier :bold) after dropping families not in KEPT."
   (mapcar
    (pcase-lambda (`(,role ,fam ,tier))
@@ -276,7 +293,7 @@ Palette names are resolved first (`themer-reader-resolve')."
          (if (memq fam seen)
              (setq fam nil)
            (push fam seen)
-           (pcase-let ((`(,_ ,to ,ttier) (assq fam themer-reader--fallbacks)))
+           (pcase-let ((`(,_ ,to ,ttier) (assq fam reader-theme--fallbacks)))
              (when (and ttier (memq tier '(quiet recessive)))
                (setq tier ttier))
              (setq fam to))))
@@ -285,30 +302,30 @@ Palette names are resolved first (`themer-reader-resolve')."
        (when (eq fam 'oddball) (setq fam nil))
        (cons role (list :family fam :tier tier
                         :bold (and (memq tier '(strong popout)) t)))))
-   themer-reader--styles))
+   reader-theme--styles))
 
 ;;;; Tier derivation (mapper.py `dim_faded', `recessive_colour', `quiet_joint')
 
-(defun themer-reader--arange (start stop step)
+(defun reader-theme--arange (start stop step)
   "Like numpy.arange: START + i*STEP below STOP."
   (let ((n (max 0 (ceiling (/ (- stop start) step)))))
     (cl-loop for i below n collect (+ start (* i step)))))
 
-(defun themer-reader--grid (lo hi)
+(defun reader-theme--grid (lo hi)
   "Chroma grid LO..HI by 0.01, plus HI (numpy.unique of the two)."
-  (sort (delete-dups (append (themer-reader--arange lo (+ hi 1e-9) 0.01) (list hi))) #'<))
+  (sort (delete-dups (append (reader-theme--arange lo (+ hi 1e-9) 0.01) (list hi))) #'<))
 
-(defun themer-reader--round (x digits)
+(defun reader-theme--round (x digits)
   "X rounded to DIGITS decimals."
   (let ((m (expt 10.0 digits)))
     (/ (fround (* x m)) m)))
 
-(defun themer-reader--lch (l c h)
+(defun reader-theme--lch (l c h)
   "Hex for OKLCH (L C H), rounded as mapper.py `_lch' does."
-  (themer-colour-from-oklch (themer-reader--round l 4) (themer-reader--round c 4)
-                            (themer-reader--round h 2)))
+  (themer-colour-from-oklch (reader-theme--round l 4) (reader-theme--round c 4)
+                            (reader-theme--round h 2)))
 
-(defun themer-reader--dim-faded (fg bg)
+(defun reader-theme--dim-faded (fg bg)
   "Plist with :dim, :faded and their checks for FG on BG."
   (let* ((f (themer-colour-alc fg bg))
          (target (min 45 (- f 10)))
@@ -330,7 +347,7 @@ Palette names are resolved first (`themer-reader-resolve')."
             :faded-lc (themer-colour-alc faded bg)
             :faded-distinct-ok faded-ok))))
 
-(defun themer-reader--recessive (acc fg bg avoid)
+(defun reader-theme--recessive (acc fg bg avoid)
   "Recessive form of accent ACC for FG on BG, distinct from AVOID, or nil.
 The point with the largest text difference from FG among those 6-18 Lc
 below FG with chroma 0.04-0.12 and reliably distinct from FG and AVOID."
@@ -338,9 +355,9 @@ below FG with chroma 0.04-0.12 and reliably distinct from FG and AVOID."
          (lf (car (themer-colour-oklch fg)))
          (ha (nth 2 (themer-colour-oklch acc)))
          best best-m)
-    (dolist (c (themer-reader--grid 0.04 0.12))
-      (dolist (l (themer-reader--arange (max 0.0 (- lf 0.35)) (+ (min 1.0 (+ lf 0.35)) 1e-9) 0.01))
-        (let* ((q (themer-reader--lch l c ha))
+    (dolist (c (reader-theme--grid 0.04 0.12))
+      (dolist (l (reader-theme--arange (max 0.0 (- lf 0.35)) (+ (min 1.0 (+ lf 0.35)) 1e-9) 0.01))
+        (let* ((q (reader-theme--lch l c ha))
                (d (- f (themer-colour-alc q bg)))
                (qc (nth 1 (themer-colour-oklch q))))
           (when (and (<= 6 d 18)
@@ -352,7 +369,7 @@ below FG with chroma 0.04-0.12 and reliably distinct from FG and AVOID."
                 (setq best q best-m m)))))))
     best))
 
-(defun themer-reader--quiet-joint (accs fg bg avoid)
+(defun reader-theme--quiet-joint (accs fg bg avoid)
   "Quiet forms for ACCS, an alist (FAMILY . ACCENT) in shedding order.
 Each is the accent's hue with chroma 0.04-0.10 and |Lc| within 12 of FG,
 reliably distinct from FG, AVOID and each other, on BG.  Coordinate
@@ -365,9 +382,9 @@ alist \(FAMILY . HEX-or-nil), FAILS an alist (FAMILY . REASON)."
          cand fail live sel)
     (pcase-dolist (`(,fam . ,acc) accs)
       (let ((ha (nth 2 (themer-colour-oklch acc))) pool)
-        (dolist (c (themer-reader--grid 0.04 0.10))
-          (dolist (l (themer-reader--arange (max 0.0 (- lf 0.16)) (+ (min 1.0 (+ lf 0.16)) 1e-9) 0.01))
-            (let ((q (themer-reader--lch l c ha)))
+        (dolist (c (reader-theme--grid 0.04 0.10))
+          (dolist (l (reader-theme--arange (max 0.0 (- lf 0.16)) (+ (min 1.0 (+ lf 0.16)) 1e-9) 0.01))
+            (let ((q (reader-theme--lch l c ha)))
               (unless (member q pool)
                 (let ((qc (nth 1 (themer-colour-oklch q))))
                   (when (and (<= (- 0.04 1e-3) qc (+ 0.10 1e-3))
@@ -402,7 +419,7 @@ alist \(FAMILY . HEX-or-nil), FAILS an alist (FAMILY . REASON)."
                     (dolist (ab pairs)
                       (let ((v (funcall pmv ab s)))
                         (setq viol (+ viol (min 0.0 v)) mm (min mm v))))
-                    (list (themer-reader--round viol 6) (min 0.20 mm) (- fsum)))))
+                    (list (reader-theme--round viol 6) (min 0.20 mm) (- fsum)))))
                (better (lambda (a b)
                          (cond ((/= (nth 0 a) (nth 0 b)) (> (nth 0 a) (nth 0 b)))
                                ((/= (nth 1 a) (nth 1 b)) (> (nth 1 a) (nth 1 b)))
@@ -458,68 +475,68 @@ alist \(FAMILY . HEX-or-nil), FAILS an alist (FAMILY . REASON)."
 
 ;;;; Building one level
 
-(defun themer-reader--loud (spec bg)
+(defun reader-theme--loud (spec bg)
   "Alist (FAMILY . plist) of SPEC's family accents, shifted toward Lc 45 on BG."
-  (cl-loop for fam in (append themer-reader-families '(binding))
-           for src = (themer-reader--spec-get spec (intern (format ":%s" fam)))
+  (cl-loop for fam in (append reader-theme-families '(binding))
+           for src = (reader-theme--spec-get spec (intern (format ":%s" fam)))
            when src
            collect (pcase-let ((`(,hex ,lc ,fid) (themer-colour-shift-l-to-lc
-                                                  src bg 45 themer-reader--max-fid)))
+                                                  src bg 45 reader-theme--max-fid)))
                      (cons fam (list :src src :hex hex :lc lc :fid fid
                                      :name (themer-colour-hue-name hex))))))
 
-(defun themer-reader--popout (spec loud fg bg)
+(defun reader-theme--popout (spec loud fg bg)
   "Popout ink for SPEC: :popout, or the first fixed colour whose hue is unused.
 LOUD is the family accent alist; FG and BG the default ink and background.
 Return (HEX . SPARE-P)."
   (let* ((used (cons (themer-colour-hue-name fg)
                      (mapcar (lambda (x) (plist-get (cdr x) :name)) loud)))
-         (cands (delq nil (list (themer-reader--spec-get spec :popout)
-                                (themer-reader--fixed spec :warning bg)
-                                (themer-reader--fixed spec :error bg)
-                                (themer-reader--fixed spec :added bg))))
-         (shift (lambda (h) (car (themer-colour-shift-l-to-lc h bg 45 themer-reader--max-fid))))
+         (cands (delq nil (list (reader-theme--spec-get spec :popout)
+                                (reader-theme--fixed spec :warning bg)
+                                (reader-theme--fixed spec :error bg)
+                                (reader-theme--fixed spec :added bg))))
+         (shift (lambda (h) (car (themer-colour-shift-l-to-lc h bg 45 reader-theme--max-fid))))
          (pick (cl-find-if (lambda (h) (not (memq (themer-colour-hue-name (funcall shift h)) used)))
                            cands)))
     (if pick
         (cons (funcall shift pick) t)
       (cons (funcall shift (car cands)) nil))))
 
-(defun themer-reader--accent (spec loud)
+(defun reader-theme--accent (spec loud)
   "The UI accent of SPEC: :accent, else :popout, else the callable loud colour.
-LOUD is the family accent alist (as `themer-reader--loud').  It is never
+LOUD is the family accent alist (as `reader-theme--loud').  It is never
 applied to syntax faces."
-  (or (themer-reader--spec-get spec :accent)
-      (themer-reader--spec-get spec :popout)
+  (or (reader-theme--spec-get spec :accent)
+      (reader-theme--spec-get spec :popout)
       (plist-get (alist-get 'callable loud) :hex)))
 
-(defun themer-reader--build (spec name kept loud fg bg)
-  "Build level NAME of SPEC with families KEPT.  LOUD as `themer-reader--loud'."
-  (let* ((styles (themer-reader--effective-styles
+(defun reader-theme--build (spec name kept loud fg bg)
+  "Build level NAME of SPEC with families KEPT.  LOUD as `reader-theme--loud'."
+  (let* ((styles (reader-theme--effective-styles
                   (if (assq 'binding loud) (cons 'binding kept) kept)))
          (fam-out (cl-remove-if-not (lambda (x) (memq (car x) kept)) loud))
-         (fams (cl-remove-if-not (lambda (f) (assq f fam-out)) themer-reader--drop-order))
-         (df (themer-reader--dim-faded fg bg))
+         (fams (cl-remove-if-not (lambda (f) (assq f fam-out)) reader-theme--drop-order))
+         (df (reader-theme--dim-faded fg bg))
          (dim (plist-get df :dim)) (faded (plist-get df :faded))
          (syn (plist-get (alist-get 'syntax fam-out) :hex))
-         (rec (themer-reader--recessive syn fg bg (list dim faded syn)))
+         (rec (reader-theme--recessive syn fg bg (list dim faded syn)))
          (qfams (cl-remove-if-not
                  (lambda (f) (cl-some (lambda (r) (and (eq (plist-get (cdr r) :family) f)
                                                        (eq (plist-get (cdr r) :tier) 'quiet)))
                                       styles))
                  fams))
          (qaccs (mapcar (lambda (f) (cons f (plist-get (alist-get f fam-out) :hex))) qfams))
-         (qj (themer-reader--quiet-joint qaccs fg bg (append (and rec (list rec)) (list dim))))
+         (qj (reader-theme--quiet-joint qaccs fg bg (append (and rec (list rec)) (list dim))))
          (quiet (car qj))
          ;; The optional parameter tint is found after the other cues, as in
          ;; mapper.py `apply_options': it must not move them.
          (binding (alist-get 'binding loud))
          (bq (when binding
-               (themer-reader--quiet-joint
+               (reader-theme--quiet-joint
                 (list (cons 'binding (plist-get binding :src))) fg bg
                 (append (and rec (list rec)) (list dim) (delq nil (mapcar #'cdr quiet))))))
          (bhex (cdr (assq 'binding (car bq))))
-         (popout (themer-reader--popout spec fam-out fg bg))
+         (popout (reader-theme--popout spec fam-out fg bg))
          (roles
           (mapcar
            (lambda (r)
@@ -551,14 +568,14 @@ applied to syntax faces."
           :quiet-fails (cdr qj) :qfams qfams
           :popout popout :roles roles)))
 
-(defun themer-reader--loud-checks (b bg)
+(defun reader-theme--loud-checks (b bg)
   "Loud-family checks for build B on BG: pairs, L2 per family, overall flags."
   (let* ((fam-out (plist-get b :families))
          (styles (plist-get b :styles))
          (fams (plist-get b :fams))
          (loud-fams (cl-remove-if-not
                      (lambda (f) (cl-some (lambda (r) (and (eq (plist-get (cdr r) :family) f)
-                                                           (memq (plist-get (cdr r) :tier) themer-reader--loud-tiers)))
+                                                           (memq (plist-get (cdr r) :tier) reader-theme--loud-tiers)))
                                           styles))
                      fams))
          (hex (lambda (f) (plist-get (alist-get f fam-out) :hex)))
@@ -575,7 +592,7 @@ applied to syntax faces."
                        (let ((tiers (delq nil (mapcar (lambda (r)
                                                         (let ((st (cdr r)))
                                                           (when (and (eq (plist-get st :family) f)
-                                                                     (memq (plist-get st :tier) themer-reader--loud-tiers))
+                                                                     (memq (plist-get st :tier) reader-theme--loud-tiers))
                                                             (themer-colour-lc-tier (themer-colour-alc (funcall hex f) bg)
                                                                                    'L2 (plist-get st :bold)))))
                                                       styles))))
@@ -609,7 +626,7 @@ applied to syntax faces."
           :quiet-ok (cl-every (lambda (f) (alist-get f (plist-get b :quiet))) (plist-get b :qfams))
           :failures failures)))
 
-(defun themer-reader--pick-level (built key)
+(defun reader-theme--pick-level (built key)
   "(BUILD . LEVEL) for BUILT, using loud flag KEY (:loud-ok or :loud-ok-normal)."
   (or (cl-loop for b in built
                for c = (plist-get b :checks)
@@ -623,13 +640,13 @@ applied to syntax faces."
 
 ;;;; Conformance report
 
-(defun themer-reader--check (id section kw ok detail &optional gating)
+(defun reader-theme--check (id section kw ok detail &optional gating)
   "One conformance entry ID of SECTION, keyword KW, result OK and DETAIL.
 GATING nil means it doesn't affect the level."
   (list :id id :section section :keyword kw :ok (and ok t) :detail detail
         :gating gating))
 
-(defun themer-reader--conformance (spec b bg fg level level-cvd)
+(defun reader-theme--conformance (spec b bg fg level level-cvd)
   "Every MUST/SHOULD of PATTERNS.md §1-§4 for build B of SPEC."
   (let* ((c (plist-get b :checks))
          (ti (plist-get b :tiers-info))
@@ -640,46 +657,46 @@ GATING nil means it doesn't affect the level."
          (chroma (lambda (h) (nth 1 (themer-colour-oklch h))))
          (lc (lambda (h) (themer-colour-alc h bg)))
          (fmt (lambda (h) (format "%s Lc %.1f C %.3f" h (funcall lc h) (funcall chroma h))))
-         (fixed (lambda (k) (themer-reader--fixed spec k bg)))
+         (fixed (lambda (k) (reader-theme--fixed spec k bg)))
          (popout (plist-get b :popout))
-         (accent (themer-reader--accent spec fam-out))
+         (accent (reader-theme--accent spec fam-out))
          (checks
           (append
            (list
-            (themer-reader--check 'error-red "§1" 'MUST (eq (themer-colour-hue-name (funcall fixed :error)) 'red)
+            (reader-theme--check 'error-red "§1" 'MUST (eq (themer-colour-hue-name (funcall fixed :error)) 'red)
                                   (format "error %s is %s" (funcall fixed :error) (themer-colour-hue-name (funcall fixed :error))))
-            (themer-reader--check 'warning-yellow "§1" 'SHOULD (memq (themer-colour-hue-name (funcall fixed :warning)) '(yellow orange brown))
+            (reader-theme--check 'warning-yellow "§1" 'SHOULD (memq (themer-colour-hue-name (funcall fixed :warning)) '(yellow orange brown))
                                   (format "warning %s is %s" (funcall fixed :warning) (themer-colour-hue-name (funcall fixed :warning))))
-            (themer-reader--check 'added-green "§1" 'MUST (eq (themer-colour-hue-name (funcall fixed :added)) 'green)
+            (reader-theme--check 'added-green "§1" 'MUST (eq (themer-colour-hue-name (funcall fixed :added)) 'green)
                                   (format "added %s is %s" (funcall fixed :added) (themer-colour-hue-name (funcall fixed :added))))
-            (themer-reader--check 'removed-red "§1" 'MUST (eq (themer-colour-hue-name (funcall fixed :removed)) 'red)
+            (reader-theme--check 'removed-red "§1" 'MUST (eq (themer-colour-hue-name (funcall fixed :removed)) 'red)
                                   (format "removed %s is %s" (funcall fixed :removed) (themer-colour-hue-name (funcall fixed :removed))))
-            (themer-reader--check 'faded-lc "§2" 'MUST (>= (funcall lc faded) 15)
+            (reader-theme--check 'faded-lc "§2" 'MUST (>= (funcall lc faded) 15)
                                   (format "faded %s; Lc ≥ 15" (funcall fmt faded)) t)
-            (themer-reader--check 'faded-target "§2" 'SHOULD
+            (reader-theme--check 'faded-target "§2" 'SHOULD
                                   (and (<= (abs (- (funcall lc faded) 30)) 5) (<= (funcall chroma faded) 0.03)
                                        (plist-get ti :faded-distinct-ok))
                                   "faded Lc ≈ 30, achromatic, distinct from dim")
-            (themer-reader--check 'dim "§2" 'MUST (plist-get c :dim-ok)
+            (reader-theme--check 'dim "§2" 'MUST (plist-get c :dim-ok)
                                   (format "dim %s; Lc ≥ 20, ≥ 10 below default (%.1f), C ≤ 0.04" (funcall fmt dim) f) t)
-            (themer-reader--check 'dim-target "§2" 'SHOULD (<= (abs (- (funcall lc dim) 45)) 5)
+            (reader-theme--check 'dim-target "§2" 'SHOULD (<= (abs (- (funcall lc dim) 45)) 5)
                                   (format "Lc %.1f ≈ 45" (funcall lc dim)))
-            (themer-reader--check 'recessive "§2" 'MUST rec
+            (reader-theme--check 'recessive "§2" 'MUST rec
                                   (if rec (format "recessive %s; %.1f below default" (funcall fmt rec) (- f (funcall lc rec)))
                                     "no colour 6-18 Lc below default, C 0.04-0.12, reliably distinct from default, dim, faded and the syntax accent")
                                   t)
-            (themer-reader--check 'default-lc "§2" 'MUST (>= f 45) (format "fg %s Lc %.1f ≥ 45" fg f) t)
-            (themer-reader--check 'default-target "§2" 'SHOULD (>= f 60) (format "fg Lc %.1f ≥ 60" f)))
+            (reader-theme--check 'default-lc "§2" 'MUST (>= f 45) (format "fg %s Lc %.1f ≥ 45" fg f) t)
+            (reader-theme--check 'default-target "§2" 'SHOULD (>= f 60) (format "fg Lc %.1f ≥ 60" f)))
            (mapcar (lambda (fam)
                      (let ((q (alist-get fam (plist-get b :quiet))))
-                       (themer-reader--check (intern (format "quiet-%s" fam)) "§2" 'MUST q
+                       (reader-theme--check (intern (format "quiet-%s" fam)) "§2" 'MUST q
                                              (if q (format "%s quiet %s" fam (funcall fmt q))
                                                (format "%s: %s" fam (alist-get fam (plist-get b :quiet-fails))))
                                              t)))
                    (plist-get b :qfams))
            (mapcar (lambda (x)
                      (let ((h (plist-get (cdr x) :hex)))
-                       (themer-reader--check (intern (format "loud-%s" (car x))) "§2" 'MUST
+                       (reader-theme--check (intern (format "loud-%s" (car x))) "§2" 'MUST
                                              (not (eq (alist-get (car x) (plist-get c :l2)) 'fail))
                                              (format "%s %s; L2 %s (35, or 25 when only bold)" (car x) (funcall fmt h)
                                                      (alist-get (car x) (plist-get c :l2)))
@@ -687,41 +704,41 @@ GATING nil means it doesn't affect the level."
                    fam-out)
            (mapcar (lambda (x)
                      (let ((h (plist-get (cdr x) :hex)))
-                       (themer-reader--check (intern (format "loud-chroma-%s" (car x))) "§2" 'MUST
+                       (reader-theme--check (intern (format "loud-chroma-%s" (car x))) "§2" 'MUST
                                              (>= (funcall chroma h) 0.08)
                                              (format "%s C %.3f ≥ 0.08 (reported, not gating, as harness mode C)"
                                                      (car x) (funcall chroma h)))))
                    fam-out)
            (mapcar (lambda (x)
                      (let ((h (plist-get (cdr x) :hex)))
-                       (themer-reader--check (intern (format "loud-target-%s" (car x))) "§2" 'SHOULD
+                       (reader-theme--check (intern (format "loud-target-%s" (car x))) "§2" 'SHOULD
                                              (>= (funcall lc h) 45)
                                              (format "%s Lc %.1f ≥ 45 (moved ΔE_OK %.3f from %s)"
                                                      (car x) (funcall lc h) (plist-get (cdr x) :fid) (plist-get (cdr x) :src)))))
                    fam-out)
            (list
-            (themer-reader--check 'popout "§2" 'SHOULD (cdr popout)
+            (reader-theme--check 'popout "§2" 'SHOULD (cdr popout)
                                   (format "TODO ink %s (%s) %s" (car popout) (themer-colour-hue-name (car popout))
                                           (if (cdr popout) "uses a hue no family uses" "shares a family hue"))))
            (list
-            (themer-reader--check 'accent-lc "§1" 'SHOULD (>= (funcall lc accent) 60)
+            (reader-theme--check 'accent-lc "§1" 'SHOULD (>= (funcall lc accent) 60)
                                   (format "UI accent %s Lc %.1f ≥ 60 on the background%s"
                                           accent (funcall lc accent)
                                           (if (plist-get spec :accent) ""
                                             (if (plist-get spec :popout) " (default: popout)"
                                               " (default: callable)"))))
-            (themer-reader--check 'accent-isearch "§1" 'SHOULD
+            (reader-theme--check 'accent-isearch "§1" 'SHOULD
                                   (>= (abs (themer-colour-alc bg accent)) 60)
                                   (format "isearch text on the accent: Lc %.1f ≥ 60"
                                           (abs (themer-colour-alc bg accent)))))
            (mapcar (lambda (e)
-                     (themer-reader--check (intern (format "distinct-%s-%s" (caar e) (cdar e))) "§3" 'MUST
+                     (reader-theme--check (intern (format "distinct-%s-%s" (caar e) (cdar e))) "§3" 'MUST
                                            (plist-get (cdr e) :normal)
                                            (format "%s/%s categorically distinct (D1 floor, different hue name)" (caar e) (cdar e))
                                            t))
                    (plist-get c :pairs))
            (mapcar (lambda (e)
-                     (themer-reader--check (intern (format "cvd-%s-%s" (caar e) (cdar e))) "§3" 'SHOULD
+                     (reader-theme--check (intern (format "cvd-%s-%s" (caar e) (cdar e))) "§3" 'SHOULD
                                            (and (plist-get (cdr e) :deutan) (plist-get (cdr e) :protan))
                                            (format "%s/%s reliably distinct: deutan %s, protan %s" (caar e) (cdar e)
                                                    (if (plist-get (cdr e) :deutan) "ok" "fail")
@@ -729,20 +746,20 @@ GATING nil means it doesn't affect the level."
                    (plist-get c :pairs))
            (when-let* ((bd (plist-get b :binding)))
              (let ((h (plist-get bd :hex)))
-               (list (themer-reader--check 'binding "§3" 'MUST h
+               (list (reader-theme--check 'binding "§3" 'MUST h
                                            (if h (format "parameter tint %s" (funcall fmt h))
                                              (format "parameter tint dropped: %s" (plist-get bd :reason))))
-                     (let ((gap (themer-reader--binding-gap h (plist-get b :quiet))))
-                       (themer-reader--check 'binding-hue "§3" 'SHOULD (and gap (>= gap 40))
+                     (let ((gap (reader-theme--binding-gap h (plist-get b :quiet))))
+                       (reader-theme--check 'binding-hue "§3" 'SHOULD (and gap (>= gap 40))
                                              (if gap (format "parameter tint hue is %.0f° from the nearest quiet cue (≥ 40)" gap)
                                                "no parameter tint"))))))
            (list
-            (themer-reader--check 'level "§4" 'MUST t
+            (reader-theme--check 'level "§4" 'MUST t
                                   (format "level %s (normal vision %s; with the CVD checks %s)"
-                                          (themer-reader--level-string level level-cvd) level level-cvd))))))
+                                          (reader-theme--level-string level level-cvd) level level-cvd))))))
     checks))
 
-(defun themer-reader--binding-gap (hex quiet)
+(defun reader-theme--binding-gap (hex quiet)
   "Smallest OKLCH hue distance from HEX to the colours in alist QUIET."
   (when hex
     (let ((h (nth 2 (themer-colour-oklch hex))))
@@ -753,7 +770,7 @@ GATING nil means it doesn't affect the level."
                into m
                finally return (or m 180.0)))))
 
-(defun themer-reader--level-string (level level-cvd)
+(defun reader-theme--level-string (level level-cvd)
   "Display name for LEVEL (normal vision) given LEVEL-CVD."
   (cond ((and (eq level 'R0) (eq level-cvd 'R0)) "full+cvd")
         ((eq level 'R0) "full")
@@ -761,10 +778,10 @@ GATING nil means it doesn't affect the level."
 
 ;;;; Derivation
 
-(defvar themer-reader--cache (make-hash-table :test #'equal)
+(defvar reader-theme--cache (make-hash-table :test #'equal)
   "Resolved spec -> derivation, so re-evaluating an unchanged theme is instant.")
 
-(defun themer-reader--ui (spec bg fg)
+(defun reader-theme--ui (spec bg fg)
   "Background and state tiers for the UI, by OKLab mixing of BG and FG.
 The fixed-convention colours come from SPEC."
   (let ((m (lambda (a b tt) (themer-colour-mix a b tt))))
@@ -772,12 +789,12 @@ The fixed-convention colours come from SPEC."
           :raised (funcall m bg fg 0.12)
           :strong (funcall m bg fg 0.22)
           :border (funcall m bg fg 0.30)
-          :error (themer-reader--fixed spec :error bg)
-          :warning (themer-reader--fixed spec :warning bg)
-          :added (themer-reader--fixed spec :added bg)
-          :removed (themer-reader--fixed spec :removed bg))))
+          :error (reader-theme--fixed spec :error bg)
+          :warning (reader-theme--fixed spec :warning bg)
+          :added (reader-theme--fixed spec :added bg)
+          :removed (reader-theme--fixed spec :removed bg))))
 
-(defun themer-reader-derive (spec)
+(defun reader-theme-derive (spec)
   "Derive every tier, role and conformance check of reader SPEC.
 Return a plist:
   :roles        alist ROLE -> (:foreground :weight :slant :strike)
@@ -789,19 +806,19 @@ Return a plist:
 The level is reached under normal vision; \"full+cvd\" also meets the CVD
 SHOULDs.  Faces follow the normal-vision level.  Results are cached on
 the resolved colours."
-  (setq spec (themer-reader--check-spec spec))
-  (with-memoization (gethash (list spec themer-reader-italic-comments themer-reader-fade-commented-code)
-                             themer-reader--cache)
+  (setq spec (reader-theme--check-spec spec))
+  (with-memoization (gethash (list spec reader-theme-italic-comments reader-theme-fade-commented-code)
+                             reader-theme--cache)
     (let* ((bg (themer-colour-norm (plist-get spec :bg)))
            (fg (themer-colour-norm (plist-get spec :fg)))
-           (loud (themer-reader--loud spec bg))
-           (avail (cl-remove-if-not (lambda (f) (assq f loud)) themer-reader-families))
+           (loud (reader-theme--loud spec bg))
+           (avail (cl-remove-if-not (lambda (f) (assq f loud)) reader-theme-families))
            (built (mapcar (pcase-lambda (`(,name . ,shed))
-                            (let ((b (themer-reader--build spec name (cl-set-difference avail shed) loud fg bg)))
-                              (plist-put b :checks (themer-reader--loud-checks b bg))))
-                          themer-reader--levels))
-           (pick (themer-reader--pick-level built :loud-ok-normal))
-           (level-cvd (cdr (themer-reader--pick-level built :loud-ok)))
+                            (let ((b (reader-theme--build spec name (cl-set-difference avail shed) loud fg bg)))
+                              (plist-put b :checks (reader-theme--loud-checks b bg))))
+                          reader-theme--levels))
+           (pick (reader-theme--pick-level built :loud-ok-normal))
+           (level-cvd (cdr (reader-theme--pick-level built :loud-ok)))
            (b (car pick)) (level (cdr pick))
            (roles (mapcar
                    (lambda (r)
@@ -809,18 +826,18 @@ the resolved colours."
                             (hex (plist-get p :foreground)))
                        ;; R3/R4 shed failing reading-layer cues to default ink
                        ;; (already done when the colour failed).
-                       (when (and (eq role 'comment.code) themer-reader-fade-commented-code)
+                       (when (and (eq role 'comment.code) reader-theme-fade-commented-code)
                          (setq hex (plist-get b :faded)))
                        (cons role (list :foreground hex
                                         :weight (if (plist-get p :bold) 'bold 'normal)
-                                        :slant (if (and themer-reader-italic-comments
+                                        :slant (if (and reader-theme-italic-comments
                                                         (memq role '(comment comment.doc comment.code)))
                                                    'italic 'normal)
                                         :strike (plist-get p :strike)
                                         :family (plist-get p :family)
                                         :tier (plist-get p :tier)))))
                    (plist-get b :roles)))
-           (checks (themer-reader--conformance spec b bg fg level level-cvd)))
+           (checks (reader-theme--conformance spec b bg fg level level-cvd)))
       (list :spec spec
             :roles roles
             :tiers (append (list :bg bg :fg fg
@@ -831,10 +848,10 @@ the resolved colours."
                                                (plist-get b :families))
                                  :binding (plist-get (plist-get b :binding) :hex)
                                  :popout (car (plist-get b :popout))
-                                 :accent (themer-reader--accent spec loud))
-                           (themer-reader--ui spec bg fg))
+                                 :accent (reader-theme--accent spec loud))
+                           (reader-theme--ui spec bg fg))
             :conformance
-            (list :level (themer-reader--level-string level level-cvd)
+            (list :level (reader-theme--level-string level level-cvd)
                   :level-normal level :level-cvd level-cvd
                   :build (plist-get b :name)
                   :checks checks
@@ -849,11 +866,11 @@ the resolved colours."
 
 ;;;; Terminal colours
 
-(defconst themer-reader--ansi-hues
+(defconst reader-theme--ansi-hues
   '((red . 27) (green . 145) (yellow . 95) (blue . 255) (magenta . 330) (cyan . 200))
   "ANSI colour -> OKLCH hue, for a colour the theme has no match for.")
 
-(defun themer-reader--ansi (tiers)
+(defun reader-theme--ansi (tiers)
   "Alist ANSI-NAME -> (NORMAL . BRIGHT) hex colours for TIERS.
 The colours must look like their names whatever the families' hues.
 Each is the first of the error, added or warning colour (for red, green
@@ -875,7 +892,7 @@ roles."
                    (pcase-let ((`(,hl ,hc ,hh) (themer-colour-oklch hex)))
                      (themer-colour-from-oklch (+ hl (if dark 0.08 -0.08)) hc hh)))))
     (append
-     (cl-loop for (name . hue) in themer-reader--ansi-hues
+     (cl-loop for (name . hue) in reader-theme--ansi-hues
               for names = (pcase name ('magenta '(purple pink)) (_ (list name)))
               for hex = (or (cl-find-if
                              (lambda (x)
@@ -896,70 +913,70 @@ roles."
 
 ;;;; Faces
 
-(defface themer-reader-exit
+(defface reader-theme-exit
   '((t :inherit font-lock-keyword-face :weight bold))
   "Exits: return, raise/throw, break, continue, yield, goto, Rust `?'."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defface themer-reader-type-definition
+(defface reader-theme-type-definition
   '((t :inherit font-lock-type-face :weight bold))
   "The name in a type definition."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defface themer-reader-module
+(defface reader-theme-module
   '((t :inherit font-lock-type-face))
   "Module and namespace names in paths."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defface themer-reader-meta
+(defface reader-theme-meta
   '((t :inherit font-lock-preprocessor-face))
   "Decorators, attributes and annotations."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defface themer-reader-macro-call
+(defface reader-theme-macro-call
   '((t :inherit font-lock-preprocessor-face))
   "Macro invocations."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defface themer-reader-macro-definition
+(defface reader-theme-macro-definition
   '((t :inherit font-lock-preprocessor-face :weight bold))
   "The name in a macro definition."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defface themer-reader-todo
+(defface reader-theme-todo
   '((t :inherit font-lock-warning-face :weight bold))
   "TODO, FIXME and XXX markers in comments."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defface themer-reader-commented-code
+(defface reader-theme-commented-code
   '((t :inherit shadow))
-  "Comments that look like code (see `themer-reader-fade-commented-code')."
-  :group 'themer)
+  "Comments that look like code (see `reader-theme-fade-commented-code')."
+  :group 'reader-theme)
 
-(defface themer-reader-parameter
+(defface reader-theme-parameter
   '((t :inherit font-lock-variable-name-face))
   "Parameter declarations."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defface themer-reader-module-variable
+(defface reader-theme-module-variable
   '((t :inherit font-lock-variable-name-face :weight bold))
   "Module-level variable bindings (locals keep the plain variable face)."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defface themer-reader-constant-definition
+(defface reader-theme-constant-definition
   '((t :inherit font-lock-constant-face :weight bold))
   "The name in a constant definition."
-  :group 'themer)
+  :group 'reader-theme)
 
-(defun themer-reader--attrs (derived role)
+(defun reader-theme--attrs (derived role)
   "Face attributes for ROLE in DERIVED."
   (let ((r (alist-get role (plist-get derived :roles))))
     (append (when (plist-get r :foreground) (list :foreground (plist-get r :foreground)))
             (list :weight (plist-get r :weight) :slant (plist-get r :slant))
             (when (plist-get r :strike) (list :strike-through t)))))
 
-(defun themer-reader-faces (derived)
-  "Alist (FACE . ATTRIBUTES) for a theme from DERIVED (`themer-reader-derive')."
+(defun reader-theme-faces (derived)
+  "Alist (FACE . ATTRIBUTES) for a theme from DERIVED (`reader-theme-derive')."
   (let* ((tiers (plist-get derived :tiers))
          (tg (lambda (k) (plist-get tiers k)))
          (bg (funcall tg :bg)) (fg (funcall tg :fg))
@@ -972,10 +989,10 @@ roles."
          (loud (lambda (f) (or (alist-get f (funcall tg :loud))
                                (alist-get 'callable (funcall tg :loud)))))
          (mix (lambda (a tt) (themer-colour-mix bg a tt)))
-         (r (lambda (role) (themer-reader--attrs derived role)))
+         (r (lambda (role) (reader-theme--attrs derived role)))
          (wave (lambda (c) (list :underline (list :style 'wave :color c))))
          (plain '(:weight normal :slant normal))
-         (prose (and themer-reader-italic-comments '(:slant italic))))
+         (prose (and reader-theme-italic-comments '(:slant italic))))
     `(;; Basics
       (default :foreground ,fg :background ,bg)
       (cursor :background ,accent)
@@ -1052,34 +1069,36 @@ roles."
       (font-lock-misc-punctuation-face ,@(funcall r 'punctuation))
       (font-lock-negation-char-face ,@(funcall r 'operator))
       (font-lock-warning-face :foreground ,warn :weight bold)
-      (themer-reader-exit ,@(funcall r 'keyword.exit))
-      (themer-reader-type-definition ,@(funcall r 'type.def))
-      (themer-reader-module ,@(funcall r 'module))
-      (themer-reader-meta ,@(funcall r 'attribute))
-      (themer-reader-macro-call ,@(funcall r 'macro.call))
-      (themer-reader-macro-definition ,@(funcall r 'macro.def))
-      (themer-reader-todo ,@(funcall r 'comment.todo))
-      ;; Only applied when `themer-reader-fade-commented-code' is set.
-      (themer-reader-commented-code :foreground ,faded :weight normal
-                                    :slant ,(if themer-reader-italic-comments 'italic 'normal))
-      (themer-reader-parameter ,@(funcall r 'parameter))
-      (themer-reader-module-variable ,@(plist-put (funcall r 'variable.def) :weight 'bold))
-      (themer-reader-constant-definition ,@(funcall r 'constant.def))
+      (reader-theme-exit ,@(funcall r 'keyword.exit))
+      (reader-theme-type-definition ,@(funcall r 'type.def))
+      (reader-theme-module ,@(funcall r 'module))
+      (reader-theme-meta ,@(funcall r 'attribute))
+      (reader-theme-macro-call ,@(funcall r 'macro.call))
+      (reader-theme-macro-definition ,@(funcall r 'macro.def))
+      (reader-theme-todo ,@(funcall r 'comment.todo))
+      ;; Only applied when `reader-theme-fade-commented-code' is set.
+      (reader-theme-commented-code :foreground ,faded :weight normal
+                                    :slant ,(if reader-theme-italic-comments 'italic 'normal))
+      (reader-theme-parameter ,@(funcall r 'parameter))
+      (reader-theme-module-variable ,@(plist-put (funcall r 'variable.def) :weight 'bold))
+      (reader-theme-constant-definition ,@(funcall r 'constant.def))
       ;; Eglot semantic tokens.  Eglot puts its faces in front of the
       ;; tree-sitter ones, so a coloured eglot face hides the reader's finer
       ;; distinctions (exits, TODO, escapes, definitions in bold).  Only what
       ;; tree-sitter can't know is coloured: parameter uses, enum members,
-      ;; macro uses, deprecation.  The rest are left empty, the tree-sitter
-      ;; face showing through; servers also mislabel (rust-analyzer calls
-      ;; `u32' and `derive' namespaces).
+      ;; macro uses, namespaces, deprecation.  The rest are left empty, the
+      ;; tree-sitter face showing through.  Rust-analyzer also calls `u32'
+      ;; and `derive' namespaces; `reader-theme--drop-namespace-tokens'
+      ;; takes those off.
       ,@(when (facep 'eglot-semantic-namespace)
           `((eglot-semantic-parameter ,@(if (funcall tg :binding) (funcall r 'parameter) plain))
             (eglot-semantic-enumMember ,@(funcall r 'constant.use))
             (eglot-semantic-macro :foreground ,(plist-get (funcall r 'macro.call) :foreground))
             (eglot-semantic-decorator ,@(funcall r 'attribute))
+            (eglot-semantic-namespace ,@(funcall r 'module))
             (eglot-semantic-deprecated :strike-through t)
             ,@(mapcar #'list
-                      '(eglot-semantic-namespace eglot-semantic-type eglot-semantic-class
+                      '(eglot-semantic-type eglot-semantic-class
                         eglot-semantic-enum eglot-semantic-interface eglot-semantic-struct
                         eglot-semantic-typeParameter eglot-semantic-variable
                         eglot-semantic-property eglot-semantic-event eglot-semantic-function
@@ -1192,6 +1211,10 @@ roles."
       (dired-flagged :foreground ,err :weight bold)
       (dired-marked :foreground ,warn :weight bold)
       (dired-ignored :foreground ,dim)
+      ;; Brackets are punctuation at every depth; only a broken pair stands out.
+      ,@(mapcar (lambda (n) `(,(intern (format "rainbow-delimiters-depth-%d-face" n))
+                              ,@(funcall r 'punctuation)))
+                (number-sequence 1 9))
       (rainbow-delimiters-unmatched-face :foreground ,err :weight bold)
       (rainbow-delimiters-mismatched-face :foreground ,err :weight bold)
       ;; Org: TODO is the popout, as in code comments; metadata is dim, as
@@ -1218,7 +1241,7 @@ roles."
                            :foreground ,(nth (mod (- n 2) (length louds)) louds)
                            :weight bold))
       ;; Terminal colours (term and vterm faces inherit these).
-      ,@(cl-loop for (name normal . bright) in (themer-reader--ansi tiers)
+      ,@(cl-loop for (name normal . bright) in (reader-theme--ansi tiers)
                  collect `(,(intern (format "ansi-color-%s" name))
                            :foreground ,normal :background ,normal)
                  collect `(,(intern (format "ansi-color-bright-%s" name))
@@ -1242,22 +1265,22 @@ roles."
 
 ;;;; Defining themes
 
-(defun themer-reader--face-specs (derived)
+(defun reader-theme--face-specs (derived)
   "`custom-theme-set-faces' arguments for DERIVED."
-  (mapcar (lambda (f) `(,(car f) ((t ,@(cdr f))))) (themer-reader-faces derived)))
+  (mapcar (lambda (f) `(,(car f) ((t ,@(cdr f))))) (reader-theme-faces derived)))
 
-(defun themer-reader-define (name spec)
+(defun reader-theme-define (name spec)
   "Derive SPEC and apply it as the faces of theme NAME."
-  (let ((derived (themer-reader-derive spec)))
-    (put name 'themer-reader-spec spec)
-    (put name 'themer-reader-derived derived)
-    (apply #'custom-theme-set-faces name (themer-reader--face-specs derived))
-    (when themer-reader-enable-rules
-      (themer-reader-treesit-mode 1))
+  (let ((derived (reader-theme-derive spec)))
+    (put name 'reader-theme-spec spec)
+    (put name 'reader-theme-derived derived)
+    (apply #'custom-theme-set-faces name (reader-theme--face-specs derived))
+    (when reader-theme-enable-rules
+      (reader-theme-treesit-mode 1))
     derived))
 
 ;;;###autoload
-(defmacro themer-reader-deftheme (name doc &rest spec)
+(defmacro reader-theme-deftheme (name doc &rest spec)
   "Define reader theme NAME with docstring DOC from SPEC.
 SPEC is a plist of colours, each a \"#rrggbb\" string or the name of a
 palette entry:
@@ -1280,28 +1303,46 @@ values are.  Use it in NAME-theme.el; it also provides the theme."
   (declare (indent 2) (doc-string 2))
   `(progn
      (deftheme ,name ,doc)
-     (themer-reader-define ',name (list ,@(themer-reader--quote-spec spec)))
+     (reader-theme-define ',name (list ,@(reader-theme--quote-spec spec)))
      (provide-theme ',name)))
 
-(defun themer-reader--literal-p (key value)
+(defun reader-theme--literal-p (key value)
   "Non-nil if VALUE of spec KEY is taken as written, not evaluated.
 That is the :palette list and palette names."
-  (or (eq key :palette) (themer-reader-palette-name-p value)))
+  (or (eq key :palette) (reader-theme-palette-name-p value)))
 
-(defun themer-reader--quote-spec (spec)
+(defun reader-theme--quote-spec (spec)
   "SPEC, a plist as written, with its literal values quoted."
   (cl-loop for (k v) on spec by #'cddr
-           append (list k (if (themer-reader--literal-p k v) (list 'quote v) v))))
+           append (list k (if (reader-theme--literal-p k v) (list 'quote v) v))))
+
+;;;; Preview
+
+(defun reader-theme--preview-palette (form)
+  "Alist (NAME . COLOUR) of the :palette of `reader-theme-deftheme' FORM."
+  (let* ((spec (and (consp form) (nthcdr 3 form)))
+         (pal (and (listp spec) (ignore-errors (plist-get spec :palette))))
+         out)
+    (when (listp pal)
+      (dolist (e pal)
+        (when (and (consp e) (symbolp (car e)) (stringp (car-safe (cdr e)))
+                   (color-defined-p (cadr e)))
+          (push (cons (car e) (cadr e)) out))))
+    (nreverse out)))
+
+(with-eval-after-load 'themer-preview
+  (add-to-list 'themer-preview-forms
+               '(reader-theme-deftheme . reader-theme--preview-palette)))
 
 ;;;; Tree-sitter rules
 
-(defconst themer-reader--comment-nodes
+(defconst reader-theme--comment-nodes
   '((python "comment") (javascript "comment") (typescript "comment") (tsx "comment")
     (rust "line_comment" "block_comment") (go "comment") (c "comment") (cpp "comment")
     (java "line_comment" "block_comment") (lua "comment") (bash "comment"))
   "Comment node types per language.")
 
-(defconst themer-reader--exit-keywords
+(defconst reader-theme--exit-keywords
   '((python "return" "raise" "yield" "break" "continue")
     (javascript "return" "throw" "yield" "break" "continue")
     (typescript "return" "throw" "yield" "break" "continue")
@@ -1314,171 +1355,171 @@ That is the :palette list and palette names."
     (lua "return" "break" "goto"))
   "Exit keywords per language, as anonymous nodes.")
 
-(defconst themer-reader--rules
+(defconst reader-theme--rules
   '((python
-     (type-definition (class_definition name: (identifier) @themer-reader-type-definition))
-     (meta (decorator "@" @themer-reader-meta)
-           (decorator (identifier) @themer-reader-meta)
-           (decorator (attribute) @themer-reader-meta)
-           (decorator (call function: (_) @themer-reader-meta)))
-     (parameter (parameters (identifier) @themer-reader-parameter)
-                (typed_parameter (identifier) @themer-reader-parameter)
-                (default_parameter name: (identifier) @themer-reader-parameter)
-                (typed_default_parameter name: (identifier) @themer-reader-parameter))
-     (binding (assignment left: (identifier) @themer-reader--fontify-caps)
-              (assignment left: (pattern_list (identifier) @themer-reader--fontify-caps))
-              (assignment left: (tuple_pattern (identifier) @themer-reader--fontify-caps))))
+     (type-definition (class_definition name: (identifier) @reader-theme-type-definition))
+     (meta (decorator "@" @reader-theme-meta)
+           (decorator (identifier) @reader-theme-meta)
+           (decorator (attribute) @reader-theme-meta)
+           (decorator (call function: (_) @reader-theme-meta)))
+     (parameter (parameters (identifier) @reader-theme-parameter)
+                (typed_parameter (identifier) @reader-theme-parameter)
+                (default_parameter name: (identifier) @reader-theme-parameter)
+                (typed_default_parameter name: (identifier) @reader-theme-parameter))
+     (binding (assignment left: (identifier) @reader-theme--fontify-caps)
+              (assignment left: (pattern_list (identifier) @reader-theme--fontify-caps))
+              (assignment left: (tuple_pattern (identifier) @reader-theme--fontify-caps))))
     (javascript
-     (type-definition (class_declaration name: (identifier) @themer-reader-type-definition))
-     (meta (decorator "@" @themer-reader-meta (identifier) @themer-reader-meta)
-           (decorator (call_expression function: (identifier) @themer-reader-meta)))
-     (parameter (formal_parameters (identifier) @themer-reader-parameter))
-     (binding (variable_declarator name: (_) @themer-reader--fontify-js-declarator)))
+     (type-definition (class_declaration name: (identifier) @reader-theme-type-definition))
+     (meta (decorator "@" @reader-theme-meta (identifier) @reader-theme-meta)
+           (decorator (call_expression function: (identifier) @reader-theme-meta)))
+     (parameter (formal_parameters (identifier) @reader-theme-parameter))
+     (binding (variable_declarator name: (_) @reader-theme--fontify-js-declarator)))
     (typescript
-     (type-definition (class_declaration name: (type_identifier) @themer-reader-type-definition)
-                      (abstract_class_declaration name: (type_identifier) @themer-reader-type-definition)
-                      (interface_declaration name: (type_identifier) @themer-reader-type-definition)
-                      (type_alias_declaration name: (type_identifier) @themer-reader-type-definition)
-                      (enum_declaration name: (identifier) @themer-reader-type-definition))
-     (meta (decorator "@" @themer-reader-meta (identifier) @themer-reader-meta)
-           (decorator (call_expression function: (identifier) @themer-reader-meta)))
-     (parameter (required_parameter pattern: (identifier) @themer-reader-parameter)
-                (optional_parameter pattern: (identifier) @themer-reader-parameter))
-     (binding (variable_declarator name: (_) @themer-reader--fontify-js-declarator)))
+     (type-definition (class_declaration name: (type_identifier) @reader-theme-type-definition)
+                      (abstract_class_declaration name: (type_identifier) @reader-theme-type-definition)
+                      (interface_declaration name: (type_identifier) @reader-theme-type-definition)
+                      (type_alias_declaration name: (type_identifier) @reader-theme-type-definition)
+                      (enum_declaration name: (identifier) @reader-theme-type-definition))
+     (meta (decorator "@" @reader-theme-meta (identifier) @reader-theme-meta)
+           (decorator (call_expression function: (identifier) @reader-theme-meta)))
+     (parameter (required_parameter pattern: (identifier) @reader-theme-parameter)
+                (optional_parameter pattern: (identifier) @reader-theme-parameter))
+     (binding (variable_declarator name: (_) @reader-theme--fontify-js-declarator)))
     (tsx
-     (type-definition (class_declaration name: (type_identifier) @themer-reader-type-definition)
-                      (abstract_class_declaration name: (type_identifier) @themer-reader-type-definition)
-                      (interface_declaration name: (type_identifier) @themer-reader-type-definition)
-                      (type_alias_declaration name: (type_identifier) @themer-reader-type-definition)
-                      (enum_declaration name: (identifier) @themer-reader-type-definition))
-     (meta (decorator "@" @themer-reader-meta (identifier) @themer-reader-meta)
-           (decorator (call_expression function: (identifier) @themer-reader-meta)))
-     (parameter (required_parameter pattern: (identifier) @themer-reader-parameter)
-                (optional_parameter pattern: (identifier) @themer-reader-parameter))
-     (binding (variable_declarator name: (_) @themer-reader--fontify-js-declarator)))
+     (type-definition (class_declaration name: (type_identifier) @reader-theme-type-definition)
+                      (abstract_class_declaration name: (type_identifier) @reader-theme-type-definition)
+                      (interface_declaration name: (type_identifier) @reader-theme-type-definition)
+                      (type_alias_declaration name: (type_identifier) @reader-theme-type-definition)
+                      (enum_declaration name: (identifier) @reader-theme-type-definition))
+     (meta (decorator "@" @reader-theme-meta (identifier) @reader-theme-meta)
+           (decorator (call_expression function: (identifier) @reader-theme-meta)))
+     (parameter (required_parameter pattern: (identifier) @reader-theme-parameter)
+                (optional_parameter pattern: (identifier) @reader-theme-parameter))
+     (binding (variable_declarator name: (_) @reader-theme--fontify-js-declarator)))
     (rust
-     (rust-try (try_expression "?" @themer-reader-exit))
-     (type-definition (struct_item name: (type_identifier) @themer-reader-type-definition)
-                      (enum_item name: (type_identifier) @themer-reader-type-definition)
-                      (union_item name: (type_identifier) @themer-reader-type-definition)
-                      (type_item name: (type_identifier) @themer-reader-type-definition)
-                      (trait_item name: (type_identifier) @themer-reader-type-definition))
-     (meta (attribute_item) @themer-reader-meta
-           (inner_attribute_item) @themer-reader-meta)
-     (macro (macro_invocation macro: (identifier) @themer-reader-macro-call "!" @themer-reader-macro-call)
-            (macro_invocation macro: (scoped_identifier name: (identifier) @themer-reader-macro-call))
-            (macro_definition name: (identifier) @themer-reader-macro-definition))
-     (module (scoped_identifier path: (identifier) @themer-reader--fontify-rust-module)
-             (scoped_identifier path: (scoped_identifier name: (identifier) @themer-reader--fontify-rust-module))
-             (scoped_type_identifier path: (identifier) @themer-reader--fontify-rust-module)
-             (scoped_type_identifier path: (scoped_identifier name: (identifier) @themer-reader--fontify-rust-module))
-             (scoped_use_list path: (identifier) @themer-reader--fontify-rust-module)
-             (scoped_use_list path: (scoped_identifier name: (identifier) @themer-reader--fontify-rust-module))
-             (use_wildcard (identifier) @themer-reader--fontify-rust-module)
-             (mod_item name: (identifier) @themer-reader-module))
-     (parameter (parameter pattern: (identifier) @themer-reader-parameter))
-     (binding (const_item name: (identifier) @themer-reader--fontify-constant)
-              (static_item name: (identifier) @themer-reader--fontify-rust-static)))
+     (rust-try (try_expression "?" @reader-theme-exit))
+     (type-definition (struct_item name: (type_identifier) @reader-theme-type-definition)
+                      (enum_item name: (type_identifier) @reader-theme-type-definition)
+                      (union_item name: (type_identifier) @reader-theme-type-definition)
+                      (type_item name: (type_identifier) @reader-theme-type-definition)
+                      (trait_item name: (type_identifier) @reader-theme-type-definition))
+     (meta (attribute_item) @reader-theme-meta
+           (inner_attribute_item) @reader-theme-meta)
+     (macro (macro_invocation macro: (identifier) @reader-theme-macro-call "!" @reader-theme-macro-call)
+            (macro_invocation macro: (scoped_identifier name: (identifier) @reader-theme-macro-call))
+            (macro_definition name: (identifier) @reader-theme-macro-definition))
+     (module (scoped_identifier path: (identifier) @reader-theme--fontify-rust-module)
+             (scoped_identifier path: (scoped_identifier name: (identifier) @reader-theme--fontify-rust-module))
+             (scoped_type_identifier path: (identifier) @reader-theme--fontify-rust-module)
+             (scoped_type_identifier path: (scoped_identifier name: (identifier) @reader-theme--fontify-rust-module))
+             (scoped_use_list path: (identifier) @reader-theme--fontify-rust-module)
+             (scoped_use_list path: (scoped_identifier name: (identifier) @reader-theme--fontify-rust-module))
+             (use_wildcard (identifier) @reader-theme--fontify-rust-module)
+             (mod_item name: (identifier) @reader-theme-module))
+     (parameter (parameter pattern: (identifier) @reader-theme-parameter))
+     (binding (const_item name: (identifier) @reader-theme--fontify-constant)
+              (static_item name: (identifier) @reader-theme--fontify-rust-static)))
     (go
-     (type-definition (type_spec name: (type_identifier) @themer-reader-type-definition)
-                      (type_alias name: (type_identifier) @themer-reader-type-definition))
-     (parameter (parameter_declaration name: (identifier) @themer-reader-parameter)
-                (variadic_parameter_declaration name: (identifier) @themer-reader-parameter))
-     (binding (const_spec (identifier) @themer-reader--fontify-constant)
-              (var_spec (identifier) @themer-reader--fontify-module-variable)))
+     (type-definition (type_spec name: (type_identifier) @reader-theme-type-definition)
+                      (type_alias name: (type_identifier) @reader-theme-type-definition))
+     (parameter (parameter_declaration name: (identifier) @reader-theme-parameter)
+                (variadic_parameter_declaration name: (identifier) @reader-theme-parameter))
+     (binding (const_spec (identifier) @reader-theme--fontify-constant)
+              (var_spec (identifier) @reader-theme--fontify-module-variable)))
     (c
-     (type-definition (struct_specifier name: (type_identifier) @themer-reader-type-definition body: (_))
-                      (union_specifier name: (type_identifier) @themer-reader-type-definition body: (_))
-                      (enum_specifier name: (type_identifier) @themer-reader-type-definition body: (_))
-                      (type_definition declarator: (type_identifier) @themer-reader-type-definition))
-     (macro (preproc_def name: (identifier) @themer-reader-macro-definition)
-            (preproc_function_def name: (identifier) @themer-reader-macro-definition))
-     (parameter (parameter_declaration declarator: (identifier) @themer-reader-parameter)
-                (parameter_declaration declarator: (pointer_declarator declarator: (identifier) @themer-reader-parameter)))
-     (binding (declaration) @themer-reader--fontify-c-declaration
-              (preproc_def name: (identifier) @themer-reader--fontify-constant value: (_))))
+     (type-definition (struct_specifier name: (type_identifier) @reader-theme-type-definition body: (_))
+                      (union_specifier name: (type_identifier) @reader-theme-type-definition body: (_))
+                      (enum_specifier name: (type_identifier) @reader-theme-type-definition body: (_))
+                      (type_definition declarator: (type_identifier) @reader-theme-type-definition))
+     (macro (preproc_def name: (identifier) @reader-theme-macro-definition)
+            (preproc_function_def name: (identifier) @reader-theme-macro-definition))
+     (parameter (parameter_declaration declarator: (identifier) @reader-theme-parameter)
+                (parameter_declaration declarator: (pointer_declarator declarator: (identifier) @reader-theme-parameter)))
+     (binding (declaration) @reader-theme--fontify-c-declaration
+              (preproc_def name: (identifier) @reader-theme--fontify-constant value: (_))))
     (cpp
-     (type-definition (struct_specifier name: (type_identifier) @themer-reader-type-definition body: (_))
-                      (class_specifier name: (type_identifier) @themer-reader-type-definition body: (_))
-                      (union_specifier name: (type_identifier) @themer-reader-type-definition body: (_))
-                      (enum_specifier name: (type_identifier) @themer-reader-type-definition body: (_))
-                      (type_definition declarator: (type_identifier) @themer-reader-type-definition)
-                      (alias_declaration name: (type_identifier) @themer-reader-type-definition))
-     (meta (attribute_declaration) @themer-reader-meta)
-     (macro (preproc_def name: (identifier) @themer-reader-macro-definition)
-            (preproc_function_def name: (identifier) @themer-reader-macro-definition))
-     (parameter (parameter_declaration declarator: (identifier) @themer-reader-parameter)
-                (parameter_declaration declarator: (reference_declarator (identifier) @themer-reader-parameter))
-                (parameter_declaration declarator: (pointer_declarator declarator: (identifier) @themer-reader-parameter)))
-     (binding (declaration) @themer-reader--fontify-c-declaration
-              (preproc_def name: (identifier) @themer-reader--fontify-constant value: (_))))
+     (type-definition (struct_specifier name: (type_identifier) @reader-theme-type-definition body: (_))
+                      (class_specifier name: (type_identifier) @reader-theme-type-definition body: (_))
+                      (union_specifier name: (type_identifier) @reader-theme-type-definition body: (_))
+                      (enum_specifier name: (type_identifier) @reader-theme-type-definition body: (_))
+                      (type_definition declarator: (type_identifier) @reader-theme-type-definition)
+                      (alias_declaration name: (type_identifier) @reader-theme-type-definition))
+     (meta (attribute_declaration) @reader-theme-meta)
+     (macro (preproc_def name: (identifier) @reader-theme-macro-definition)
+            (preproc_function_def name: (identifier) @reader-theme-macro-definition))
+     (parameter (parameter_declaration declarator: (identifier) @reader-theme-parameter)
+                (parameter_declaration declarator: (reference_declarator (identifier) @reader-theme-parameter))
+                (parameter_declaration declarator: (pointer_declarator declarator: (identifier) @reader-theme-parameter)))
+     (binding (declaration) @reader-theme--fontify-c-declaration
+              (preproc_def name: (identifier) @reader-theme--fontify-constant value: (_))))
     (java
-     (type-definition (class_declaration name: (identifier) @themer-reader-type-definition)
-                      (interface_declaration name: (identifier) @themer-reader-type-definition)
-                      (enum_declaration name: (identifier) @themer-reader-type-definition)
-                      (record_declaration name: (identifier) @themer-reader-type-definition)
-                      (annotation_type_declaration name: (identifier) @themer-reader-type-definition))
-     (meta (marker_annotation "@" @themer-reader-meta name: (_) @themer-reader-meta)
-           (annotation "@" @themer-reader-meta name: (_) @themer-reader-meta))
-     (parameter (formal_parameter name: (identifier) @themer-reader-parameter))
-     (binding (field_declaration declarator: (variable_declarator name: (identifier) @themer-reader--fontify-java-field))
-              (constant_declaration declarator: (variable_declarator name: (identifier) @themer-reader--fontify-constant))))
+     (type-definition (class_declaration name: (identifier) @reader-theme-type-definition)
+                      (interface_declaration name: (identifier) @reader-theme-type-definition)
+                      (enum_declaration name: (identifier) @reader-theme-type-definition)
+                      (record_declaration name: (identifier) @reader-theme-type-definition)
+                      (annotation_type_declaration name: (identifier) @reader-theme-type-definition))
+     (meta (marker_annotation "@" @reader-theme-meta name: (_) @reader-theme-meta)
+           (annotation "@" @reader-theme-meta name: (_) @reader-theme-meta))
+     (parameter (formal_parameter name: (identifier) @reader-theme-parameter))
+     (binding (field_declaration declarator: (variable_declarator name: (identifier) @reader-theme--fontify-java-field))
+              (constant_declaration declarator: (variable_declarator name: (identifier) @reader-theme--fontify-constant))))
     (lua
-     (exit-statements (break_statement) @themer-reader-exit
-                      (goto_statement "goto" @themer-reader-exit))
-     (parameter (parameters (identifier) @themer-reader-parameter))
-     (binding (variable_list name: (identifier) @themer-reader--fontify-lua-variable)))
+     (exit-statements (break_statement) @reader-theme-exit
+                      (goto_statement "goto" @reader-theme-exit))
+     (parameter (parameters (identifier) @reader-theme-parameter))
+     (binding (variable_list name: (identifier) @reader-theme--fontify-lua-variable)))
     (bash
-     (exit ((command_name (word) @themer-reader-exit)
-            (:match "\\`\\(?:return\\|exit\\|break\\|continue\\)\\'" @themer-reader-exit)))
-     (binding (variable_assignment name: (variable_name) @themer-reader--fontify-bash-variable))))
+     (exit ((command_name (word) @reader-theme-exit)
+            (:match "\\`\\(?:return\\|exit\\|break\\|continue\\)\\'" @reader-theme-exit)))
+     (binding (variable_assignment name: (variable_name) @reader-theme--fontify-bash-variable))))
   "Per language: (GROUP QUERY...) rule groups, each compiled on its own.")
 
-(defun themer-reader--queries (lang)
+(defun reader-theme--queries (lang)
   "Alist (GROUP . QUERY) of every rule group for LANG."
   (append
    ;; Only the keywords this grammar version has as anonymous nodes.
    (when-let* ((kws (cl-remove-if
                      (lambda (k) (and (treesit-language-available-p lang)
-                                      (themer-reader--query-ok lang `([,k] @themer-reader-exit))))
-                     (alist-get lang themer-reader--exit-keywords))))
-     (list (cons 'exit `([,@kws] @themer-reader-exit))))
+                                      (reader-theme--query-ok lang `([,k] @reader-theme-exit))))
+                     (alist-get lang reader-theme--exit-keywords))))
+     (list (cons 'exit `([,@kws] @reader-theme-exit))))
    (mapcar (lambda (g) (cons (car g) (cdr g)))
-           (alist-get lang themer-reader--rules))
-   (when-let* ((nodes (alist-get lang themer-reader--comment-nodes)))
+           (alist-get lang reader-theme--rules))
+   (when-let* ((nodes (alist-get lang reader-theme--comment-nodes)))
      (list (cons 'comment `([,@(mapcar (lambda (n) (list (intern n))) nodes)]
-                            @themer-reader--fontify-comment))))))
+                            @reader-theme--fontify-comment))))))
 
-(defun themer-reader--query-ok (lang query)
+(defun reader-theme--query-ok (lang query)
   "Nil if QUERY compiles for LANG, else the error message."
   (condition-case err
       (progn (treesit-query-compile lang query t) nil)
     (error (error-message-string err))))
 
-(defvar themer-reader--settings-cache nil
+(defvar reader-theme--settings-cache nil
   "Alist LANG -> font-lock settings, or :none when the grammar is missing.")
 
-(defun themer-reader--settings (lang)
+(defun reader-theme--settings (lang)
   "Font-lock settings for LANG; groups whose query fails are skipped."
-  (let ((cached (alist-get lang themer-reader--settings-cache :unset)))
+  (let ((cached (alist-get lang reader-theme--settings-cache :unset)))
     (if (not (eq cached :unset))
         (unless (eq cached :none) cached)
       (let ((settings
              (when (treesit-language-available-p lang)
-               (cl-loop for (group . query) in (themer-reader--queries lang)
-                        for bad = (themer-reader--query-ok lang query)
-                        if bad do (message "themer-reader: skipping %s %s rules: %s" lang group bad)
+               (cl-loop for (group . query) in (reader-theme--queries lang)
+                        for bad = (reader-theme--query-ok lang query)
+                        if bad do (message "reader-theme: skipping %s %s rules: %s" lang group bad)
                         else append (treesit-font-lock-rules
-                                     :language lang :feature 'themer-reader :override t
+                                     :language lang :feature 'reader-theme :override t
                                      query)))))
-        (setf (alist-get lang themer-reader--settings-cache) (or settings :none))
+        (setf (alist-get lang reader-theme--settings-cache) (or settings :none))
         settings))))
 
-(defconst themer-reader--cc-decl
+(defconst reader-theme--cc-decl
   (concat "\\(?:\\(?:local\\|let\\|const\\|var\\|mut\\|static\\|final\\|auto\\|int\\|long\\|char"
           "\\|float\\|double\\|bool\\|string\\|String\\|def\\|val\\|my\\|our\\)[[:space:]]+\\)\\{0,2\\}"))
 
-(defconst themer-reader--cc-regexps
+(defconst reader-theme--cc-regexps
   `((mark . "\\`[[:space:]]*\\(?:/\\{2,\\}\\|#:\\|#+\\|--+\\|;+\\|\\*+\\|<!--\\|/\\*+\\|%+\\)[[:space:]]?")
     (tail . "[[:space:]]*\\(?:\\*/\\|-->\\|]]\\|=]\\)[[:space:]]*\\'")
     (ruler . "[[:space:]]*[-;=*#~_/]\\{3,\\}[[:space:]]*\\'")
@@ -1488,7 +1529,7 @@ That is the :palette list and palette names."
                           "\\|coding[:=]\\|-\\*-\\)"))
     (call . "\\`[A-Za-z_$][[:alnum:]_$]*\\(?:\\.[A-Za-z_$][[:alnum:]_$]*\\)*(")
     (paren-kw . "\\`\\(?:if\\|for\\|while\\|switch\\|return\\|else if\\|elif\\|catch\\)[[:space:]]?(")
-    (assign . ,(concat "\\`" themer-reader--cc-decl
+    (assign . ,(concat "\\`" reader-theme--cc-decl
                        "[A-Za-z_$][][[:alnum:]_$.]*[[:space:]]*"
                        "\\(?:[-+*/|&^%]?=\\(?:[^=[:space:]]\\|[[:space:]]+[^[:space:]]\\)"
                        "\\|:=[[:space:]]*[^[:space:]]\\)"))
@@ -1498,22 +1539,22 @@ That is the :palette list and palette names."
                      "\\|progn\\|require\\|use-package\\|[a-z]+-[[:alnum:]_-]+\\)[[:space:])]")))
   "Regexps of the commented-out code heuristic (harness role_tokens.py).")
 
-(defun themer-reader--cc (name s &optional start)
-  "Match regexp NAME of `themer-reader--cc-regexps' against S from START."
+(defun reader-theme--cc (name s &optional start)
+  "Match regexp NAME of `reader-theme--cc-regexps' against S from START."
   (let ((case-fold-search nil))
-    (string-match (alist-get name themer-reader--cc-regexps) s start)))
+    (string-match (alist-get name reader-theme--cc-regexps) s start)))
 
-(defun themer-reader--code-line-p (body)
+(defun reader-theme--code-line-p (body)
   "Non-nil if comment line BODY, marker stripped, looks like code."
   (let* ((case-fold-search nil)
          (b (string-trim body))
-         (b (if (themer-reader--cc 'ruler b) (substring b 0 (match-beginning 0)) b)))
+         (b (if (reader-theme--cc 'ruler b) (substring b 0 (match-beginning 0)) b)))
     (cond
      ((or (string-empty-p b) (string-match-p "\\`[-=*#~_/ ]+\\'" b)) nil)
      ((or (string-match-p "\\`\\(?:http://\\|https://\\|!\\|TODO\\|FIXME\\|XXX\\|NOTE\\|HACK\\|BUG\\)" b)
-          (themer-reader--cc 'directive b))
+          (reader-theme--cc 'directive b))
       nil)
-     ((or (string-search "://" b) (themer-reader--cc 'sentence b)
+     ((or (string-search "://" b) (reader-theme--cc 'sentence b)
           (string-match-p "\\`\\(?:e\\.g\\|i\\.e\\|defined(\\)" b))
       nil)
      ((let ((first (and (string-match "\\`[A-Za-z_]+" b) (match-string 0 b))))
@@ -1524,21 +1565,21 @@ That is the :palette list and palette names."
              (or (member first '("else" "try" "finally"))
                  (string-match-p "[]()=<>.[]" b))))
       t)
-     ((or (themer-reader--cc 'paren-kw b) (themer-reader--cc 'assign b)
-          (themer-reader--cc 'multi b) (themer-reader--cc 'lisp b))
+     ((or (reader-theme--cc 'paren-kw b) (reader-theme--cc 'assign b)
+          (reader-theme--cc 'multi b) (reader-theme--cc 'lisp b))
       t)
-     ((themer-reader--cc 'call b)
+     ((reader-theme--cc 'call b)
       (or (and (memq (aref b (1- (length b))) '(?\) ?\; ?{ ?} ?,))
                (not (string-match-p "\\`[[:alnum:]_$.]+()\\'" b)))
           (> (cl-count ?\( b) (cl-count ?\) b))))
-     ((and (themer-reader--cc 'stmt b)
+     ((and (reader-theme--cc 'stmt b)
            (string-match-p "[(=[{]\\|[[:alnum:]_]\\.[[:alnum:]_]\\|::" (match-string 1 b)))
       t)
      (t (let ((last (aref b (1- (length b)))))
           (and (memq last '(?\; ?{ ?}))
                (or (/= last ?\;) (not (<= ?0 (aref b 0) ?9)))))))))
 
-(defun themer-reader-commented-code-p (text)
+(defun reader-theme-commented-code-p (text)
   "Non-nil if comment TEXT looks like commented-out code.
 The draft 3.2 `comment.code' heuristic, as tightened in the research
 harness (role_tokens.py `is_commented_code'): a line looks like code when
@@ -1549,33 +1590,33 @@ never count; a multi-line comment counts when 60% of its lines do."
     (with-syntax-table (standard-syntax-table)
       (unless (string-match-p "\\`\\(?:/\\*\\*\\|/\\*!\\|///\\|//!\\|#!\\)" tt)
         (let* ((lines (mapcar (lambda (ln)
-                                (let ((ln (if (themer-reader--cc 'mark ln) (substring ln (match-end 0)) ln)))
-                                  (if (themer-reader--cc 'tail ln) (substring ln 0 (match-beginning 0)) ln)))
+                                (let ((ln (if (reader-theme--cc 'mark ln) (substring ln (match-end 0)) ln)))
+                                  (if (reader-theme--cc 'tail ln) (substring ln 0 (match-beginning 0)) ln)))
                               (split-string tt "\n")))
                (lines (cl-remove-if (lambda (ln) (string-empty-p (string-trim ln))) lines))
-               (hits (cl-count-if #'themer-reader--code-line-p lines)))
+               (hits (cl-count-if #'reader-theme--code-line-p lines)))
           (and lines (> hits 0) (>= hits (* 0.6 (length lines)))))))))
 
-(defun themer-reader--fontify-comment (node override start end &rest _)
+(defun reader-theme--fontify-comment (node override start end &rest _)
   "Fontify comment NODE: TODO markers, and code-like comments.
 The whole comment is faded when it looks like code and
-`themer-reader-fade-commented-code' is set.  OVERRIDE, START and END are as
+`reader-theme-fade-commented-code' is set.  OVERRIDE, START and END are as
 for tree-sitter font-lock functions."
   (let ((beg (treesit-node-start node))
         (fin (treesit-node-end node)))
-    (when (and themer-reader-fade-commented-code
-               (themer-reader-commented-code-p (treesit-node-text node t)))
-      (treesit-fontify-with-override beg fin 'themer-reader-commented-code override start end))
+    (when (and reader-theme-fade-commented-code
+               (reader-theme-commented-code-p (treesit-node-text node t)))
+      (treesit-fontify-with-override beg fin 'reader-theme-commented-code override start end))
     (save-excursion
       (goto-char beg)
       (let ((case-fold-search nil))
         (while (re-search-forward "\\_<\\(?:TODO\\|FIXME\\|XXX\\)\\_>" fin t)
           (treesit-fontify-with-override (match-beginning 0) (match-end 0)
-                                         'themer-reader-todo override start end))))))
+                                         'reader-theme-todo override start end))))))
 
 ;;;; Module paths
 
-(defun themer-reader--fontify-rust-module (node override start end &rest _)
+(defun reader-theme--fontify-rust-module (node override start end &rest _)
   "Module face on NODE, a Rust path segment, unless it names a type.
 Capitalised segments are types (`Config::new'), as are primitives
 \(`u32::MAX'); `rust-ts-mode' draws the rest in the constant face.
@@ -1584,7 +1625,7 @@ OVERRIDE, START and END as usual."
     (unless (or (string-match-p "\\`[A-Z]" text)
                 (string-match-p "\\`\\(?:[iu]\\(?:8\\|16\\|32\\|64\\|128\\|size\\)\\|f32\\|f64\\|bool\\|char\\|str\\)\\'" text))
       (treesit-fontify-with-override (treesit-node-start node) (treesit-node-end node)
-                                     'themer-reader-module override start end))))
+                                     'reader-theme-module override start end))))
 
 ;;;; Module-level bindings and constant definitions
 ;;
@@ -1621,7 +1662,7 @@ OVERRIDE, START and END as usual."
 ;; function definition keeps that face.  An object-like #define with no value (include guards, feature
 ;; flags) stays a macro definition; one with a value is a named constant.
 
-(defconst themer-reader--function-nodes
+(defconst reader-theme--function-nodes
   '("function_definition" "function_declaration" "function_item" "function_expression"
     "function" "arrow_function" "method_definition" "method_declaration"
     "constructor_declaration" "compact_constructor_declaration" "lambda"
@@ -1629,21 +1670,21 @@ OVERRIDE, START and END as usual."
     "generator_function_declaration" "static_initializer" "macro_definition")
   "Node types that make a binding local (role_tokens.py `FUNC_TYPES').")
 
-(defun themer-reader--top-level-p (node)
+(defun reader-theme--top-level-p (node)
   "Non-nil if NODE is not inside a function, method, lambda or closure."
   (let ((p (treesit-node-parent node)) (top t))
     (while (and p top)
-      (if (member (treesit-node-type p) themer-reader--function-nodes)
+      (if (member (treesit-node-type p) reader-theme--function-nodes)
           (setq top nil)
         (setq p (treesit-node-parent p))))
     top))
 
-(defun themer-reader--caps-p (name)
+(defun reader-theme--caps-p (name)
   "Non-nil if NAME is ALL_CAPS (role_stats.py `CAPS')."
   (let ((case-fold-search nil))
     (string-match-p "\\`_?[A-Z][A-Z0-9_]+\\'" name)))
 
-(defun themer-reader--bind (node face override start end)
+(defun reader-theme--bind (node face override start end)
   "Fontify NODE with FACE, as tree-sitter font-lock does with OVERRIDE.
 START and END bound the region.  A function definition face is kept."
   (let* ((beg (treesit-node-start node))
@@ -1652,32 +1693,32 @@ START and END bound the region.  A function definition face is kept."
                 (and (consp old) (memq 'font-lock-function-name-face old)))
       (treesit-fontify-with-override beg (treesit-node-end node) face override start end))))
 
-(defun themer-reader--fontify-module-variable (node override start end &rest _)
+(defun reader-theme--fontify-module-variable (node override start end &rest _)
   "Module-variable face on NODE at top level.  OVERRIDE, START, END as usual."
-  (when (themer-reader--top-level-p node)
-    (themer-reader--bind node 'themer-reader-module-variable override start end)))
+  (when (reader-theme--top-level-p node)
+    (reader-theme--bind node 'reader-theme-module-variable override start end)))
 
-(defun themer-reader--fontify-constant (node override start end &rest _)
+(defun reader-theme--fontify-constant (node override start end &rest _)
   "Constant-definition face on NODE.  OVERRIDE, START, END as usual."
-  (themer-reader--bind node 'themer-reader-constant-definition override start end))
+  (reader-theme--bind node 'reader-theme-constant-definition override start end))
 
-(defun themer-reader--fontify-caps (node override start end &rest _)
+(defun reader-theme--fontify-caps (node override start end &rest _)
   "At top level, constant face on NODE if ALL_CAPS, else module variable.
 OVERRIDE, START and END as usual."
-  (when (themer-reader--top-level-p node)
-    (themer-reader--bind node (if (themer-reader--caps-p (treesit-node-text node t))
-                                  'themer-reader-constant-definition
-                                'themer-reader-module-variable)
+  (when (reader-theme--top-level-p node)
+    (reader-theme--bind node (if (reader-theme--caps-p (treesit-node-text node t))
+                                  'reader-theme-constant-definition
+                                'reader-theme-module-variable)
                          override start end)))
 
-(defun themer-reader--fontify-js-declarator (node override start end &rest _)
+(defun reader-theme--fontify-js-declarator (node override start end &rest _)
   "NODE is a JS/TS declarator name: an identifier or a destructuring pattern.
 OVERRIDE, START and END as usual."
   (if (member (treesit-node-type (treesit-node-child-by-field-name (treesit-node-parent node) "value"))
-              themer-reader--function-nodes)
+              reader-theme--function-nodes)
       ;; const f = () => ...: a function definition, wherever it is.
-      (themer-reader--bind node 'font-lock-function-name-face override start end)
-    (when (themer-reader--top-level-p node)
+      (reader-theme--bind node 'font-lock-function-name-face override start end)
+    (when (reader-theme--top-level-p node)
       (let* ((decl (treesit-node-parent (treesit-node-parent node)))
              (const (and decl (equal (treesit-node-type decl) "lexical_declaration")
                          (equal (treesit-node-type (treesit-node-child decl 0)) "const")))
@@ -1688,20 +1729,20 @@ OVERRIDE, START and END as usual."
                                                 '("identifier" "shorthand_property_identifier_pattern")))
                        t))))
         (dolist (n names)
-          (themer-reader--bind n (if (and const (themer-reader--caps-p (treesit-node-text n t)))
-                                     'themer-reader-constant-definition
-                                   'themer-reader-module-variable)
+          (reader-theme--bind n (if (and const (reader-theme--caps-p (treesit-node-text n t)))
+                                     'reader-theme-constant-definition
+                                   'reader-theme-module-variable)
                                override start end))))))
 
-(defun themer-reader--fontify-rust-static (node override start end &rest _)
+(defun reader-theme--fontify-rust-static (node override start end &rest _)
   "NODE names a Rust static: a constant unless `mut'.
 OVERRIDE, START and END as usual."
   (if (treesit-filter-child (treesit-node-parent node)
                             (lambda (c) (equal (treesit-node-type c) "mutable_specifier")))
-      (themer-reader--fontify-module-variable node override start end)
-    (themer-reader--fontify-constant node override start end)))
+      (reader-theme--fontify-module-variable node override start end)
+    (reader-theme--fontify-constant node override start end)))
 
-(defun themer-reader--c-declarator-name (decl)
+(defun reader-theme--c-declarator-name (decl)
   "Identifier named by C declarator DECL and whether it passes a pointer.
 Return (NODE . POINTER-P), or nil for function declarators."
   (let ((ptr nil))
@@ -1712,23 +1753,23 @@ Return (NODE . POINTER-P), or nil for function declarators."
     (when (and decl (equal (treesit-node-type decl) "identifier"))
       (cons decl ptr))))
 
-(defun themer-reader--fontify-c-declaration (node override start end &rest _)
+(defun reader-theme--fontify-c-declaration (node override start end &rest _)
   "NODE is a C/C++ declaration; fontify its names at file or namespace scope.
 OVERRIDE, START and END as usual."
-  (when (themer-reader--top-level-p node)
+  (when (reader-theme--top-level-p node)
     (let ((const (treesit-filter-child
                   node (lambda (c) (and (equal (treesit-node-type c) "type_qualifier")
                                         (member (treesit-node-text c t) '("const" "constexpr")))))))
       (dotimes (i (treesit-node-child-count node))
         (when (equal (treesit-node-field-name-for-child node i) "declarator")
-          (pcase (themer-reader--c-declarator-name (treesit-node-child node i))
+          (pcase (reader-theme--c-declarator-name (treesit-node-child node i))
             (`(,id . ,ptr)
-             (themer-reader--bind id (if (and const (not ptr))
-                                         'themer-reader-constant-definition
-                                       'themer-reader-module-variable)
+             (reader-theme--bind id (if (and const (not ptr))
+                                         'reader-theme-constant-definition
+                                       'reader-theme-module-variable)
                                   override start end))))))))
 
-(defun themer-reader--fontify-java-field (node override start end &rest _)
+(defun reader-theme--fontify-java-field (node override start end &rest _)
   "NODE names a Java field: a constant when static final.
 OVERRIDE, START and END as usual."
   (when-let* ((field (treesit-node-parent (treesit-node-parent node)))
@@ -1737,135 +1778,178 @@ OVERRIDE, START and END as usual."
               (text (treesit-node-text mods t))
               ((string-match-p "\\_<static\\_>" text))
               ((string-match-p "\\_<final\\_>" text)))
-    (themer-reader--fontify-constant node override start end)))
+    (reader-theme--fontify-constant node override start end)))
 
-(defun themer-reader--fontify-lua-variable (node override start end &rest _)
+(defun reader-theme--fontify-lua-variable (node override start end &rest _)
   "NODE is a Lua assignment target.  OVERRIDE, START and END as usual."
-  (when (themer-reader--top-level-p node)
+  (when (reader-theme--top-level-p node)
     (let ((attr (treesit-node-next-sibling node t)))
-      (themer-reader--bind node (if (and attr (equal (treesit-node-type attr) "attribute")
+      (reader-theme--bind node (if (and attr (equal (treesit-node-type attr) "attribute")
                                          (string-match-p "\\_<\\(?:const\\|close\\)\\_>"
                                                          (treesit-node-text attr t)))
-                                    'themer-reader-constant-definition
-                                  'themer-reader-module-variable)
+                                    'reader-theme-constant-definition
+                                  'reader-theme-module-variable)
                            override start end))))
 
-(defun themer-reader--fontify-bash-variable (node override start end &rest _)
+(defun reader-theme--fontify-bash-variable (node override start end &rest _)
   "NODE names a bash assignment.  OVERRIDE, START and END as usual."
   (let* ((asg (treesit-node-parent node))
          (cmd (treesit-node-parent asg)))
-    (when (and (themer-reader--top-level-p node)
+    (when (and (reader-theme--top-level-p node)
                ;; FOO=1 cmd sets the command's environment, not a binding.
                (not (equal (treesit-node-type cmd) "command")))
-      (themer-reader--bind
+      (reader-theme--bind
        node (if (and (equal (treesit-node-type cmd) "declaration_command")
                      (string-match-p "\\`\\(?:readonly\\|\\(?:declare\\|typeset\\)[ \t]+-[[:alpha:]]*r\\)"
                                      (treesit-node-text cmd t)))
-                'themer-reader-constant-definition
-              'themer-reader-module-variable)
+                'reader-theme-constant-definition
+              'reader-theme-module-variable)
        override start end))))
 
-(defconst themer-reader--languages
+(defconst reader-theme--languages
   '(python javascript typescript tsx rust go c cpp java lua bash)
-  "Languages `themer-reader-treesit-mode' adds rules for.")
+  "Languages `reader-theme-treesit-mode' adds rules for.")
 
-(defun themer-reader--buffer-language ()
+(defun reader-theme--buffer-language ()
   "The language of this buffer's primary tree-sitter parser, or nil."
   (when-let* ((parser (or (and (boundp 'treesit-primary-parser)
                                (symbol-value 'treesit-primary-parser))
                           (car (treesit-parser-list)))))
     (treesit-parser-language parser)))
 
-(defun themer-reader--install ()
+;;;; Semantic-token fix-up
+;;
+;; Rust-analyzer calls primitives (`u32', `str') and `derive' namespaces as
+;; well as modules.  Where tree-sitter has drawn a type or an attribute,
+;; the namespace face comes off again.  The fix-up is a font-lock keyword
+;; after eglot's, re-appended (by a buffer-local hook) whenever eglot's
+;; semantic tokens start.
+
+(defconst reader-theme--not-namespace-faces '(font-lock-type-face reader-theme-meta)
+  "Tree-sitter faces that overrule an `eglot-semantic-namespace' token.")
+
+(defun reader-theme--installed-p ()
+  "Non-nil if the reader rules are in this buffer."
+  (and (bound-and-true-p treesit-font-lock-settings)
+       (cl-some (lambda (s) (eq (nth 2 s) 'reader-theme)) treesit-font-lock-settings)))
+
+(defun reader-theme--drop-namespace-tokens (beg end &optional object)
+  "Take `eglot-semantic-namespace' off BEG..END of OBJECT where it is mislabelled.
+That is, where the face also has one of `reader-theme--not-namespace-faces'."
+  (let ((p beg))
+    (while (< p end)
+      (let ((next (next-single-property-change p 'face object end))
+            (face (get-text-property p 'face object)))
+        (when (and (consp face) (memq 'eglot-semantic-namespace face)
+                   (cl-some (lambda (f) (memq f face)) reader-theme--not-namespace-faces))
+          (let ((rest (remq 'eglot-semantic-namespace face)))
+            (put-text-property p next 'face (if (cdr rest) rest (car rest)) object)))
+        (setq p next)))))
+
+(defun reader-theme--semtok-fixup (limit)
+  "Font-lock matcher: drop mislabelled namespace tokens from point to LIMIT."
+  (reader-theme--drop-namespace-tokens (point) limit)
+  nil)
+
+(defun reader-theme--semtok-order ()
+  "Put the namespace fix-up last in this buffer's font-lock keywords."
+  (when (reader-theme--installed-p)
+    (font-lock-remove-keywords nil '((reader-theme--semtok-fixup)))
+    (font-lock-add-keywords nil '((reader-theme--semtok-fixup)) 'append)))
+
+(defun reader-theme--install ()
   "Add the reader rules to this tree-sitter buffer and refontify."
   (when-let* (((bound-and-true-p treesit-font-lock-settings))
-              (lang (themer-reader--buffer-language))
-              ((memq lang themer-reader--languages))
-              ((not (cl-some (lambda (s) (eq (nth 2 s) 'themer-reader)) treesit-font-lock-settings)))
-              (settings (themer-reader--settings lang)))
+              (lang (reader-theme--buffer-language))
+              ((memq lang reader-theme--languages))
+              ((not (reader-theme--installed-p)))
+              (settings (reader-theme--settings lang)))
     (setq-local treesit-font-lock-settings (append treesit-font-lock-settings
                                                    (copy-tree settings)))
     (setq-local treesit-font-lock-feature-list
-                (cons (append (car treesit-font-lock-feature-list) '(themer-reader))
+                (cons (append (car treesit-font-lock-feature-list) '(reader-theme))
                       (cdr treesit-font-lock-feature-list)))
     (treesit-font-lock-recompute-features)
+    (reader-theme--semtok-order)
+    (add-hook 'eglot-semantic-tokens-mode-hook #'reader-theme--semtok-order nil t)
     (font-lock-flush)))
 
-(defun themer-reader--uninstall ()
+(defun reader-theme--uninstall ()
   "Remove the reader rules from this buffer and refontify."
-  (when (and (bound-and-true-p treesit-font-lock-settings)
-             (cl-some (lambda (s) (eq (nth 2 s) 'themer-reader)) treesit-font-lock-settings))
+  (when (reader-theme--installed-p)
     (setq-local treesit-font-lock-settings
-                (cl-remove-if (lambda (s) (eq (nth 2 s) 'themer-reader)) treesit-font-lock-settings))
+                (cl-remove-if (lambda (s) (eq (nth 2 s) 'reader-theme)) treesit-font-lock-settings))
     (setq-local treesit-font-lock-feature-list
-                (mapcar (lambda (l) (remq 'themer-reader l)) treesit-font-lock-feature-list))
+                (mapcar (lambda (l) (remq 'reader-theme l)) treesit-font-lock-feature-list))
     (treesit-font-lock-recompute-features)
+    (font-lock-remove-keywords nil '((reader-theme--semtok-fixup)))
+    (remove-hook 'eglot-semantic-tokens-mode-hook #'reader-theme--semtok-order t)
     (font-lock-flush)))
 
 ;;;###autoload
-(define-minor-mode themer-reader-treesit-mode
+(define-minor-mode reader-theme-treesit-mode
   "Add reader-standard tree-sitter rules to tree-sitter major modes.
 For python, javascript, typescript, tsx, rust, go, c, c++, java, lua and
 bash, where the grammar is installed: exits (return, raise/throw, break,
-continue, yield, goto, Rust `?') in `themer-reader-exit', type definition
+continue, yield, goto, Rust `?') in `reader-theme-exit', type definition
 names, Rust module paths, decorators and attributes, macro calls,
 parameter declarations, module-level bindings and constant definitions,
 TODO/FIXME/XXX in comments, and commented-out code when
-`themer-reader-fade-commented-code' is set."
+`reader-theme-fade-commented-code' is set."
   :global t
   :group 'themer
   ;; Install from `prog-mode-hook' first, before other mode hooks fontify
   ;; (indent-bars, for one, skips the refontify a later flush asks for);
   ;; `after-change-major-mode-hook' catches modes not derived from prog-mode.
-  (if themer-reader-treesit-mode
+  (if reader-theme-treesit-mode
       (progn
-        (add-hook 'prog-mode-hook #'themer-reader--install -90)
-        (add-hook 'after-change-major-mode-hook #'themer-reader--install))
-    (remove-hook 'prog-mode-hook #'themer-reader--install)
-    (remove-hook 'after-change-major-mode-hook #'themer-reader--install))
+        (add-hook 'prog-mode-hook #'reader-theme--install -90)
+        (add-hook 'after-change-major-mode-hook #'reader-theme--install))
+    (remove-hook 'prog-mode-hook #'reader-theme--install)
+    (remove-hook 'after-change-major-mode-hook #'reader-theme--install))
   (dolist (buf (buffer-list))
     (with-current-buffer buf
-      (if themer-reader-treesit-mode
-          (themer-reader--install)
-        (themer-reader--uninstall)))))
+      (if reader-theme-treesit-mode
+          (reader-theme--install)
+        (reader-theme--uninstall)))))
 
 ;;;; Commands
 
-(defun themer-reader--buffer-form ()
-  "The `themer-reader-deftheme' form in this buffer, or nil."
+(defun reader-theme--buffer-form ()
+  "The `reader-theme-deftheme' form in this buffer, or nil."
   (save-excursion
     (goto-char (point-min))
-    (when (re-search-forward "^(themer-reader-deftheme\\_>" nil t)
+    (when (re-search-forward "^(reader-theme-deftheme\\_>" nil t)
       (goto-char (match-beginning 0))
       (ignore-errors (read (current-buffer))))))
 
-(defun themer-reader--form-spec (form)
-  "The spec plist of `themer-reader-deftheme' FORM, values evaluated.
+(defun reader-theme--form-spec (form)
+  "The spec plist of `reader-theme-deftheme' FORM, values evaluated.
 The palette and palette names are kept as written."
   (let ((plist (nthcdr 3 form)) out)
     (while plist
       (let ((k (car plist)) (v (cadr plist)))
-        (setq out (append out (list k (if (themer-reader--literal-p k v) v (eval v t))))
+        (setq out (append out (list k (if (reader-theme--literal-p k v) v (eval v t))))
               plist (cddr plist))))
     out))
 
-(defun themer-reader--current ()
+(defun reader-theme--current ()
   "(NAME . SPEC) for this buffer's reader theme, or the enabled one."
-  (or (when-let* ((form (themer-reader--buffer-form)))
-        (cons (nth 1 form) (themer-reader--form-spec form)))
+  (or (when-let* ((form (reader-theme--buffer-form)))
+        (cons (nth 1 form) (reader-theme--form-spec form)))
       (cl-loop for th in custom-enabled-themes
-               when (get th 'themer-reader-spec)
-               return (cons th (get th 'themer-reader-spec)))
+               when (get th 'reader-theme-spec)
+               return (cons th (get th 'reader-theme-spec)))
       (user-error "No reader theme in this buffer or enabled")))
 
-(defun themer-reader--swatch (hex)
+(defun reader-theme--swatch (hex)
   "HEX propertized as a swatch."
   (if hex
       (propertize (format " %s " hex) 'face
                   `(:background ,hex :foreground ,(if (themer-colour-dark-p hex) "white" "black")))
     "-"))
 
-(defun themer-reader-report (name derived)
+(defun reader-theme-report (name derived)
   "Insert the conformance report for theme NAME from DERIVED."
   (let* ((conf (plist-get derived :conformance))
          (tiers (plist-get derived :tiers)))
@@ -1875,10 +1959,10 @@ The palette and palette names are kept as written."
                     (plist-get conf :level-normal) (plist-get conf :level-cvd) (plist-get conf :build)))
     (insert "Tiers\n")
     (dolist (k '(:bg :fg :dim :faded :recessive :binding :popout :accent))
-      (insert (format "  %-11s %s\n" (substring (symbol-name k) 1) (themer-reader--swatch (plist-get tiers k)))))
+      (insert (format "  %-11s %s\n" (substring (symbol-name k) 1) (reader-theme--swatch (plist-get tiers k)))))
     (dolist (x (plist-get tiers :loud))
-      (insert (format "  %-11s loud %s  quiet %s\n" (car x) (themer-reader--swatch (cdr x))
-                      (themer-reader--swatch (alist-get (car x) (plist-get tiers :quiet))))))
+      (insert (format "  %-11s loud %s  quiet %s\n" (car x) (reader-theme--swatch (cdr x))
+                      (reader-theme--swatch (alist-get (car x) (plist-get tiers :quiet))))))
     (insert "\nChecks\n")
     (dolist (c (plist-get conf :checks))
       (insert (format "  %s %-6s %-4s %s\n"
@@ -1896,19 +1980,19 @@ The palette and palette names are kept as written."
                         ""))))))
 
 ;;;###autoload
-(defun themer-reader-check ()
+(defun reader-theme-check ()
   "Show the conformance report for this buffer's reader theme, or the enabled one."
   (interactive)
-  (pcase-let ((`(,name . ,spec) (themer-reader--current)))
-    (let ((derived (themer-reader-derive spec)))
-      (with-help-window "*themer-reader-check*"
+  (pcase-let ((`(,name . ,spec) (reader-theme--current)))
+    (let ((derived (reader-theme-derive spec)))
+      (with-help-window "*reader-theme-check*"
         (with-current-buffer standard-output
-          (themer-reader-report name derived))))))
+          (reader-theme-report name derived))))))
 
-(defun themer-reader--deftheme-source (name doc spec)
-  "Source of the `themer-reader-deftheme' form for theme NAME with DOC and SPEC.
+(defun reader-theme--deftheme-source (name doc spec)
+  "Source of the `reader-theme-deftheme' form for theme NAME with DOC and SPEC.
 The palette has one entry per line."
-  (concat (format "(themer-reader-deftheme %s\n  %S" name doc)
+  (concat (format "(reader-theme-deftheme %s\n  %S" name doc)
           (cl-loop for (k v) on spec by #'cddr
                    concat (if (eq k :palette)
                               (format "\n  :palette (%s)"
@@ -1916,19 +2000,19 @@ The palette has one entry per line."
                             (format "\n  %s %S" k v)))
           ")"))
 
-(defun themer-reader--theme-source (name doc spec)
+(defun reader-theme--theme-source (name doc spec)
   "Source of the theme file for theme NAME with DOC and SPEC."
   (concat (format ";;; %s-theme.el --- %s -*- lexical-binding: t; -*-\n\n" name doc)
-          ";; A reader-standard theme (research/PATTERNS.md); see `themer-reader-deftheme'.\n"
-          ";; Edit it with `themer-reader-edit-theme', or edit an accent and\n"
+          ";; A reader-standard theme (research/PATTERNS.md); see `reader-theme-deftheme'.\n"
+          ";; Edit it with `reader-theme-edit', or edit an accent and\n"
           ";; re-evaluate (or use `themer-preview-mode'): every tier is derived again.\n\n"
           ";;; Code:\n\n"
-          "(require 'themer-reader)\n\n"
-          (themer-reader--deftheme-source name doc spec)
+          "(require 'reader-theme)\n\n"
+          (reader-theme--deftheme-source name doc spec)
           "\n\n"
           (format ";;; %s-theme.el ends here\n" name)))
 
-(defun themer-reader--read-base16 (file)
+(defun reader-theme--read-base16 (file)
   "Alist (SLOT . HEX) of base16 slots in YAML FILE."
   (with-temp-buffer
     (insert-file-contents file)
@@ -1940,33 +2024,33 @@ The palette has one entry per line."
       (nreverse out))))
 
 ;;;###autoload
-(defun themer-reader-export (file &optional rules-note name spec)
+(defun reader-theme-export (file &optional rules-note name spec)
   "Write the current reader theme to FILE as a standalone theme.
 The faces have their colours baked in, with no dependency on themer.
 When the spec has a palette, the entries the faces use are bound in a
 `let' and named in the faces, so the export stays readable.
 With RULES-NOTE (interactively, a prefix argument), add a comment on the
-faces that need `themer-reader-treesit-mode' to appear.  NAME and SPEC
+faces that need `reader-theme-treesit-mode' to appear.  NAME and SPEC
 default to this buffer's reader theme, or the enabled one."
   (interactive
    (list (read-file-name "Export theme to: " nil nil nil
-                         (format "%s-theme.el" (car (themer-reader--current))))
+                         (format "%s-theme.el" (car (reader-theme--current))))
          current-prefix-arg))
-  (pcase-let* ((`(,name . ,spec) (if spec (cons name spec) (themer-reader--current)))
-               (derived (themer-reader-derive spec))
-               (`(,bindings . ,specs) (themer-reader--export-specs
-                                       (themer-reader-palette spec)
-                                       (themer-reader--face-specs derived)))
+  (pcase-let* ((`(,name . ,spec) (if spec (cons name spec) (reader-theme--current)))
+               (derived (reader-theme-derive spec))
+               (`(,bindings . ,specs) (reader-theme--export-specs
+                                       (reader-theme-palette spec)
+                                       (reader-theme--face-specs derived)))
                (out (intern (string-remove-suffix "-theme" (file-name-base file)))))
     (with-temp-file file
       (insert (format ";;; %s-theme.el --- Reader theme, exported from `%s' -*- lexical-binding: t; -*-\n\n"
                       out name)
-              ";; Generated by `themer-reader-export'.  Conformance: "
+              ";; Generated by `reader-theme-export'.  Conformance: "
               (plist-get (plist-get derived :conformance) :level) ".\n")
       (when rules-note
-        (insert ";;\n;; The themer-reader-* faces (exits, type definitions, decorators,\n"
+        (insert ";;\n;; The reader-theme-* faces (exits, type definitions, decorators,\n"
                 ";; macros, parameters, TODO markers, commented-out code) are only\n"
-                ";; applied by `themer-reader-treesit-mode' from the themer package.\n"
+                ";; applied by `reader-theme-treesit-mode' from the themer package.\n"
                 ";; Without it, exits look like keywords and type definitions like\n"
                 ";; type uses.\n"))
       (insert "\n;;; Code:\n\n"
@@ -1986,7 +2070,7 @@ default to this buffer's reader theme, or the enabled one."
               (format "(provide-theme '%s)\n\n;;; %s-theme.el ends here\n" out out)))
     (message "Wrote %s" file)))
 
-(defun themer-reader--export-specs (palette specs)
+(defun reader-theme--export-specs (palette specs)
   "Face SPECS with the colours of PALETTE named.
 PALETTE is an alist (NAME . HEX).  Return (BINDINGS . SPECS): BINDINGS
 the `let' bindings of the entries used, in palette order, and SPECS with
@@ -2008,6 +2092,6 @@ wins.  With no palette entry used, return (nil . SPECS)."
           (cons (cl-loop for (n . hex) in palette when (memq n used) collect (list n hex)) out)
         (cons nil specs)))))
 
-(provide 'themer-reader)
+(provide 'reader-theme)
 
-;;; themer-reader.el ends here
+;;; reader-theme.el ends here
