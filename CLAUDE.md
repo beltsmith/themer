@@ -15,8 +15,9 @@ behind the standard; the package implements it.
 | `themer-colour.el` | Colour maths: OKLab/OKLCH, CIELAB, APCA, Szafir text-size ΔE, gamut fit, CVD simulation |
 | `themer-reader.el` | The standard: `themer-reader-deftheme`, palettes, tier derivation, conformance, face mapping, UI accent, `themer-reader-treesit-mode` rules, export, theme load path |
 | `themer-picker.el` | `themer-picker-adjust`: adjust the hex at point/region in OKLCH, in place |
-| `themer-reader-form.el` | Widget form (`themer-reader-new-theme` / `-edit-theme`), sample buffer |
-| `samples/` | `sample.EXT` code samples the theme form fontifies; discovered by name, modes from `auto-mode-alist` |
+| `themer-samples.el` | Sample buffers: real visited copies of `samples/`, faces via `face-remapping-alist`, eglot; owned by a buffer (the form) |
+| `themer-reader-form.el` | Widget form (`themer-reader-new-theme` / `-edit-theme`); shows its samples through themer-samples |
+| `samples/` | `sample.EXT` code samples; discovered by name, modes from `auto-mode-alist` |
 | `examples/` | Reader themes: blush (the main example, `full+cvd`) and four ports (gruvbox, monokai, kanagawa, zenburn) + renders |
 | `tests/themer-test.el` | ERT suite, including byte-compile-clean and checkdoc-clean tests |
 | `research/PATTERNS.md` | The normative standard (MUST/SHOULD). Source of truth for behaviour |

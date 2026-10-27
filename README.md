@@ -170,7 +170,7 @@ comment, a TODO, commented-out code, and macros, decorators and
 attributes. The form's **Samples** section has a checkbox per language;
 ticking one shows or hides its buffer at once, without re-deriving. The
 choice lasts for the session and starts from
-`themer-reader-form-sample-languages` (all of them, by default).
+`themer-samples-languages` (all of them, by default).
 
 Eglot semantic tokens come with the real buffers. For each sample whose
 mode has an installed server in `eglot-server-programs`, the form connects
@@ -180,7 +180,7 @@ faces, exactly as in your editor: wherever the theme gives an eglot face a
 colour, that colour wins. This is how the theme's eglot faces were found
 hiding exits, TODO markers and attributes; see Limitations. The servers
 run for the samples' directory only and are shut down with the form. Set
-`themer-reader-form-semantic-tokens` to nil to leave eglot alone (your
+`themer-samples-semantic-tokens` to nil to leave eglot alone (your
 hooks may still connect it).
 
 What to expect:
@@ -197,13 +197,13 @@ What to expect:
 - Starting eglot uses its internals `eglot--lookup-mode` and
   `eglot--guess-contact`; see Requirements.
 
-To use your own code, point `themer-reader-form-sample-directory` at a
+To use your own code, point `themer-samples-directory` at a
 directory of files named `sample.EXT`. Every such file there is a sample:
 one named like a built-in (`sample.rs`, `sample.py`, ...) replaces it, and
 any other extension adds a language.
 
 ```elisp
-(setq themer-reader-form-sample-directory "~/.emacs.d/themer-samples/")
+(setq themer-samples-directory "~/.emacs.d/themer-samples/")
 ;; ~/.emacs.d/themer-samples/sample.rb  -> a Ruby sample
 ;; ~/.emacs.d/themer-samples/sample.rs  -> replaces the built-in Rust one
 ```
@@ -562,9 +562,9 @@ upper-case. The whole adjustment is one undo step. In a
 | `themer-reader-theme-directory` | `themes/` in `user-emacs-directory` | Where new themes are saved, and searched by `themer-reader-edit-theme`. Put on `custom-theme-load-path` |
 | `themer-reader-include-examples` | `t` | Put the package's `examples/` on `custom-theme-load-path` |
 | `themer-reader-enable-rules` | `t` | Loading a reader theme turns on `themer-reader-treesit-mode` |
-| `themer-reader-form-sample-directory` | `nil` | Your own `sample.EXT` files; each is a sample, and replaces a built-in of the same name |
-| `themer-reader-form-sample-languages` | `t` (all) | Languages whose samples the form shows at first |
-| `themer-reader-form-semantic-tokens` | `t` | Connect eglot in the sample buffers |
+| `themer-samples-directory` | `nil` | Your own `sample.EXT` files; each is a sample, and replaces a built-in of the same name |
+| `themer-samples-languages` | `t` (all) | Languages whose samples the form shows at first |
+| `themer-samples-semantic-tokens` | `t` | Connect eglot in the sample buffers |
 | `themer-reader-fade-commented-code` | `nil` | Draw code-like comments in the faded tier |
 | `themer-reader-italic-comments` | `nil` | Italic comments |
 | `themer-picker-steps` | `(0.01 0.005 2.0)` | `themer-picker-adjust` steps: OKLCH lightness, chroma, hue in degrees |

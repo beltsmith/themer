@@ -34,6 +34,11 @@
 ;;   A form for creating and editing reader themes, with live swatches,
 ;;   derived tiers, a fontified sample and the conformance checks.
 ;;
+;; `themer-samples-show'  (themer-samples.el)
+;;   Real buffers of code, one per language, showing a set of faces
+;;   through `face-remapping-alist', without enabling a theme; with eglot
+;;   semantic tokens where a server is installed.
+;;
 ;; `themer-picker-adjust'  (themer-picker.el)
 ;;   Adjust the hex colour at point or in the region in OKLCH, in place,
 ;;   with single keys and a live swatch.
@@ -54,6 +59,7 @@
 (require 'themer-reader)
 (require 'themer-reader-form)
 (require 'themer-picker)
+(require 'themer-samples)
 
 (provide 'themer)
 

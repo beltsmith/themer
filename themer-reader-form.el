@@ -34,17 +34,9 @@
 (require 'themer-colour)
 (require 'themer-reader)
 (require 'themer-picker)
+(require 'themer-samples)
 
 (defvar themer-preview-delay)
-(defvar treesit-font-lock-level)
-(defvar eglot-sync-connect)
-(declare-function eglot "eglot")
-(declare-function eglot--guess-contact "eglot")
-(declare-function eglot--lookup-mode "eglot")
-(declare-function eglot--managed-buffers "eglot")
-(declare-function eglot-current-server "eglot")
-(declare-function eglot-managed-p "eglot")
-(declare-function eglot-shutdown "eglot")
 (declare-function custom-theme--load-path "custom")
 
 ;;;; Model
@@ -473,257 +465,15 @@ SEVERITY is `ok', `must' or `should'."
 
 ;;;; Samples
 ;;
-;; Each selected language's sample is a real buffer: the form copies the
-;; sample file into a directory of its own and visits the copy, so the
-;; major mode and your hooks (rainbow-delimiters, eglot, ...) run as in
-;; any file, plus the reader rules.  The derived faces are shown through
-;; `face-remapping-alist', so the theme need not be enabled.  The buffers,
-;; the servers eglot runs for them and the directory go with the form.
+;; The samples (themer-samples.el) show the derived faces, with the reader
+;; rules installed in each buffer.
 
-(defvar-local themer-reader-form--sample-buffers nil
-  "The form's sample buffers: alist LANGUAGE -> buffer.")
-(defvar-local themer-reader-form--sample-dir nil
-  "The directory the form copies its samples to.")
-(defvar-local themer-reader-form--sample-owner nil
-  "In a sample buffer: the form buffer it shows samples for.")
 (defvar-local themer-reader-form--derived nil "The last derivation shown.")
 (defvar-local themer-reader-form--model nil "The model the form was opened on.")
 
-(defcustom themer-reader-form-sample-directory nil
-  "Directory of your own samples, read as well as the package's samples/.
-Each file named sample.EXT is a sample; its mode, as `auto-mode-alist'
-and `major-mode-remap-alist' give it, names the language.  A file here
-replaces the package's file of the same name.  nil means only the
-package's samples."
-  :type '(choice (const :tag "None" nil) directory)
-  :group 'themer)
-
-(defcustom themer-reader-form-sample-languages t
-  "The languages whose samples the form shows when it opens.
-t means all of them; otherwise a list of language symbols, named for
-the sample's mode (`python', `emacs-lisp', ...).  The form's Samples
-checkboxes change the choice for the rest of the session."
-  :type '(choice (const :tag "All" t) (repeat symbol))
-  :group 'themer)
-
-(defcustom themer-reader-form-semantic-tokens t
-  "Non-nil: connect eglot in the sample buffers, for semantic tokens.
-Only for samples whose mode has an installed server in
-`eglot-server-programs', and unless your own hooks connected it.  The
-form shuts these servers down when it is killed."
-  :type 'boolean
-  :group 'themer)
-
-(defconst themer-reader-form--language-names
-  '((typescript . "TypeScript") (emacs-lisp . "Emacs Lisp"))
-  "Display names of languages that `capitalize' gets wrong.")
-
-(defvar themer-reader-form--selected :unset
-  "The languages whose samples are shown, for this session.
-:unset until the form changes it: then `themer-reader-form-sample-languages'.")
-
-(defun themer-reader-form--language-name (lang)
-  "The display name of sample language LANG."
-  (or (alist-get lang themer-reader-form--language-names)
-      (capitalize (symbol-name lang))))
-
-(defun themer-reader-form--sample-file-modes (file)
-  "The language of sample FILE and its candidate modes: (LANGUAGE MODE...).
-The mode is FILE's in `auto-mode-alist', after `major-mode-remap-alist';
-LANGUAGE is its name less -ts-mode, -mode or -ts-mode-maybe.  The
-candidates are LANGUAGE-ts-mode, LANGUAGE-mode, then the mode itself.
-nil if FILE has no mode."
-  (when-let* ((mode (assoc-default file auto-mode-alist #'string-match))
-              (mode (if (consp mode) (car mode) mode))
-              ((symbolp mode)))
-    (let* ((mode (or (alist-get mode major-mode-remap-alist) mode))
-           (lang (replace-regexp-in-string "\\(-ts\\)?-mode\\(-maybe\\)?\\'" ""
-                                           (symbol-name mode))))
-      (cons (intern lang)
-            (delete-dups
-             (delq nil (list (intern-soft (concat lang "-ts-mode"))
-                             (intern-soft (concat lang "-mode"))
-                             (unless (string-suffix-p "-maybe" (symbol-name mode)) mode))))))))
-
-(defun themer-reader-form--samples ()
-  "The samples found: a list of (LANGUAGE (MODE...) . FILE), by name.
-LANGUAGE and the modes are from `themer-reader-form--sample-file-modes';
-a file with no mode is named for its extension, with no modes."
-  (let (files)
-    (dolist (dir (list (expand-file-name "samples/" themer-reader--library-directory)
-                       themer-reader-form-sample-directory))
-      (when (and dir (file-directory-p dir))
-        (dolist (f (directory-files dir t "\\`sample\\.[^.]+\\'"))
-          (setf (alist-get (file-name-nondirectory f) files nil nil #'equal) f))))
-    (sort (mapcar (lambda (e)
-                    (let ((lm (or (themer-reader-form--sample-file-modes (cdr e))
-                                  (list (intern (file-name-extension (cdr e)))))))
-                      (cons (car lm) (cons (cdr lm) (cdr e)))))
-                  files)
-          (lambda (a b) (string< (themer-reader-form--language-name (car a))
-                                 (themer-reader-form--language-name (car b)))))))
-
-(defun themer-reader-form--selected-languages ()
-  "The languages shown, in the order of `themer-reader-form--samples'."
-  (let ((sel (if (eq themer-reader-form--selected :unset)
-                 themer-reader-form-sample-languages
-               themer-reader-form--selected)))
-    (cl-loop for (lang) in (themer-reader-form--samples)
-             when (or (eq sel t) (memq lang sel)) collect lang)))
-
-(defun themer-reader-form--sample-buffer-name (name lang)
-  "The name of the LANG sample buffer for the theme called NAME."
-  (format "*themer-reader-sample: %s (%s)*" (or name "new")
-          (themer-reader-form--language-name lang)))
-
-(define-minor-mode themer-reader-form-sample-mode
-  "On in a reader theme form's sample buffers.
-The buffer visits a copy of a sample and shows the form's colours
-through `face-remapping-alist'; the form kills it."
-  :lighter " Reader-Sample")
-
-(defun themer-reader-form--remap (buf derived)
-  "Show DERIVED's faces in BUF, in place of the enabled theme's.
-Faces DERIVED leaves empty are empty here too, as in the theme."
-  (with-current-buffer buf
-    (pcase-dolist (`(,face . ,attrs) (themer-reader-faces derived))
-      (face-remap-set-base face (or attrs '(:foreground unspecified))))
-    (force-window-update buf)))
-
-(defun themer-reader-form--semtok-contact (mode)
-  "Eglot's contact for MODE if its server is installed, else nil."
-  (when-let* ((guess (cdr (ignore-errors (eglot--lookup-mode mode)))))
-    (or (functionp guess)
-        (not (stringp (car-safe guess)))
-        (executable-find (car guess)))))
-
-(defun themer-reader-form--connect (buf)
-  "Connect eglot in sample BUF in the background, if it has a server.
-Skipped when BUF is managed already, by the user's hooks."
-  (when (and themer-reader-form-semantic-tokens (require 'eglot nil t))
-    (with-current-buffer buf
-      (ignore-errors
-        (when-let* (((not (or (eglot-managed-p) (eglot-current-server))))
-                    ((themer-reader-form--semtok-contact major-mode))
-                    (contact (eglot--guess-contact))
-                    (program (car-safe (nth 3 contact)))
-                    ((or (not (stringp program)) (executable-find program))))
-          ;; Eglot manages the buffer, and paints its tokens, once the
-          ;; server has initialised.
-          (let ((eglot-sync-connect nil))
-            (apply #'eglot contact)))))))
-
-(defun themer-reader-form--visit-sample (lang file)
-  "A sample buffer for LANG visiting a copy of FILE, for the current form.
-It is the form's LANG buffer from now on."
-  (let ((form (current-buffer)))
-    (unless (and themer-reader-form--sample-dir (file-directory-p themer-reader-form--sample-dir))
-      (setq themer-reader-form--sample-dir (make-temp-file "themer-samples-" t)))
-    (let* ((copy (expand-file-name (file-name-nondirectory file) themer-reader-form--sample-dir))
-           (buf (progn
-                  (copy-file file copy t)
-                  ;; Around the install too: it recomputes the features.
-                  (let ((treesit-font-lock-level 4))
-                    (with-current-buffer (find-file-noselect copy t)
-                      (themer-reader--install)
-                      (current-buffer))))))
-      (with-current-buffer buf
-        (rename-buffer (themer-reader-form--sample-buffer-name
-                        (plist-get (buffer-local-value 'themer-reader-form--model form) :name)
-                        lang)
-                       t)
-        (setq buffer-read-only t)
-        (setq themer-reader-form--sample-owner form)
-        (themer-reader-form-sample-mode 1))
-      (when-let* ((d (buffer-local-value 'themer-reader-form--derived form)))
-        (themer-reader-form--remap buf d))
-      (themer-reader-form--connect buf)
-      (setf (alist-get lang themer-reader-form--sample-buffers) buf))))
-
-(defun themer-reader-form--ensure-samples ()
-  "The form's sample buffers for the selected languages, made as needed."
-  (let ((samples (themer-reader-form--samples)))
-    (cl-loop for lang in (themer-reader-form--selected-languages)
-             for file = (cddr (assq lang samples))
-             for buf = (alist-get lang themer-reader-form--sample-buffers)
-             when file
-             collect (if (buffer-live-p buf) buf
-                       (themer-reader-form--visit-sample lang file)))))
-
-(defun themer-reader-form--update-samples (&optional derived)
-  "Show DERIVED (default: the last derivation) in the sample buffers."
-  (when-let* ((derived (or derived themer-reader-form--derived)))
-    (pcase-dolist (`(,_ . ,buf) themer-reader-form--sample-buffers)
-      (when (buffer-live-p buf)
-        (themer-reader-form--remap buf derived)))))
-
-(defconst themer-reader-form--sample-width 120
-  "Columns for the sample windows when they sit beside the form.")
-
-(defconst themer-reader-form--form-min-width 100
-  "Columns the form keeps when the samples are split off to its right.")
-
-(defun themer-reader-form--hide-samples (bufs)
-  "Delete the windows showing BUFS."
-  (dolist (b bufs)
-    (when (buffer-live-p b)
-      (dolist (w (get-buffer-window-list b nil t))
-        (ignore-errors (delete-window w))))))
-
-(defun themer-reader-form-show-samples ()
-  "Show the selected samples beside the form, one window each.
-The samples split the form's window: to the right if it is wide enough
-for both, else below; the rest stack under the first.
-`display-buffer-alist' takes precedence."
-  (interactive)
-  (let* ((bufs (themer-reader-form--ensure-samples))
-         (win (or (get-buffer-window (current-buffer)) (selected-window)))
-         (wide (>= (window-total-width win)
-                   (+ themer-reader-form--form-min-width
-                      themer-reader-form--sample-width 1)))
-         prev)
-    (themer-reader-form--hide-samples
-     (cl-set-difference (mapcar #'cdr themer-reader-form--sample-buffers) bufs))
-    (dolist (b bufs)
-      (setq prev
-            (or (get-buffer-window b)
-                (display-buffer
-                 b (if prev
-                       `((display-buffer-in-direction) (direction . below) (window . ,prev))
-                     `((display-buffer-reuse-window display-buffer-in-direction)
-                       (direction . ,(if wide 'right 'below))
-                       (window . ,win)
-                       (window-width . ,(1+ themer-reader-form--sample-width)))))
-                prev)))
-    (when-let* (((cdr bufs))
-                (w (get-buffer-window (cadr bufs))))
-      (balance-windows (window-parent w)))
-    bufs))
-
-(defun themer-reader-form-set-sample-languages (languages)
-  "Show the samples of LANGUAGES, and lay out their windows now."
-  (setq themer-reader-form--selected languages)
-  (themer-reader-form-show-samples))
-
-(defun themer-reader-form--kill-samples ()
-  "Kill this form's sample buffers, their servers and their directory."
-  (let* ((bufs (cl-remove-if-not #'buffer-live-p (mapcar #'cdr themer-reader-form--sample-buffers)))
-         (servers (and (fboundp 'eglot-current-server)
-                       (delete-dups (delq nil (mapcar (lambda (b) (with-current-buffer b
-                                                                    (eglot-current-server)))
-                                                      bufs))))))
-    (dolist (s servers)
-      (when (cl-every (lambda (b) (memq b bufs)) (eglot--managed-buffers s))
-        (ignore-errors (eglot-shutdown s))))
-    (themer-reader-form--hide-samples bufs)
-    (dolist (b bufs)
-      (when (buffer-live-p b)
-        (with-current-buffer b (set-buffer-modified-p nil))
-        (kill-buffer b)))
-    (setq themer-reader-form--sample-buffers nil)
-    (when (and themer-reader-form--sample-dir (file-directory-p themer-reader-form--sample-dir))
-      (delete-directory themer-reader-form--sample-dir t))
-    (setq themer-reader-form--sample-dir nil)))
+(defun themer-reader-form--samples-title (name)
+  "The samples' title for the theme called NAME."
+  (format "themer-reader-sample: %s" (or name "new")))
 
 ;;;; The form buffer
 
@@ -955,7 +705,7 @@ With INTERRUPTIBLE, input aborts the derivation and reschedules it."
                 (setq themer-reader-form--derived d)
                 (themer-reader-form--update-swatches d)
                 (themer-reader-form--update-dynamic d)
-                (themer-reader-form--update-samples d)
+                (themer-samples-update (themer-reader-faces d))
                 (when themer-reader-form--applied
                   (themer-reader-form--define-preview d)))))))))))
 
@@ -1006,7 +756,7 @@ With INTERRUPTIBLE, input aborts the derivation and reschedules it."
   (when (timerp themer-reader-form--timer)
     (cancel-timer themer-reader-form--timer))
   (themer-reader-form--apply nil)
-  (themer-reader-form--kill-samples))
+  (themer-samples-kill))
 
 ;;;; Building the form
 
@@ -1045,13 +795,11 @@ With INTERRUPTIBLE, input aborts the derivation and reschedules it."
 (defun themer-reader-form--render (model &optional state)
   "Draw the form for MODEL in the current buffer.
 The fields show STATE, a form state, if given, else MODEL."
-  (let ((applied themer-reader-form--applied)
-        (samples themer-reader-form--sample-buffers)
-        (dir themer-reader-form--sample-dir))
+  (let ((applied themer-reader-form--applied))
     (themer-reader-form-mode)
-    (setq themer-reader-form--applied applied
-          themer-reader-form--sample-buffers samples
-          themer-reader-form--sample-dir dir))
+    (setq themer-reader-form--applied applied))
+  (setq themer-samples-title (themer-reader-form--samples-title (plist-get model :name))
+        themer-samples-setup-function #'themer-reader--install)
   (let ((inhibit-read-only t)) (erase-buffer))
   (remove-overlays)
   (add-hook 'kill-buffer-hook #'themer-reader-form--cleanup nil t)
@@ -1112,18 +860,18 @@ The fields show STATE, a form state, if given, else MODEL."
           (push (cons key ov) themer-reader-form--overlays))
         (widget-insert "\n")))
     (widget-insert "\n" (propertize "Samples" 'face 'bold) "  (shown in their own buffers)  ")
-    (themer-reader-form--button "Show samples" #'themer-reader-form-show-samples)
+    (themer-reader-form--button "Show samples" #'themer-samples-show)
     (widget-insert "\n  ")
     (setq themer-reader-form--samples-widget
           (apply #'widget-create 'checklist
-                 :value (themer-reader-form--selected-languages)
+                 :value (themer-samples-selected-languages)
                  :entry-format "%b %v   "
                  :notify (lambda (w &rest _)
-                           (themer-reader-form-set-sample-languages (widget-value w)))
+                           (themer-samples-set-languages (widget-value w)))
                  (mapcar (lambda (e)
-                           `(item :tag ,(themer-reader-form--language-name (car e))
+                           `(item :tag ,(themer-samples-language-name (car e))
                                   :format "%t" :value ,(car e)))
-                         (themer-reader-form--samples))))
+                         (themer-samples-list))))
     (widget-insert "\n\n")
     (setq themer-reader-form--dynamic (point-marker))
     (widget-insert "\n"))
@@ -1155,7 +903,7 @@ With GOTO, a function, call it afterwards to place point."
     ;; The selected window, not a new split, so the form keeps the room it
     ;; had and the samples are split off it.
     (pop-to-buffer-same-window buf)
-    (with-current-buffer buf (themer-reader-form-show-samples))
+    (with-current-buffer buf (themer-samples-show))
     buf))
 
 ;;;; Commands
@@ -1218,10 +966,7 @@ FILE defaults to the edited file (renamed with the theme), else
                   ((not (buffer-modified-p buf))))
         (with-current-buffer buf (revert-buffer t t t)))
       (rename-buffer (format "*reader-theme %s*" (plist-get new :name)) t)
-      (pcase-dolist (`(,lang . ,buf) themer-reader-form--sample-buffers)
-        (when (buffer-live-p buf)
-          (with-current-buffer buf
-            (rename-buffer (themer-reader-form--sample-buffer-name (plist-get new :name) lang) t))))
+      (themer-samples-retitle (themer-reader-form--samples-title (plist-get new :name)))
       (message "Wrote %s" file)
       file)))
 
