@@ -10,7 +10,7 @@ behind the standard; the package implements it.
 | Path | What |
 |---|---|
 | `themer.el` | Entry point; requires the rest |
-| `themer-preview.el` | `themer-preview-mode`: live reload + swatch painting (autothemer and `themer-reader-deftheme`) |
+| `themer-preview.el` | `themer-preview-mode`: live reload + swatch painting (autothemer, and macros registered in `themer-preview-forms`) |
 | `themer-render.el` | `themer-render`, `themer-render-compare`, headless `themer-batch-render FILE OUT.svg [SETTLE] [LINES]` |
 | `themer-colour.el` | Colour maths: OKLab/OKLCH, CIELAB, APCA, Szafir text-size ΔE, gamut fit, CVD simulation |
 | `themer-reader.el` | The standard: `themer-reader-deftheme`, palettes, tier derivation, conformance, face mapping, UI accent, `themer-reader-treesit-mode` rules, export, theme load path |

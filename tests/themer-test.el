@@ -456,7 +456,7 @@ function definition, macro a macro definition.")
             "(themer-reader-deftheme my-reader \"Doc.\"\n  :bg \"#282828\" :fg \"#d5c4a1\"\n"
             "  :syntax \"#fb4934\" :callable \"#b8bb26\" :value \"#d3869b\")\n")
     (should (eq (themer-preview--theme) 'my-reader))
-    (themer-preview--paint-hexes (themer-preview--reader-bounds))
+    (themer-preview--paint-hexes (car (themer-preview--form)) (cdr (themer-preview--form)))
     (should (= 5 (length (cl-remove-if-not (lambda (o) (overlay-get o 'themer-preview))
                                            (overlays-in (point-min) (point-max))))))))
 
@@ -661,9 +661,9 @@ function definition, macro a macro definition.")
     (insert "(themer-reader-deftheme my-reader \"Doc mentions red.\"\n"
             "  :palette ((bg \"#282828\")\n            (red \"#fb4934\"))\n"
             "  :bg bg :fg \"#d5c4a1\" :syntax red :callable \"#b8bb26\" :value red)\n")
-    (let ((pal (themer-preview--reader-palette (themer-preview--reader-bounds))))
+    (let ((pal (cdr (themer-preview--form))))
       (should (equal pal '((bg . "#282828") (red . "#fb4934")))))
-    (themer-preview--paint-hexes (themer-preview--reader-bounds))
+    (themer-preview--paint-hexes (car (themer-preview--form)) (cdr (themer-preview--form)))
     (let ((ovs (cl-remove-if-not (lambda (o) (overlay-get o 'themer-preview))
                                  (overlays-in (point-min) (point-max)))))
       ;; 4 hex strings, 2 palette names, 3 slot references; not the doc's "red".

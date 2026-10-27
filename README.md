@@ -55,8 +55,10 @@ For [autothemer](https://github.com/jasonm23/autothemer) themes, it also
 paints each palette and role name with the colour it resolves to, both
 where it's defined and wherever a face spec uses it, so you can read the
 role → colour mapping straight off the buffer.
-In a `themer-reader-deftheme` form it paints each hex string of the spec,
-each palette entry's name, and each slot that names a palette entry.
+Other theme macros can register in `themer-preview-forms`: a macro and a
+function returning its form's palette. In such a form the mode paints each
+hex string and each palette name, where it's defined and where it's used.
+`themer-reader` registers `themer-reader-deftheme` this way.
 
 - Unbalanced parens mid-edit are skipped.
 - If evaluation fails, the previous face settings are restored.

@@ -47,8 +47,6 @@
 (require 'treesit)
 (require 'themer-colour)
 
-(defvar themer-preview-mode)
-(declare-function themer-preview-mode "themer-preview")
 (declare-function treesit-primary-parser "treesit")
 
 ;;;; Options
@@ -1307,6 +1305,24 @@ That is the :palette list and palette names."
   "SPEC, a plist as written, with its literal values quoted."
   (cl-loop for (k v) on spec by #'cddr
            append (list k (if (themer-reader--literal-p k v) (list 'quote v) v))))
+
+;;;; Preview
+
+(defun themer-reader--preview-palette (form)
+  "Alist (NAME . COLOUR) of the :palette of `themer-reader-deftheme' FORM."
+  (let* ((spec (and (consp form) (nthcdr 3 form)))
+         (pal (and (listp spec) (ignore-errors (plist-get spec :palette))))
+         out)
+    (when (listp pal)
+      (dolist (e pal)
+        (when (and (consp e) (symbolp (car e)) (stringp (car-safe (cdr e)))
+                   (color-defined-p (cadr e)))
+          (push (cons (car e) (cadr e)) out))))
+    (nreverse out)))
+
+(with-eval-after-load 'themer-preview
+  (add-to-list 'themer-preview-forms
+               '(themer-reader-deftheme . themer-reader--preview-palette)))
 
 ;;;; Tree-sitter rules
 
